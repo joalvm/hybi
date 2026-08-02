@@ -5,7 +5,12 @@ import { CHANNELS } from '../../src/shared/ipc/contract.js';
  * Channels the main process pushes into the renderer. They travel over
  * `webContents.send`, so they never get an `ipcMain.handle` registration.
  */
-const PUSH_ONLY = new Set<string>([CHANNELS.wsState, CHANNELS.wsActivity, CHANNELS.windowState]);
+const PUSH_ONLY = new Set<string>([
+  CHANNELS.wsState,
+  CHANNELS.wsActivity,
+  CHANNELS.windowState,
+  CHANNELS.appAbout,
+]);
 
 const handlers = new Map<string, unknown>();
 

@@ -34,6 +34,7 @@ vi.mock('@/ipc/bridge.js', () => ({
     platform: 'win32',
     role: 'welcome',
     workspaceId: null,
+    app: { version: '0.3.0-alpha.1', onAboutRequested: () => () => undefined },
   },
 }));
 

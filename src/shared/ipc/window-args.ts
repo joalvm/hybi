@@ -7,6 +7,7 @@ import type { WindowRole } from './contract.js';
  */
 const ROLE_FLAG = '--hybi-role=';
 const WORKSPACE_FLAG = '--hybi-workspace=';
+const VERSION_FLAG = '--hybi-version=';
 
 /** The flags the main process hands a welcome window. */
 export function welcomeArgs(): string[] {
@@ -27,4 +28,14 @@ export function roleOf(argv: readonly string[]): WindowRole {
 export function workspaceIdOf(argv: readonly string[]): string | null {
   const flag = argv.find((entry) => entry.startsWith(WORKSPACE_FLAG));
   return flag === undefined ? null : flag.slice(WORKSPACE_FLAG.length);
+}
+
+/** A sandboxed preload cannot reach `app.getVersion`, so the flag carries it. */
+export function versionArg(version: string): string {
+  return `${VERSION_FLAG}${version}`;
+}
+
+export function versionOf(argv: readonly string[]): string {
+  const flag = argv.find((entry) => entry.startsWith(VERSION_FLAG));
+  return flag === undefined ? '0.0.0' : flag.slice(VERSION_FLAG.length);
 }

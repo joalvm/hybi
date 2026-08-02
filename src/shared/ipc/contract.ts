@@ -30,6 +30,7 @@ export const CHANNELS = {
   windowState: 'window:state',
   windowPopupAppMenu: 'window:popup-app-menu',
   shellOpenWorkspace: 'shell:open-workspace',
+  appAbout: 'app:about',
 } as const;
 
 /** Only the distinction the chrome needs: macOS draws its own controls. */
@@ -136,6 +137,12 @@ export type WorkbenchBridge = {
   /** Opens a document in the workbench window, replacing the welcome window. */
   shell: {
     openWorkspace(workspaceId: string): Promise<void>;
+  };
+  app: {
+    /** What the running build is, straight from the main process. */
+    version: string;
+    /** The Help menu asks; the window that is in front paints the dialog. */
+    onAboutRequested(listener: () => void): () => void;
   };
   /** Decides who owns the controls, so the renderer never guesses the host. */
   platform: HostPlatform;

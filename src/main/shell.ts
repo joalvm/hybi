@@ -1,5 +1,6 @@
 import { join } from 'node:path';
-import type { BrowserWindow } from 'electron';
+import { BrowserWindow } from 'electron';
+import { CHANNELS } from '@shared/ipc/contract.js';
 import { registerWorkbenchIpc } from './ipc/register.js';
 import { guardNavigation } from './security/policy.js';
 import { createWelcomeWindow, createWorkbenchWindow } from './window.js';
@@ -73,4 +74,13 @@ export function openWorkspace(workspaceId: string, from: BrowserWindow | null): 
 /** True while any window of the app is still on screen. */
 export function hasOpenWindow(): boolean {
   return alive(welcome) || alive(workbench);
+}
+
+/**
+ * The Help menu belongs to whichever window is in front, so the request goes to
+ * the focused one — on macOS a single menu bar serves both windows.
+ */
+export function showAbout(): void {
+  const target = BrowserWindow.getFocusedWindow() ?? (alive(workbench) ? workbench : welcome);
+  if (alive(target)) target.webContents.send(CHANNELS.appAbout);
 }
