@@ -31,11 +31,15 @@ test('opens welcome as a fixed 1294x807 window with the flight to its right', as
     expect(traits.count).toBe(1);
     expect(traits).toMatchObject({
       resizable: false,
-      minimizable: false,
-      maximizable: false,
       width: 1294,
       height: 807,
     });
+
+    // Minimise and maximise are hints the window manager grants on X11, and CI
+    // runs a bare display with no manager to grant them.
+    if (process.platform !== 'linux') {
+      expect(traits).toMatchObject({ minimizable: false, maximizable: false });
+    }
 
     // Close is the only control it can honestly offer.
     await expect(window.getByRole('button', { name: 'Cerrar' })).toBeVisible();

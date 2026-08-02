@@ -40,13 +40,19 @@ function fakeContents() {
 describe('devtools shortcut', () => {
   let contents: ReturnType<typeof fakeContents>;
 
+  /** Chrome's accelerator on Windows and Linux, and the one macOS expects. */
+  const toggle: Partial<Electron.Input> =
+    process.platform === 'darwin'
+      ? { meta: true, alt: true, key: 'I' }
+      : { control: true, shift: true, key: 'I' };
+
   beforeEach(() => {
     contents = fakeContents();
     watchDevToolsShortcut(contents as unknown as Electron.WebContents);
   });
 
-  it('toggles devtools on Ctrl+Shift+I', () => {
-    const prevented = contents.press({ control: true, shift: true, key: 'I' });
+  it('toggles devtools on the platform accelerator', () => {
+    const prevented = contents.press(toggle);
 
     expect(contents.toggleDevTools).toHaveBeenCalledOnce();
     expect(prevented).toBe(true);
@@ -59,7 +65,7 @@ describe('devtools shortcut', () => {
   });
 
   it('ignores the same keys on the way up', () => {
-    contents.press({ control: true, shift: true, key: 'I', type: 'keyUp' });
+    contents.press({ ...toggle, type: 'keyUp' });
 
     expect(contents.toggleDevTools).not.toHaveBeenCalled();
   });

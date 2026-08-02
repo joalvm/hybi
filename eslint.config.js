@@ -1,9 +1,9 @@
-import js from '@eslint/js';
-import reactHooks from 'eslint-plugin-react-hooks';
-import tseslint from 'typescript-eslint';
+import js from "@eslint/js";
+import reactHooks from "eslint-plugin-react-hooks";
+import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ['out/**', 'dist/**', 'release/**', 'coverage/**', '.rescue/**'] },
+  { ignores: ["out/**", "dist/**", "release/**", "coverage/**", ".rescue/**"] },
   js.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
@@ -17,20 +17,20 @@ export default tseslint.config(
     rules: {
       // Domain shapes are type aliases on purpose: they compose into unions and
       // intersections that `interface` cannot express as cleanly.
-      '@typescript-eslint/consistent-type-definitions': 'off',
-      '@typescript-eslint/consistent-type-imports': 'error',
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      "@typescript-eslint/consistent-type-definitions": "off",
+      "@typescript-eslint/consistent-type-imports": "error",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
     },
   },
   {
-    files: ['src/renderer/**/*.{ts,tsx}'],
-    extends: [reactHooks.configs.flat['recommended-latest']],
+    files: ["src/renderer/**/*.{ts,tsx}"],
+    extends: [reactHooks.configs.flat["recommended-latest"]],
   },
   {
-    files: ['**/*.js'],
+    files: ["**/*.js"],
     extends: [tseslint.configs.disableTypeChecked],
   },
 );
