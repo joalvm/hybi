@@ -92,6 +92,7 @@ describe('Hybi packaging', () => {
     expect(workflow).toContain('APPLE_API_KEY_B64');
     expect(workflow).toContain('LINUX_GPG_PRIVATE_KEY_B64');
     expect(workflow).toContain('--draft');
+    expect(workflow).toContain('--prerelease');
     expect(source('resources/entitlements.mac.plist')).toContain(
       'com.apple.security.cs.disable-library-validation',
     );

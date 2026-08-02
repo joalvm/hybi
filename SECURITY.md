@@ -3,7 +3,8 @@
 ## Versiones con soporte
 
 Solo la última versión publicada recibe correcciones de seguridad. Mientras el
-proyecto esté en la serie `0.x`, cada versión nueva reemplaza a la anterior.
+proyecto esté en fase alpha, dentro de la serie `0.x`, cada versión nueva
+reemplaza a la anterior.
 
 ## Cómo reportar una vulnerabilidad
 
