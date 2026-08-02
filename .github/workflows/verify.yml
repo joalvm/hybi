@@ -49,7 +49,8 @@ jobs:
       - name: Install a virtual display for Electron
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y xvfb
       - name: Run Playwright against the packaged app
-        run: xvfb-run --auto-servernum npm run test:e2e
+        # The screen has to be wider than the 1294px window or X clamps it.
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
