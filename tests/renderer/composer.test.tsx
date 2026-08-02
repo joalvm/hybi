@@ -1,0 +1,328 @@
+import { act, fireEvent, render, renderHook, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { cloneConnectionSettings } from '@shared/domain/defaults.js';
+import { createWorkspace } from '@shared/domain/factory.js';
+import { useStore } from '@/store/index.js';
+import { ComposerBreadcrumb } from '@/features/composer/ComposerBreadcrumb.js';
+import { ComposerPanel } from '@/features/composer/ComposerPanel.js';
+import { ComposerFooter } from '@/features/composer/ComposerFooter.js';
+import { ComposerTabs } from '@/features/composer/ComposerTabs.js';
+import { DocsView } from '@/features/composer/DocsView.js';
+import { beautify, languageOf } from '@/features/composer/formats.js';
+import { SendButton } from '@/features/composer/SendButton.js';
+import { useComposerDraft } from '@/features/composer/useComposerDraft.js';
+import { useSaveShortcut } from '@/features/composer/useSaveShortcut.js';
+import { selectCollectionNameFor } from '@/store/selectors.js';
+
+/** Hoisted so the module factory below can close over the same spies. */
+const clipboard = vi.hoisted(() => ({
+  readText: vi.fn<() => Promise<string>>(() => Promise.resolve('')),
+  writeText: vi.fn(),
+}));
+
+vi.mock('@/ipc/bridge.js', () => ({ bridge: { ws: { send: vi.fn() }, clipboard } }));
+
+// jsdom has no layout for Monaco to measure, and the real `setup.js` drags the
+// whole editor bundle in. The panel only has to render around them here.
+vi.mock('@/shared/monaco/setup.js', () => ({
+  monaco: { editor: { setModelLanguage: () => undefined } },
+  registerVariableProviders: () => undefined,
+}));
+
+vi.mock('@/shared/monaco/useMonacoEditor.js', () => ({
+  modelFor: () => ({ getValue: () => '', setValue: () => undefined }),
+  useMonacoEditor: () => ({ containerRef: { current: null }, editorRef: { current: null } }),
+}));
+
+function seed(): void {
+  const workspace = createWorkspace('ViiA');
+  workspace.environments.push({
+    id: 'env1',
+    name: 'local',
+    variables: [{ name: 'token', value: 'abc', secret: false }],
+  });
+  workspace.connections.push({
+    id: 'c1',
+    name: 'local',
+    url: 'ws://127.0.0.1:3000',
+    environmentId: 'env1',
+    settings: cloneConnectionSettings(),
+  });
+  workspace.catalog.items.push({
+    // The seeded `General` collection, so the breadcrumb has a first crumb.
+    id: 'e1',
+    collectionId: workspace.catalog.collections[0]?.id ?? '',
+    name: 'Login',
+    payload: '{"token":"{{token}}"}',
+    source: 'manual',
+  });
+  useStore.getState().setWorkspace(workspace);
+  useStore.getState().setSelectedEvent('c1', 'e1');
+}
+
+beforeEach(() => {
+  useStore.getState().reset();
+  seed();
+});
+
+describe('useComposerDraft', () => {
+  it('starts clean on the catalog payload, resolved against the scope', () => {
+    const { result } = renderHook(() => useComposerDraft('c1'));
+    expect(result.current.text).toBe('{"token":"{{token}}"}');
+    expect(result.current.dirty).toBe(false);
+    expect(result.current.resolved).toBe('{"token":"abc"}');
+  });
+
+  it('marks the draft dirty and names the variables it could not resolve', () => {
+    const { result } = renderHook(() => useComposerDraft('c1'));
+    act(() => {
+      result.current.setText('{"token":"{{missing}}"}');
+    });
+    expect(result.current.dirty).toBe(true);
+    expect(result.current.missing).toEqual(['missing']);
+    expect(result.current.empty).toBe(false);
+  });
+
+  /** A workbench sends what it is given: nothing here inspects the shape. */
+  it('carries a payload that is neither JSON nor a known format', () => {
+    const { result } = renderHook(() => useComposerDraft('c1'));
+    act(() => {
+      result.current.setText('hola servidor');
+    });
+    expect(result.current.resolved).toBe('hola servidor');
+    expect(result.current.empty).toBe(false);
+  });
+
+  it('calls a whitespace-only box empty', () => {
+    const { result } = renderHook(() => useComposerDraft('c1'));
+    act(() => {
+      result.current.setText('  \n ');
+    });
+    expect(result.current.empty).toBe(true);
+  });
+
+  it('save writes the draft into the catalog and clears the dirty flag', () => {
+    const { result } = renderHook(() => useComposerDraft('c1'));
+    act(() => {
+      result.current.setText('{"token":"x"}');
+    });
+    act(() => {
+      result.current.save();
+    });
+    expect(useStore.getState().workspace?.catalog.items[0]?.payload).toBe('{"token":"x"}');
+    expect(result.current.dirty).toBe(false);
+  });
+
+  // Undo is Monaco's, so retyping the original text is what "reverts" a draft:
+  // the dirty flag has to answer to the text, not to a button that no longer
+  // exists.
+  it('goes clean again when the text matches the catalog payload', () => {
+    const { result } = renderHook(() => useComposerDraft('c1'));
+    act(() => {
+      result.current.setText('{"token":"x"}');
+    });
+    expect(result.current.dirty).toBe(true);
+
+    act(() => {
+      result.current.setText('{"token":"{{token}}"}');
+    });
+    expect(result.current.dirty).toBe(false);
+  });
+});
+
+describe('useSaveShortcut', () => {
+  const pressCtrlS = (): boolean =>
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 's', ctrlKey: true, cancelable: true }));
+
+  it('saves on Ctrl+S while the draft is dirty', () => {
+    const onSave = vi.fn();
+    renderHook(() => {
+      useSaveShortcut(true, onSave);
+    });
+
+    // `false` is what `dispatchEvent` returns once the default was prevented,
+    // which is how the browser's own save dialog is kept out of the window.
+    expect(pressCtrlS()).toBe(false);
+    expect(onSave).toHaveBeenCalledOnce();
+  });
+
+  it('swallows the keystroke but writes nothing on a clean draft', () => {
+    const onSave = vi.fn();
+    renderHook(() => {
+      useSaveShortcut(false, onSave);
+    });
+
+    expect(pressCtrlS()).toBe(false);
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('leaves the listener behind when the composer goes away', () => {
+    const onSave = vi.fn();
+    const { unmount } = renderHook(() => {
+      useSaveShortcut(true, onSave);
+    });
+
+    unmount();
+    pressCtrlS();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+});
+
+describe('ComposerTabs', () => {
+  it('switches to the docs view and marks the tab it left', () => {
+    const onChange = vi.fn();
+    render(<ComposerTabs tab="message" dirty={false} onChange={onChange} />);
+
+    expect(screen.getByRole('tab', { name: 'Message' }).getAttribute('aria-selected')).toBe('true');
+    fireEvent.click(screen.getByRole('tab', { name: 'Docs' }));
+    expect(onChange).toHaveBeenCalledWith('docs');
+  });
+
+  /** The dot belongs to Message: the payload is the only thing an edit touches. */
+  it('shows the unsaved dot on Message alone', () => {
+    const { rerender } = render(<ComposerTabs tab="message" dirty={false} onChange={vi.fn()} />);
+    expect(screen.queryByLabelText('Cambios sin guardar')).toBeNull();
+
+    rerender(<ComposerTabs tab="message" dirty onChange={vi.fn()} />);
+    const dot = screen.getByLabelText('Cambios sin guardar');
+    expect(screen.getByRole('tab', { name: /Message/ }).contains(dot)).toBe(true);
+  });
+});
+
+describe('ComposerBreadcrumb', () => {
+  it('names the collection and then the event', () => {
+    render(<ComposerBreadcrumb collection="General" event="DeviceLogin" />);
+    expect(screen.getByText('General')).toBeTruthy();
+    expect(screen.getByText('DeviceLogin')).toBeTruthy();
+  });
+
+  it('reads the collection of the open event out of the store', () => {
+    expect(selectCollectionNameFor('c1')(useStore.getState())).toBe('General');
+  });
+});
+
+describe('DocsView', () => {
+  it('renders the description as markdown', () => {
+    render(<DocsView description={'# Login\n\nEnvía el **token** del dispositivo.'} />);
+    expect(screen.getByRole('heading', { name: 'Login' })).toBeTruthy();
+    expect(screen.getByText('token').tagName).toBe('STRONG');
+  });
+
+  it('says so when the event carries no description', () => {
+    render(<DocsView description={undefined} />);
+    expect(screen.getByText('Este evento no tiene descripción.')).toBeTruthy();
+  });
+});
+
+describe('SendButton', () => {
+  it('sends whatever is in the box once the socket is up', () => {
+    const onSend = vi.fn();
+    render(<SendButton connected empty={false} onSend={onSend} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+    expect(onSend).toHaveBeenCalledOnce();
+  });
+
+  it('stays down without a socket or without a payload', () => {
+    const { rerender } = render(<SendButton connected={false} empty={false} onSend={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Enviar' })).toHaveProperty('disabled', true);
+
+    rerender(<SendButton connected empty onSend={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Enviar' })).toHaveProperty('disabled', true);
+  });
+});
+
+describe('beautify', () => {
+  it('re-indents a JSON frame that arrived on one line', () => {
+    expect(beautify('{"event":"Ping","data":{"id":1}}', 'json')).toBe(
+      '{\n  "event": "Ping",\n  "data": {\n    "id": 1\n  }\n}',
+    );
+  });
+
+  it('indents markup by tag depth', () => {
+    expect(beautify('<a><b>hola</b></a>', 'xml')).toBe('<a>\n  <b>\n    hola\n  </b>\n</a>');
+  });
+
+  it('does not indent past a void element', () => {
+    expect(beautify('<p><br><i>x</i></p>', 'html')).toBe('<p>\n  <br>\n  <i>\n    x\n  </i>\n</p>');
+  });
+
+  /** Null is what greys the button: nothing to do beats a click that does nothing. */
+  it('gives up on text it cannot parse, and on formats with no shape', () => {
+    expect(beautify('{"broken":', 'json')).toBeNull();
+    expect(beautify('hola servidor', 'text')).toBeNull();
+    expect(beautify('deadbeef', 'binary')).toBeNull();
+    expect(beautify('   ', 'json')).toBeNull();
+  });
+
+  it('maps every format to a language the editor knows', () => {
+    expect(languageOf('json')).toBe('json');
+    expect(languageOf('xml')).toBe('xml');
+    expect(languageOf('html')).toBe('html');
+    expect(languageOf('text')).toBe('plaintext');
+    expect(languageOf('binary')).toBe('plaintext');
+  });
+});
+
+describe('ComposerFooter', () => {
+  it('writes the formatted text back when beautify is pressed', () => {
+    const onBeautify = vi.fn();
+    render(
+      <ComposerFooter
+        format="json"
+        beautified="{}"
+        onFormatChange={vi.fn()}
+        onBeautify={onBeautify}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Formatear' }));
+    expect(onBeautify).toHaveBeenCalledOnce();
+  });
+
+  it('greys the button when there is nothing to format', () => {
+    render(
+      <ComposerFooter
+        format="text"
+        beautified={null}
+        onFormatChange={vi.fn()}
+        onBeautify={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Formatear' })).toHaveProperty('disabled', true);
+  });
+
+  it('reports the format the user picked', async () => {
+    const user = userEvent.setup();
+    const onFormatChange = vi.fn();
+    render(
+      <ComposerFooter
+        format="json"
+        beautified={null}
+        onFormatChange={onFormatChange}
+        onBeautify={vi.fn()}
+      />,
+    );
+    await user.click(screen.getByRole('combobox', { name: 'Formato del payload' }));
+    await user.click(screen.getByRole('option', { name: 'XML' }));
+    expect(onFormatChange).toHaveBeenCalledWith('xml');
+  });
+});
+
+describe('payload editor context menu', () => {
+  it('offers exactly copy and paste, and pastes through the bridge', async () => {
+    const user = userEvent.setup();
+    clipboard.readText.mockResolvedValue('{"a":1}');
+
+    render(<ComposerPanel connectionId="c1" />);
+
+    await user.pointer({ keys: '[MouseRight]', target: screen.getByTestId('payload-editor') });
+
+    expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+      'Copiar',
+      'Pegar',
+    ]);
+
+    await user.click(screen.getByRole('menuitem', { name: 'Pegar' }));
+    expect(clipboard.readText).toHaveBeenCalledTimes(1);
+  });
+});

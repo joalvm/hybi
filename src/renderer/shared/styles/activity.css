@@ -1,0 +1,132 @@
+.activity-search {
+  width: 132px;
+}
+
+.activity-list {
+  height: 100%;
+  overflow: auto;
+  contain: strict;
+}
+
+.activity-list__canvas {
+  position: relative;
+  width: 100%;
+}
+
+.activity-list__slot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+/* Four columns: what happened, what it was called, what it said, and when. The
+   name is set in the UI face and the frame in mono, which is what lets the eye
+   run down the names without reading the payloads. */
+.activity-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  height: 100%;
+  padding: 0 var(--space-2);
+  background: transparent;
+  border: 0;
+  border-left: 2px solid transparent;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.activity-row__icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.activity-row:hover {
+  background: var(--bg-hover);
+}
+
+.activity-row.is-selected {
+  background: var(--bg-selected);
+  border-left-color: var(--accent);
+}
+
+.activity-row--outgoing .activity-row__icon {
+  color: var(--accent-text);
+}
+
+.activity-row--incoming .activity-row__icon {
+  color: var(--blue);
+}
+
+.activity-row--status .activity-row__icon {
+  color: var(--ok);
+}
+
+.activity-row--error .activity-row__icon {
+  color: var(--error);
+}
+
+/* A floor, not a fixed width: short names pad out to a common column so the
+   frames beside them line up, long ones take the room and then ellipsize. */
+.activity-row__label {
+  flex: 0 1 auto;
+  min-width: 6rem;
+  max-width: 45%;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-row__preview {
+  flex: 1;
+  overflow: hidden;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-row__time {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.activity-detail {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.activity-detail__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  font-size: 11px;
+}
+
+/* The close button is the only control in the row, so it takes the far end. */
+.activity-detail__header .icon-button {
+  margin-left: auto;
+}
+
+.activity-detail__editor {
+  flex: 1;
+  min-height: 0;
+}
+
+.text-dim {
+  color: var(--text-dim);
+}

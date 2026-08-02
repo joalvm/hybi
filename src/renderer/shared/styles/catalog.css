@@ -1,0 +1,189 @@
+.catalog {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  background: var(--bg-chrome);
+}
+
+.catalog-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-bottom: 0;
+}
+
+.catalog-toolbar .catalog-search {
+  flex: 0 1 8.5rem;
+  min-width: 6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* The one heading the sidebar keeps, now that the panel has no title row. */
+.catalog-section {
+  padding: var(--space-2) var(--space-2) var(--space-1);
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.catalog-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  width: 100%;
+  min-height: var(--control-h);
+  padding: 0 var(--space-1) 0 var(--space-2);
+  background: var(--bg-chrome);
+}
+
+.catalog-search:focus-within {
+  background: var(--bg-panel);
+  border-color: var(--accent);
+  outline: 1px solid var(--accent);
+}
+
+.catalog-search__icon {
+  flex: 0 0 auto;
+  color: var(--text-dim);
+}
+
+.catalog-search__field {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+}
+
+.catalog-empty {
+  padding: var(--space-3);
+  color: var(--text-dim);
+}
+
+/* An import in flight. The main process is parsing, which used to look like the
+   app had stopped answering. */
+.catalog-busy {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.catalog-collection-header {
+  display: flex;
+  align-items: center;
+  min-height: var(--row-h);
+  padding-right: var(--space-1);
+}
+
+.catalog-collection-header:hover {
+  background: var(--bg-hover);
+}
+
+.catalog-collection-toggle {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  min-height: var(--row-h);
+  padding: 0 var(--space-2);
+  background: transparent;
+  border: 0;
+  color: var(--text-dim);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.catalog-collection-name {
+  flex: 1;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Never squashed by a long collection name, and never wider than the glyph. */
+.catalog-collection-caret {
+  flex: 0 0 auto;
+}
+
+/* An indent guide rather than padding alone: at two hundred rows the line is
+   what says which collection a name belongs to. */
+.catalog-collection-items {
+  list-style: none;
+  margin-left: var(--space-4);
+  padding: 0;
+  border-left: 1px solid var(--border);
+}
+
+.catalog-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--row-h);
+  padding: 0 var(--space-2) 0 var(--space-3);
+  cursor: pointer;
+}
+
+.catalog-item:hover {
+  background: var(--bg-hover);
+}
+
+/* The tree owns the arrows, so the focused row has to say so: the roving
+   tabindex means focus is the only thing marking where the keyboard is. */
+.catalog-item:focus-visible,
+.catalog-collection-toggle:focus-visible {
+  background: var(--bg-hover);
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.catalog-item--selected {
+  background: var(--bg-selected);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.catalog-item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The row buttons stay out of the way until the row is hovered, focused or
+   selected, so a long catalog reads as names. `:focus-within` keeps them
+   keyboard reachable. The collection's `…` follows its `+`: two glyphs on every
+   header is what the sidebar reads as before the pointer arrives. */
+.catalog-collection-header .icon-button,
+.catalog-collection-header .row-menu,
+.catalog-item .row-menu {
+  opacity: 0;
+}
+
+.catalog-collection-header:hover .icon-button,
+.catalog-collection-header:hover .row-menu,
+.catalog-collection-header:focus-within .icon-button,
+.catalog-collection-header:focus-within .row-menu,
+.catalog-item:hover .row-menu,
+.catalog-item:focus-visible .row-menu,
+.catalog-item--selected .row-menu,
+.catalog-item .row-menu:focus-within {
+  opacity: 1;
+}
+
+/* An open menu moves focus into its portal and the pointer onto the panel, so
+   neither `:hover` nor `:focus-within` holds — without this the `…` fades out
+   from under the menu it just opened. Radix marks the trigger while open. */
+.catalog-collection-header .row-menu:has(> [data-state='open']),
+.catalog-item .row-menu:has(> [data-state='open']) {
+  opacity: 1;
+}

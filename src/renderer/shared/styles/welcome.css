@@ -1,0 +1,168 @@
+/* Welcome alone gets editorial breathing room; work surfaces keep desktop density.
+
+   The grid lives on `.welcome` itself: an extra wrapper only made the media
+   queries below target one element and the columns another, so they did nothing. */
+.welcome {
+  --welcome-animation-time: 0ms;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template: 'content' minmax(0, 1fr) / minmax(0, 1fr);
+  /* The close button floats over this screen, so the brand keeps clear of it. */
+  padding: calc(var(--titlebar-h) + var(--space-5)) var(--space-6) var(--space-6);
+  background: var(--bg-app);
+  overflow: hidden;
+}
+
+.welcome__content {
+  display: flex;
+  flex-direction: column;
+  grid-area: content;
+  align-self: center;
+  justify-self: center;
+  width: min(40ch, 100%);
+  min-height: 0;
+}
+
+.welcome__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.welcome__brand-mark {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.welcome__kicker,
+.welcome__section-title {
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.welcome__title {
+  max-width: 22rem;
+  margin-top: var(--space-2);
+  color: var(--text);
+  font-size: clamp(34px, 4vw, 48px);
+  font-weight: 620;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+}
+
+.welcome__intro {
+  max-width: 24rem;
+  margin-top: var(--space-4);
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.welcome__create {
+  width: 100%;
+  min-height: 36px;
+  margin-top: var(--space-5);
+  padding: 0 var(--space-4);
+}
+
+.welcome__recent {
+  min-height: 0;
+  margin-top: var(--space-6);
+  overflow-y: auto;
+}
+
+.welcome__section-title {
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.welcome__status {
+  padding: var(--space-3) 0;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.welcome__status--error {
+  color: var(--error);
+}
+
+.welcome__list {
+  padding: 0;
+  list-style: none;
+}
+
+.welcome__item {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.welcome__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: calc(var(--row-h) + var(--space-2));
+  padding: 0 var(--space-2);
+  background: transparent;
+  border: 0;
+  color: var(--text-dim);
+  text-align: left;
+  cursor: pointer;
+}
+
+.welcome__link:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.welcome__link:focus-visible {
+  color: var(--text);
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.welcome__link-mark {
+  width: 12px;
+  height: 1px;
+  background: var(--border);
+}
+
+.welcome__link:hover .welcome__link-mark,
+.welcome__link:focus-visible .welcome__link-mark {
+  background: var(--accent);
+}
+
+.welcome__link-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The window opens at 1294x807, so this is the layout it is designed for: the
+   list on the left, the illustration filling what is left of the width. A
+   smaller window — the user can still make one on Linux tiling setups — drops
+   the illustration and keeps the one column that does the work. */
+@media (min-width: 1200px) and (min-height: 800px) {
+  .welcome {
+    --welcome-animation-time: 700ms;
+    grid-template: 'gutter content flight' minmax(0, 1fr) / minmax(var(--space-6), 1fr)
+      minmax(0, 40ch) minmax(0, 5fr);
+    gap: calc(var(--space-5) * 2);
+    padding-right: 0;
+    padding-bottom: 0;
+  }
+
+  .welcome__content {
+    align-self: center;
+    justify-self: stretch;
+  }
+}

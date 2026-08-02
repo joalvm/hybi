@@ -1,0 +1,25 @@
+changelog:
+  exclude:
+    labels:
+      - sin-notas
+  categories:
+    - title: Novedades
+      labels:
+        - feature
+    - title: Correcciones
+      labels:
+        - bug
+    - title: Rendimiento y refactor
+      labels:
+        - performance
+        - refactor
+    - title: Documentación
+      labels:
+        - documentation
+    - title: Dependencias e infraestructura
+      labels:
+        - dependencies
+        - ci
+    - title: Otros cambios
+      labels:
+        - '*'

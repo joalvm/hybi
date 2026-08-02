@@ -1,0 +1,76 @@
+/* Every margin is written out: the reset in `global.css` zeroes them all, so
+   prose that reads as prose has to ask for its own rhythm back. */
+.markdown {
+  max-width: 62rem;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.md-heading {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+h1.md-heading {
+  font-size: 15px;
+}
+
+h2.md-heading {
+  font-size: 13px;
+}
+
+.md-paragraph {
+  margin: 0 0 var(--space-3);
+}
+
+.md-list {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-5);
+}
+
+.md-list li {
+  margin-bottom: var(--space-1);
+}
+
+.md-quote {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--border);
+  color: var(--text-dim);
+}
+
+.md-fence {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2);
+  overflow-x: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.md-code {
+  padding: 1px 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+/* Text needs the darker brand tone to remain legible on white surfaces. */
+.md-link {
+  color: var(--accent-text);
+}
+
+.md-rule {
+  margin: var(--space-4) 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}

@@ -1,0 +1,62 @@
+asyncapi: 2.6.0
+id: urn:example:websocket-workbench:v2
+info:
+  title: Example Events
+  version: 1.0.0
+  description: |
+    Events for **users**. <script>alert('blocked')</script>
+  contact:
+    name: Example team
+    email: team@example.com
+  license:
+    name: MIT
+defaultContentType: application/json
+tags:
+  - name: users
+servers:
+  local:
+    url: localhost:4400
+    protocol: ws
+    description: Local WebSocket target
+channels:
+  users:
+    description: User lifecycle messages.
+    publish:
+      operationId: userCreatedIncoming
+      message:
+        $ref: '#/components/messages/UserCreated'
+    subscribe:
+      operationId: userCreatedOutgoing
+      message:
+        $ref: '#/components/messages/UserCreated'
+components:
+  schemas:
+    UserCreatedPayload:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          example: user-001
+        active:
+          type: boolean
+          default: false
+  messages:
+    UserCreated:
+      name: user.created
+      title: User created
+      summary: User creation event
+      description: User **created** successfully.
+      tags:
+        - name: users
+      payload:
+        $ref: '#/components/schemas/UserCreatedPayload'
+      examples:
+        - name: standard
+          summary: Standard user
+          payload:
+            id: user-123
+            active: true
+      correlationId:
+        location: $message.payload#/id

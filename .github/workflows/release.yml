@@ -1,0 +1,231 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: Check the tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Require the tag to match package.json
+        if: github.ref_type == 'tag'
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$version" ]; then
+            echo "::error::La etiqueta $GITHUB_REF_NAME no coincide con la versión $version de package.json."
+            exit 1
+          fi
+
+  package:
+    name: Package ${{ matrix.platform }}
+    needs: guard
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      WIN_SIGNING: ${{ secrets.WIN_CSC_LINK != '' && secrets.WIN_CSC_KEY_PASSWORD != '' }}
+      MAC_SIGNING: ${{ secrets.CSC_LINK != '' && secrets.APPLE_API_KEY_B64 != '' }}
+      LINUX_SIGNING: ${{ secrets.LINUX_GPG_PRIVATE_KEY_B64 != '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+          - os: macos-latest
+            platform: mac
+          - os: ubuntu-latest
+            platform: linux
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run verify
+
+      - name: Prepare Apple notarization key
+        if: matrix.platform == 'mac' && env.MAC_SIGNING == 'true'
+        shell: bash
+        env:
+          APPLE_API_KEY_B64: ${{ secrets.APPLE_API_KEY_B64 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+        run: |
+          key_path="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY_ID}.p8"
+          export key_path
+          node -e "require('node:fs').writeFileSync(process.env.key_path, Buffer.from(process.env.APPLE_API_KEY_B64, 'base64'), { mode: 0o600 })"
+          chmod 600 "$key_path"
+          echo "APPLE_API_KEY=$key_path" >> "$GITHUB_ENV"
+      - name: Import the Linux signing key
+        if: matrix.platform == 'linux' && env.LINUX_SIGNING == 'true'
+        shell: bash
+        env:
+          LINUX_GPG_PRIVATE_KEY_B64: ${{ secrets.LINUX_GPG_PRIVATE_KEY_B64 }}
+        run: |
+          node -e "process.stdout.write(Buffer.from(process.env.LINUX_GPG_PRIVATE_KEY_B64, 'base64'))" | gpg --batch --import
+          key_id="$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1 == "sec" { print $5; exit }')"
+          test -n "$key_id"
+          echo "HYBI_GPG_KEY_ID=$key_id" >> "$GITHUB_ENV"
+
+      - name: Build signed Windows distributables
+        if: matrix.platform == 'win' && env.WIN_SIGNING == 'true'
+        run: npm run dist:win -- --config.forceCodeSigning=true
+        env:
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+      - name: Build unsigned Windows distributables
+        if: matrix.platform == 'win' && env.WIN_SIGNING != 'true'
+        run: npm run dist:win
+      - name: Verify Windows signatures
+        if: matrix.platform == 'win' && env.WIN_SIGNING == 'true'
+        shell: pwsh
+        run: |
+          $installers = Get-ChildItem -LiteralPath release -File -Filter '*.exe'
+          if ($installers.Count -eq 0) {
+            throw 'No Windows installer was produced.'
+          }
+          $unsigned = $installers | Where-Object {
+            (Get-AuthenticodeSignature -LiteralPath $_.FullName).Status -ne 'Valid'
+          }
+          if ($unsigned) {
+            throw "Unsigned Windows artifacts: $($unsigned.Name -join ', ')"
+          }
+
+      - name: Build signed macOS distributables
+        if: matrix.platform == 'mac' && env.MAC_SIGNING == 'true'
+        run: npm run dist:mac -- --config.forceCodeSigning=true
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+      - name: Build unsigned macOS distributables
+        if: matrix.platform == 'mac' && env.MAC_SIGNING != 'true'
+        run: npm run dist:mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Verify macOS signature and notarization
+        if: matrix.platform == 'mac' && env.MAC_SIGNING == 'true'
+        shell: bash
+        run: |
+          app_path="$(find release -type d -name 'Hybi.app' -print -quit)"
+          test -n "$app_path"
+          codesign --verify --deep --strict --verbose=2 "$app_path"
+          spctl --assess --type execute --verbose=4 "$app_path"
+          xcrun stapler validate "$app_path"
+          dmg_path="$(find release -maxdepth 1 -type f -name '*.dmg' -print -quit)"
+          test -n "$dmg_path"
+          xcrun stapler validate "$dmg_path"
+
+      - name: Build Linux distributables
+        if: matrix.platform == 'linux'
+        run: npm run dist:linux
+
+      - name: Write SHA-256 checksums
+        shell: pwsh
+        run: |
+          $release = (Resolve-Path 'release').Path
+          $extensions = '.AppImage', '.deb', '.dmg', '.exe', '.rpm', '.zip'
+          $artifacts = Get-ChildItem -Path $release -File |
+            Where-Object { $extensions -contains $_.Extension }
+          if ($artifacts.Count -eq 0) {
+            throw 'No distributable artifact was produced.'
+          }
+          $artifacts |
+            ForEach-Object {
+              $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+              $relative = $_.FullName.Substring($release.Length + 1).Replace('\', '/')
+              "$hash  $relative"
+            } | Set-Content -LiteralPath (Join-Path $release 'SHA256SUMS-${{ matrix.platform }}.txt') -Encoding ascii
+      - name: Sign the Linux artifacts
+        if: matrix.platform == 'linux' && env.LINUX_SIGNING == 'true'
+        shell: bash
+        env:
+          LINUX_GPG_PASSPHRASE: ${{ secrets.LINUX_GPG_PASSPHRASE }}
+        run: |
+          files=(release/*.AppImage release/*.deb release/*.rpm release/SHA256SUMS-linux.txt)
+          test -e "${files[0]}"
+          for file in "${files[@]}"; do
+            gpg --batch --yes --pinentry-mode loopback --passphrase "$LINUX_GPG_PASSPHRASE" \
+              --armor --detach-sign --local-user "$HYBI_GPG_KEY_ID" "$file"
+          done
+          gpg --batch --armor --export "$HYBI_GPG_KEY_ID" > release/Hybi-release-signing-key.asc
+
+      - name: Report the signing state
+        shell: bash
+        run: |
+          case "${{ matrix.platform }}" in
+            win) signed="$WIN_SIGNING" ;;
+            mac) signed="$MAC_SIGNING" ;;
+            *) signed="$LINUX_SIGNING" ;;
+          esac
+          if [ "$signed" = "true" ]; then
+            echo "- **${{ matrix.platform }}**: artefactos firmados." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- **${{ matrix.platform }}**: :warning: sin credenciales de firma, artefactos SIN FIRMAR." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hybi-${{ matrix.platform }}
+          path: |
+            release/*.AppImage
+            release/*.deb
+            release/*.dmg
+            release/*.exe
+            release/*.rpm
+            release/*.zip
+            release/*.asc
+            release/SHA256SUMS-*.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Draft the release
+    needs: package
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: hybi-*
+          merge-multiple: true
+          path: dist-artifacts
+      - name: Merge the checksum files
+        working-directory: dist-artifacts
+        run: |
+          cat SHA256SUMS-*.txt | sort -k2 > SHA256SUMS.txt
+          rm SHA256SUMS-*.txt
+          cat SHA256SUMS.txt
+      # El release nace en borrador: nadie descarga un binario que el mantenedor
+      # no haya revisado y publicado a mano.
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" \
+            --draft \
+            --title "$TAG" \
+            --generate-notes \
+            dist-artifacts/*

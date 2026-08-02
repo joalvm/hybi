@@ -1,0 +1,401 @@
+/* Each feature owns enough rules to be its own sheet. */
+@import './catalog.css';
+@import './connections.css';
+@import './composer.css';
+@import './activity.css';
+@import './markdown.css';
+@import './app.css';
+@import './welcome.css';
+@import './welcome-flight.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--bg-app);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Thin, and invisible until the pointer is over the pane that owns it. Chromium
+   reserves the gutter whether or not the thumb is painted, so revealing one
+   costs no reflow. `scrollbar-width` is deliberately left alone: setting it
+   hands Chromium its own thin scrollbar and every rule below is ignored. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* The border is the padding: a 4px thumb inside a 10px gutter, clipped so the
+   colour stops short of the edge of the pane. */
+::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  background-clip: content-box;
+  border: 3px solid transparent;
+  border-radius: 999px;
+}
+
+/* `:hover` propagates up the ancestor chain, so pointing at any row inside a
+   scrolling pane is what brings out that pane's thumb. */
+*:hover::-webkit-scrollbar-thumb {
+  background-color: rgb(28 28 30 / 20%);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(28 28 30 / 36%);
+}
+
+@keyframes icon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/** The one moving thing in the app: work already running. */
+.icon-spin {
+  animation: icon-spin 900ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon-spin {
+    animation: none;
+  }
+}
+
+/* No border and no radius: panels are separated by the split handle, which is
+   itself the 1px line. A framed, rounded card would reintroduce the gaps. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  background: var(--bg-panel);
+  overflow: hidden;
+}
+
+/* White, like the body under it: the rule says a header ends. */
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: calc(var(--header-h) + var(--space-2));
+  padding: 0 var(--space-3);
+}
+
+.panel-title {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.panel-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.split {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.split--row {
+  flex-direction: row;
+}
+
+.split--column {
+  flex-direction: column;
+}
+
+.split-pane {
+  flex-grow: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* The handle *is* the separator: 1px of border, with a ±3px pseudo-element that
+   widens the grab area without widening the line. */
+.split-handle {
+  position: relative;
+  flex: 0 0 1px;
+  padding: 0;
+  background: var(--border);
+  border: 0;
+}
+
+.split-handle::after {
+  content: '';
+  position: absolute;
+  inset: 0 -3px;
+}
+
+.split--column > .split-handle::after {
+  inset: -3px 0;
+}
+
+.split-handle:hover,
+.split-handle:focus-visible {
+  background: var(--accent);
+  outline: none;
+}
+
+.split--row > .split-handle {
+  cursor: col-resize;
+}
+
+.split--column > .split-handle {
+  cursor: row-resize;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: var(--control-h);
+  min-height: var(--control-h);
+  padding: 0 var(--space-1);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.icon-button:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.icon-button:focus-visible {
+  outline: 1px solid var(--accent);
+}
+
+.icon-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.icon-button--danger:hover:not(:disabled) {
+  color: var(--error);
+}
+
+/* The `…` a row shows instead of a strip of buttons. */
+.row-menu {
+  position: relative;
+  display: flex;
+}
+
+.row-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--row-h);
+  padding: 0 var(--space-1);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.row-menu__trigger:hover,
+.row-menu__trigger:focus-visible {
+  background: var(--bg-hover);
+  color: var(--text);
+  outline: none;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.field-label {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border: 1px solid currentcolor;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.badge--neutral {
+  color: var(--text-dim);
+}
+
+.badge--ok {
+  color: var(--ok);
+}
+
+.badge--warn {
+  color: var(--warn);
+}
+
+.badge--error {
+  color: var(--error);
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.input {
+  width: 100%;
+  min-height: var(--control-h);
+  padding: 0 var(--space-2);
+  background: var(--bg-app);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.input:focus-visible {
+  border-color: var(--accent);
+  outline: 1px solid var(--accent);
+}
+
+.input--code {
+  min-height: 8rem;
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-mono);
+  resize: vertical;
+}
+
+/* Takes the place of a name inside a row, so it keeps the row's height and type
+   and marks itself with the accent border alone. Anything taller would make the
+   list jump as soon as a rename starts. */
+.inline-name {
+  flex: 1;
+  min-width: 0;
+  height: calc(var(--control-h) - 4px);
+  padding: 0 var(--space-1);
+  background: var(--bg-app);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  color: var(--text);
+  font: inherit;
+}
+
+.inline-name:focus-visible {
+  outline: none;
+}
+
+.button {
+  /* Flex rather than inline text, so a button that carries an icon keeps its
+     glyph and its label on one baseline without a wrapper. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-height: var(--control-h);
+  padding: 0 var(--space-3);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.button:focus-visible {
+  outline: 1px solid var(--accent);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Filled primary actions remain legible against white working surfaces. */
+.button--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-brand);
+}
+
+.button--primary:hover:not(:disabled) {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.button--danger {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.button--danger:hover:not(:disabled) {
+  background: var(--error);
+  color: #ffffff;
+}
+
+.wsw-var-resolved {
+  color: var(--var-resolved);
+}
+
+.wsw-var-missing {
+  color: var(--var-missing);
+  text-decoration: underline wavy;
+}

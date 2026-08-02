@@ -1,0 +1,39 @@
+asyncapi: 2.6.0
+id: urn:example:websocket-workbench:chat
+info:
+  title: Chat Events
+  version: 1.0.0
+  description: |
+    Small local contract for exercising the WebSocket Workbench.
+defaultContentType: application/json
+servers:
+  local:
+    url: localhost:4400
+    protocol: ws
+channels:
+  chat:
+    description: Messages sent by a chat client.
+    subscribe:
+      operationId: sendChatMessage
+      message:
+        $ref: '#/components/messages/ChatMessage'
+components:
+  messages:
+    ChatMessage:
+      name: chat.message
+      title: Chat message
+      summary: Send a chat message.
+      description: The local fixture echoes this payload in its reply.
+      payload:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            minLength: 1
+            example: Hello from the workbench
+      examples:
+        - name: standard
+          payload:
+            text: Hello from the workbench

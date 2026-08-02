@@ -1,0 +1,153 @@
+.composer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+/* Hidden rather than unmounted while Docs is open: Monaco keeps one instance
+   for the life of the panel and measures itself again when it comes back. */
+.composer--hidden {
+  display: none;
+}
+
+/* The composer is headed by a breadcrumb and a tab strip instead of a title, so
+   it draws its own chrome rather than borrowing `.panel-header`. */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: calc(var(--header-h) + var(--space-2));
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.breadcrumb__icon,
+.breadcrumb__separator {
+  flex: 0 0 auto;
+}
+
+.breadcrumb__crumb {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.breadcrumb__crumb--current {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* The breadcrumb sits above this, so the strip needs room over it as well as
+   under it — otherwise the two rows read as one crowded line. */
+.composer-tabbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2);
+}
+
+.composer-tabs {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+/* The same shape as a connection tab: one softened corner for everything that
+   switches, and a quiet grey fill on the one that is open. */
+.composer-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: calc(var(--control-h) - 4px);
+  padding: 0 var(--space-3);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-tab);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.composer-tab:hover {
+  background: var(--bg-elevated);
+}
+
+.composer-tab--active,
+.composer-tab--active:hover {
+  background: var(--bg-tab-active);
+  color: var(--text);
+}
+
+.composer-tab:focus-visible {
+  outline: 1px solid var(--accent);
+}
+
+.composer-docs {
+  padding: var(--space-3) var(--space-4);
+}
+
+/* Monaco measures its container, so the editor needs a real height rather than
+   the intrinsic one a flex child would take. */
+.payload-editor {
+  flex: 1;
+  min-height: 0;
+}
+
+/* A line number is a coordinate, not content. Monaco has no option for it, so
+   the gutter is stepped down here to stop it competing with the payload. */
+.payload-editor .line-numbers {
+  font-size: 10px;
+}
+
+/* Format on the left, one button to tidy the text. Nothing in this row passes
+   judgement on the payload — a client may send whatever shape it likes.
+   Taller than a header: its controls sit against the bottom edge of the window,
+   and a header's height leaves them looking dropped off it. */
+.composer-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: calc(var(--header-h) + var(--space-2));
+  padding: 0 var(--space-2);
+  background: var(--bg-panel);
+}
+
+/* `.select-trigger` (overlays.css) is imported after this sheet, so a plain
+   `.composer-format` selector is the same specificity and loses every shared
+   property to it. Qualifying with `.select-trigger` raises this to two classes,
+   which wins regardless of import order — keep the extra class here rather
+   than moving this styling into overlays.css. */
+.select-trigger.composer-format {
+  height: var(--control-h);
+  padding: 0 var(--space-1);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.select-trigger.composer-format:focus-visible {
+  border-color: var(--accent);
+  outline: 1px solid var(--accent);
+}
+
+/* Sits at the far end of the tab strip, so it matches the height of a tab
+   rather than the full height of a control. */
+.button.composer-send {
+  flex: 0 0 auto;
+  min-height: calc(var(--control-h) - 4px);
+  padding: 0 var(--space-3);
+}
+
+/* Unsaved changes, on the tab that owns them. Ctrl+S is what clears it. */
+.composer-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}

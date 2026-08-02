@@ -1,0 +1,296 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.app__title-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--titlebar-h);
+  padding: 0 0 0 var(--space-2);
+  background: var(--bg-chrome);
+  border-bottom: 1px solid var(--border);
+  /* The native frame is hidden, so the bar itself is what moves the window. */
+  -webkit-app-region: drag;
+}
+
+/* Everything the pointer can act on has to opt out of the drag region. */
+.title-bar button,
+.title-bar input,
+.window-controls {
+  -webkit-app-region: no-drag;
+}
+
+/* Screens without a bar still need a strip to drag and the three controls. */
+.window-chrome {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: flex-end;
+  height: var(--titlebar-h);
+  -webkit-app-region: drag;
+}
+
+/* macOS still paints its traffic lights, so the app leaves them room. */
+[data-platform='darwin'] .app__title-bar,
+[data-platform='darwin'] .window-chrome {
+  padding-left: var(--traffic-lights-w);
+}
+
+.window-controls {
+  display: flex;
+  align-self: stretch;
+  margin-left: var(--space-2);
+}
+
+.window-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-height: var(--titlebar-h);
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.window-control:hover {
+  background: var(--bg-hover);
+}
+
+.window-control:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.window-control--close:hover {
+  color: #ffffff;
+  background: var(--error);
+}
+
+/* Tabs belong to the connection they switch, not to the workspace chrome. */
+.app__tabs {
+  background: var(--bg-panel);
+}
+
+.app__body {
+  flex: 1;
+  min-height: 0;
+}
+
+.app__region {
+  height: 100%;
+  min-height: 0;
+}
+
+.app__catalog-rail,
+.app__connection-surface {
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app__catalog-rail {
+  background: var(--bg-chrome);
+}
+
+.app__catalog-rail > .panel {
+  background: var(--bg-chrome);
+}
+
+.app__connection-surface {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+}
+
+.app__connection-workspace {
+  flex: 1;
+  min-height: 0;
+}
+
+.app-state {
+  padding: var(--space-3);
+  color: var(--text-dim);
+}
+
+.app-state--error {
+  color: var(--error);
+}
+
+.title-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.title-bar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.title-bar__environment {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: var(--bg-control);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.title-bar__environment:focus-within {
+  border-color: var(--accent);
+  outline: 1px solid var(--accent);
+}
+
+.title-bar__environment .title-bar__variables {
+  min-width: var(--control-h);
+  min-height: var(--control-h);
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+}
+
+/* Reaches the application menu, so it reads as chrome rather than as one more
+   control of the document beside it: no box until the pointer is on it. */
+.app-menu-button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-h);
+  height: var(--control-h);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.app-menu-button:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.app-menu-button:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.workspace-menu {
+  position: relative;
+  display: flex;
+}
+
+.workspace-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 18rem;
+  padding: var(--space-1) var(--space-2);
+  background: var(--bg-control);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.workspace-pill:hover {
+  background: var(--bg-hover);
+}
+
+.workspace-pill__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.variables {
+  display: grid;
+  grid-template-columns: 12rem 1fr;
+  gap: var(--space-3);
+  min-height: 18rem;
+}
+
+.environments {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-right: var(--space-3);
+  border-right: 1px solid var(--border);
+}
+
+.environments__items {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.environments__item {
+  padding: var(--space-1) var(--space-2);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  text-align: left;
+  cursor: pointer;
+}
+
+.environments__item:hover {
+  background: var(--bg-hover);
+}
+
+.environments__item--selected {
+  background: var(--bg-hover);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.environments__empty {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.variables__detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.variables__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.variables__note {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.variable-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.variable-row__secret {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-dim);
+  font-size: 11px;
+  white-space: nowrap;
+}

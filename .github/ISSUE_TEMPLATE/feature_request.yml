@@ -1,0 +1,33 @@
+name: Propuesta de mejora
+description: Sugiere una funcionalidad o un cambio de comportamiento.
+labels: [feature, triage]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qué problema resuelve
+      description: Describe la situación real que hoy resulta incómoda o imposible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: Qué propones
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas que consideraste
+
+  - type: checkboxes
+    id: confirmaciones
+    attributes:
+      label: Antes de enviar
+      options:
+        - label: Busqué issues abiertos y no encontré esta propuesta.
+          required: true
+        - label: La propuesta no ata Hybi a un servidor o producto concreto.
+          required: true

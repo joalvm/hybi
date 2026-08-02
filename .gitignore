@@ -1,0 +1,34 @@
+# Dependencias y salidas de build
+node_modules/
+out/
+dist/
+release/
+coverage/
+
+# Pruebas
+test-results/
+playwright-report/
+
+# Entorno y registros
+.env
+.env.*
+*.log
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Herramientas de asistencia y notas locales: no forman parte del proyecto
+.agents/
+.claude/
+.cursor/
+.windsurf/
+.continue/
+.codebase-memory/
+.rescue/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.github/copilot-instructions.md

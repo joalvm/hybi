@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Preguntas y conversación
+    url: https://github.com/joalvm/hybi/discussions
+    about: Dudas de uso, ideas sueltas y cualquier cosa que no sea un fallo concreto.
+  - name: Reportar una vulnerabilidad
+    url: https://github.com/joalvm/hybi/security/advisories/new
+    about: Informe privado de problemas de seguridad. Nunca en un issue público.

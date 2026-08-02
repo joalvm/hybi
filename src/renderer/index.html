@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      The Content-Security-Policy arrives as a response header from
+      src/main/security/policy.ts. A meta tag here would also apply to the dev
+      server, where Vite needs an inline script and an HMR socket.
+    -->
+    <title>Hybi</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>

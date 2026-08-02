@@ -1,0 +1,205 @@
+{
+  "name": "hybi",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "A real-time API client focused on asynchronous communication, especially WebSockets.",
+  "license": "GPL-3.0-or-later",
+  "author": "joalvm",
+  "homepage": "https://github.com/joalvm/hybi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joalvm/hybi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/joalvm/hybi/issues"
+  },
+  "keywords": [
+    "websocket",
+    "asyncapi",
+    "electron",
+    "api-client",
+    "real-time"
+  ],
+  "desktopName": "hybi",
+  "main": "out/main/index.js",
+  "build": {
+    "appId": "com.hybi.desktop",
+    "productName": "Hybi",
+    "executableName": "hybi",
+    "copyright": "Copyright © 2026 Hybi",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "buildResources": "resources",
+      "output": "release"
+    },
+    "files": [
+      "out/**",
+      "!out/**/*.map"
+    ],
+    "asar": true,
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true
+    },
+    "win": {
+      "icon": "resources/images/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Hybi",
+      "menuCategory": "Hybi",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "installerLanguages": [
+        "en_US",
+        "es_ES"
+      ],
+      "language": "3082",
+      "displayLanguageSelector": true
+    },
+    "mac": {
+      "icon": "resources/images/icon.png",
+      "category": "public.app-category.developer-tools",
+      "hardenedRuntime": true,
+      "entitlements": "resources/entitlements.mac.plist",
+      "entitlementsInherit": "resources/entitlements.mac.inherit.plist",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "universal"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "icon": "resources/images/icon.png",
+      "category": "Development",
+      "synopsis": "Connect. Inspect. Replay.",
+      "description": "A real-time API client focused on asynchronous communication, especially WebSockets.",
+      "executableName": "hybi",
+      "syncDesktopName": true,
+      "desktop": {
+        "entry": {
+          "Name": "Hybi",
+          "Comment": "Connect. Inspect. Replay.",
+          "Categories": "Development;Network;",
+          "Keywords": "WebSocket;AsyncAPI;API;real-time;"
+        }
+      },
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "rpm",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "npm run typecheck && electron-vite build",
+    "start": "electron-vite preview",
+    "package": "npm run build && electron-builder --dir --publish never",
+    "dist:win": "npm run build && electron-builder --win nsis zip --x64 --publish never",
+    "dist:mac": "npm run build && electron-builder --mac dmg zip --universal --publish never",
+    "dist:linux": "npm run build && electron-builder --linux AppImage deb rpm --x64 --publish never",
+    "typecheck": "tsc -b tsconfig.json",
+    "lint": "eslint .",
+    "test": "vitest run --configLoader runner",
+    "test:e2e": "npm run build && playwright test",
+    "verify": "npm run lint && npm run typecheck && npm test && electron-vite build"
+  },
+  "dependencies": {
+    "@asyncapi/parser": "3.6.0",
+    "ws": "8.21.1",
+    "zod": "4.4.3"
+  },
+  "overrides": {
+    "@asyncapi/parser": {
+      "@stoplight/spectral-core": {
+        "brace-expansion": "1.1.17"
+      }
+    },
+    "monaco-editor": {
+      "dompurify": "3.4.12"
+    }
+  },
+  "devDependencies": {
+    "@cfworker/json-schema": "4.1.1",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.62.0",
+    "@tanstack/react-virtual": "3.14.9",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/user-event": "14.6.1",
+    "@types/node": "24.13.3",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@types/ws": "8.18.1",
+    "@vitejs/plugin-react": "5.2.0",
+    "clsx": "2.1.1",
+    "electron": "43.2.0",
+    "electron-builder": "26.15.3",
+    "electron-devtools-installer": "^4.0.0",
+    "electron-vite": "5.0.0",
+    "eslint": "10.8.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "jsdom": "27.0.0",
+    "lucide-react": "1.28.0",
+    "monaco-editor": "0.56.0",
+    "radix-ui": "1.6.7",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.65.0",
+    "vite": "7.3.6",
+    "vitest": "4.1.10",
+    "zustand": "5.0.14"
+  }
+}

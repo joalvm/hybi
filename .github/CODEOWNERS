@@ -1,0 +1,9 @@
+# Toda la base de código necesita revisión del mantenedor.
+* @joalvm
+
+# Cambios sensibles: empaquetado, firma, CI y seguridad.
+/.github/ @joalvm
+/package.json @joalvm
+/resources/ @joalvm
+/src/main/security/ @joalvm
+/src/preload/ @joalvm

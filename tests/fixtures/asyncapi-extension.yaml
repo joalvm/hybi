@@ -1,0 +1,29 @@
+asyncapi: 2.6.0
+info:
+  title: Extension example
+  version: 1.0.0
+channels:
+  events:
+    subscribe:
+      operationId: receiveExtension
+      x-ws-client:
+        kind: operation
+        extensionVersion: 0.1.0
+      message:
+        name: extension.event
+        description: '<script>bad()</script> **safe**'
+        x-ws-client:
+          kind: event
+          extensionVersion: invalid
+          payloadTemplate:
+            from: extension
+        payload:
+          type: object
+          properties:
+            id:
+              type: string
+              default: extension-id
+        examples:
+          - name: standard
+            payload:
+              from: example
