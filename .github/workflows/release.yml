@@ -181,7 +181,7 @@ jobs:
           else
             echo "- **${{ matrix.platform }}**: :warning: sin credenciales de firma, artefactos SIN FIRMAR." >> "$GITHUB_STEP_SUMMARY"
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: hybi-${{ matrix.platform }}
           path: |
