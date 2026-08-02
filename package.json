@@ -157,7 +157,7 @@
     "verify": "npm run lint && npm run typecheck && npm test && electron-vite build"
   },
   "dependencies": {
-    "@asyncapi/parser": "3.6.0",
+    "@asyncapi/parser": "3.6.1",
     "ws": "8.21.1",
     "zod": "4.4.3"
   },
