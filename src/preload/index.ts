@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { ActivityRecord, ConnectionStateEvent } from '@shared/ipc/activity.js';
 import { CHANNELS, type HostPlatform, type WorkbenchBridge } from '@shared/ipc/contract.js';
-import { roleOf, workspaceIdOf } from '@shared/ipc/window-args.js';
+import { roleOf, versionOf, workspaceIdOf } from '@shared/ipc/window-args.js';
 
 type ChannelListener = Parameters<typeof ipcRenderer.on>[1];
 
@@ -63,6 +63,13 @@ const bridge: WorkbenchBridge = {
   },
   shell: {
     openWorkspace: (workspaceId) => ipcRenderer.invoke(CHANNELS.shellOpenWorkspace, workspaceId),
+  },
+  app: {
+    version: versionOf(process.argv),
+    onAboutRequested: (listener) =>
+      subscribe(CHANNELS.appAbout, () => {
+        listener();
+      }),
   },
   platform: hostPlatform(),
   // Both windows run the same bundle, so what this one is comes from the flags

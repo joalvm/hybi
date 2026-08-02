@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { roleOf, workspaceIdOf } from '../../src/shared/ipc/window-args.js';
+import { roleOf, versionOf, workspaceIdOf } from '../../src/shared/ipc/window-args.js';
 
 const constructed: Electron.BrowserWindowConstructorOptions[] = [];
 
@@ -17,6 +17,7 @@ class FakeBrowserWindow {
 }
 
 vi.mock('electron', () => ({
+  app: { getVersion: () => '9.9.9' },
   BrowserWindow: FakeBrowserWindow,
   shell: { openExternal: vi.fn() },
   session: { defaultSession: { extensions: { loadExtension: vi.fn() } } },
@@ -76,6 +77,15 @@ describe('window sizes and controls', () => {
     expect(workspaceIdOf(welcome)).toBeNull();
     expect(roleOf(workbench)).toBe('workbench');
     expect(workspaceIdOf(workbench)).toBe('w1');
+  });
+
+  /** The About dialog names a version, and the sandboxed preload cannot ask for it. */
+  it('tells both renderers which version they are running', () => {
+    createWelcomeWindow();
+    expect(versionOf(last().webPreferences?.additionalArguments ?? [])).toBe('9.9.9');
+
+    createWorkbenchWindow('w1');
+    expect(versionOf(last().webPreferences?.additionalArguments ?? [])).toBe('9.9.9');
   });
 
   it('keeps the renderer sandboxed and isolated in both windows', () => {

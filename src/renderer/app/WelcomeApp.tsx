@@ -1,3 +1,4 @@
+import { AboutDialog } from '@/features/about/AboutDialog.js';
 import { WelcomeScreen } from '@/features/welcome/WelcomeScreen.js';
 import { ErrorBoundary } from './ErrorBoundary.js';
 import { WindowChrome } from './WindowChrome.js';
@@ -12,6 +13,7 @@ export function WelcomeApp() {
       {/* Fixed size and not minimisable, so the only control it carries is close. */}
       <WindowChrome resizable={false} />
       <WelcomeScreen />
+      <AboutDialog />
     </ErrorBoundary>
   );
 }

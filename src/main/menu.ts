@@ -3,6 +3,8 @@ import { app, Menu, type BrowserWindow, type MenuItemConstructorOptions } from '
 type Actions = {
   /** Opens another welcome window, the way File ▸ New does in a native app. */
   openWelcome: () => void;
+  /** Asks the focused window for its own About dialog. */
+  showAbout: () => void;
 };
 
 function fileMenu(actions: Actions): MenuItemConstructorOptions {
@@ -55,21 +57,42 @@ const VIEW_MENU: MenuItemConstructorOptions = {
   ],
 };
 
-const HELP_MENU: MenuItemConstructorOptions = {
-  label: 'Ayuda',
-  submenu: [{ role: 'about', label: `Acerca de ${app.name}` }],
-};
+/**
+ * The native panel names Electron and Chromium; the app's own dialog names the
+ * version and the phase it is in, which is what someone asking is after.
+ */
+function helpMenu(actions: Actions): MenuItemConstructorOptions {
+  return {
+    label: 'Ayuda',
+    submenu: [{ label: `Acerca de ${app.name}`, click: actions.showAbout }],
+  };
+}
 
 /** One template behind both the macOS menu bar and the button on the other two. */
 export function buildAppMenu(actions: Actions): Menu {
   const template: MenuItemConstructorOptions[] = [
     ...(process.platform === 'darwin'
-      ? ([{ role: 'appMenu' }] satisfies MenuItemConstructorOptions[])
+      ? ([
+          {
+            label: app.name,
+            submenu: [
+              { label: `Acerca de ${app.name}`, click: actions.showAbout },
+              { type: 'separator' },
+              { role: 'services' },
+              { type: 'separator' },
+              { role: 'hide', label: `Ocultar ${app.name}` },
+              { role: 'hideOthers', label: 'Ocultar otros' },
+              { role: 'unhide', label: 'Mostrar todo' },
+              { type: 'separator' },
+              { role: 'quit', label: `Salir de ${app.name}` },
+            ],
+          },
+        ] satisfies MenuItemConstructorOptions[])
       : []),
     fileMenu(actions),
     EDIT_MENU,
     VIEW_MENU,
-    HELP_MENU,
+    helpMenu(actions),
   ];
 
   return Menu.buildFromTemplate(template);

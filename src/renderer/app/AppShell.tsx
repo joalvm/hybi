@@ -1,3 +1,4 @@
+import { AboutDialog } from '@/features/about/AboutDialog.js';
 import { ActivityPanel } from '@/features/activity/ActivityPanel.js';
 import { CatalogPanel } from '@/features/catalog/CatalogPanel.js';
 import { ComposerPanel } from '@/features/composer/ComposerPanel.js';
@@ -32,6 +33,7 @@ export function AppShell() {
         ) : (
           <p className="app-state">Abriendo workspace…</p>
         )}
+        <AboutDialog />
       </ErrorBoundary>
     );
   }
@@ -53,6 +55,7 @@ export function AppShell() {
         activity={connectionId === null ? null : <ActivityPanel connectionId={connectionId} />}
       />
       <VariablesDialog />
+      <AboutDialog />
     </ErrorBoundary>
   );
 }
