@@ -190,7 +190,7 @@
     "electron-vite": "5.0.0",
     "eslint": "10.8.0",
     "eslint-plugin-react-hooks": "7.1.1",
-    "jsdom": "27.0.0",
+    "jsdom": "30.0.1",
     "lucide-react": "1.28.0",
     "monaco-editor": "0.56.0",
     "radix-ui": "1.6.7",
