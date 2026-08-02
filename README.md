@@ -10,6 +10,11 @@
   Una aplicación de escritorio para trabajar con conexiones en tiempo real.
 </p>
 
+> [!IMPORTANT]
+> **Hybi está en fase alpha.** Ya se puede usar y hace lo que promete, pero
+> sigue en construcción: faltan funciones, algunas cosas cambiarán de sitio y
+> pueden aparecer fallos. Pruébalo y cuenta lo que encuentres.
+
 ---
 
 ## Qué es Hybi
@@ -78,15 +83,35 @@ Las claves y contraseñas que marques como secretas nunca se escriben en el disc
 
 Las versiones publicadas están en la
 [página de releases](https://github.com/joalvm/hybi/releases), con instaladores
-para Windows, macOS y Linux.
+para Windows, macOS y Linux. Mientras dure la alpha se marcan como versiones de
+prueba (*pre-release*).
 
 Cada release incluye un archivo `SHA256SUMS.txt` para comprobar que lo que
 descargaste es exactamente lo que se publicó.
 
 ## Estado del proyecto
 
-Hybi está en desarrollo activo y todavía en versiones `0.x`: es utilizable, pero
-puede cambiar entre versiones. Los fallos y las ideas se reportan en la
+Hybi está en **alpha**. Lo que ya está hecho funciona y se usa a diario: abrir la
+conexión, ver la conversación, enviar mensajes, el catálogo, la importación de
+AsyncAPI, los entornos y los espacios de trabajo.
+
+Lo que eso implica mientras dure esta fase:
+
+- Siguen entrando funciones nuevas, así que la interfaz puede moverse de una
+  versión a otra.
+- El formato de los archivos guardados puede cambiar; se migra al abrir, pero
+  conviene no confiarle todavía trabajo irrecuperable.
+- Los fallos son esperables. Reportarlos es la mejor forma de ayudar.
+
+Lo siguiente en la lista:
+
+- **Configuración de la aplicación**: preferencias propias en lugar de valores
+  fijos.
+- **Más tipos de conexión**: hoy solo WebSocket puro; están pendientes las capas
+  que se montan encima, empezando por Socket.IO.
+- **Aviso de actualizaciones** desde la propia aplicación.
+
+Los fallos y las ideas se reportan en la
 [sección de issues](https://github.com/joalvm/hybi/issues).
 
 ## Licencia

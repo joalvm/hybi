@@ -224,8 +224,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           TAG: ${{ github.ref_name }}
         run: |
-          gh release create "$TAG" \
-            --draft \
-            --title "$TAG" \
-            --generate-notes \
-            dist-artifacts/*
+          # Una etiqueta con sufijo (v0.3.0-alpha.1) se anuncia como versión de prueba.
+          flags=(--draft --title "$TAG" --generate-notes)
+          case "$TAG" in *-*) flags+=(--prerelease) ;; esac
+          gh release create "$TAG" "${flags[@]}" dist-artifacts/*
