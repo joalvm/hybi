@@ -5,7 +5,10 @@
   "type": "module",
   "description": "A real-time API client focused on asynchronous communication, especially WebSockets.",
   "license": "GPL-3.0-or-later",
-  "author": "joalvm",
+  "author": {
+    "name": "joalvm",
+    "email": "joalvm@users.noreply.github.com"
+  },
   "homepage": "https://github.com/joalvm/hybi",
   "repository": {
     "type": "git",
