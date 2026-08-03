@@ -5,8 +5,8 @@ export type ComposerTab = 'docs' | 'message';
 
 type Props = {
   tab: ComposerTab;
-  /** Marks `Message`, because the payload is the only thing an edit touches. */
-  dirty: boolean;
+  docsDirty: boolean;
+  messageDirty: boolean;
   onChange: (tab: ComposerTab) => void;
 };
 
@@ -15,9 +15,13 @@ const TABS: { id: ComposerTab; label: string }[] = [
   { id: 'message', label: 'Message' },
 ];
 
-export function ComposerTabs({ tab, dirty, onChange }: Props) {
+export function ComposerTabs({ tab, docsDirty, messageDirty, onChange }: Props) {
   return (
-    <div className="flex min-w-0 flex-1 items-center gap-1" role="tablist" aria-label="Vista del evento">
+    <div
+      className="flex min-w-0 flex-1 items-center gap-1"
+      role="tablist"
+      aria-label="Vista del evento"
+    >
       {TABS.map((entry) => (
         <button
           key={entry.id}
@@ -33,7 +37,7 @@ export function ComposerTabs({ tab, dirty, onChange }: Props) {
           }}
         >
           {entry.label}
-          {entry.id === 'message' && dirty && (
+          {((entry.id === 'docs' && docsDirty) || (entry.id === 'message' && messageDirty)) && (
             <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-label="Cambios sin guardar" />
           )}
         </button>

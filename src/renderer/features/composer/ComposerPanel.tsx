@@ -2,8 +2,6 @@ import clsx from 'clsx';
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import type { VariableScope } from '@shared/variables/resolve.js';
-import type { TransportFactoryMap, TransportMessage } from '@shared/transport/contract.js';
-import { bridge } from '@/ipc/bridge.js';
 import { registerVariableProviders } from '@/shared/monaco/setup.js';
 import { Panel } from '@/shared/ui/Panel.js';
 import { useStore } from '@/store/index.js';
@@ -16,14 +14,12 @@ import { beautify, languageOf, type PayloadFormat } from './formats.js';
 import { PayloadEditor } from './PayloadEditor.js';
 import { SendButton } from './SendButton.js';
 import { useComposerDraft } from './useComposerDraft.js';
+import { useDocsDraft } from './useDocsDraft.js';
+import { useSendMessage } from './useSendMessage.js';
 import { useSaveShortcut } from './useSaveShortcut.js';
 
 /** A module constant so the hover provider keeps a stable empty scope. */
 const EMPTY_SCOPE: VariableScope = new Map();
-
-const MESSAGE_FACTORIES = {
-  websocket: (text: string): TransportMessage => ({ kind: 'websocket', text }),
-} satisfies TransportFactoryMap<(text: string) => TransportMessage>;
 
 type Props = { connectionId: string };
 
@@ -31,6 +27,7 @@ type Props = { connectionId: string };
 export function ComposerPanel({ connectionId }: Props) {
   const draft = useComposerDraft(connectionId);
   const event = useStore(selectSelectedEvent(connectionId));
+  const docs = useDocsDraft(event);
   const collection = useStore(selectCollectionNameFor(connectionId));
   const scope = useStore(useShallow(selectScopeFor(connectionId)));
   const connected = useStore((state) => state.states[connectionId] === 'open');
@@ -47,10 +44,17 @@ export function ComposerPanel({ connectionId }: Props) {
       state.workspace?.connections.find((entry) => entry.id === connectionId)?.environmentId ??
       null,
   );
+  const send = useSendMessage({
+    connectionId,
+    transportKind,
+    text: draft.resolved,
+    appendLocalError,
+  });
   // How to read the box, not what may go in it. Both ride in local state because
   // they describe the view, not the event: nothing about them is worth persisting.
   const [format, setFormat] = useState<PayloadFormat>('json');
   const [tab, setTab] = useState<ComposerTab>('message');
+  const [editingDocs, setEditingDocs] = useState(false);
 
   // Monaco's hover and completion providers are global, so they read the scope
   // of whatever connection is active at call time rather than closing over one.
@@ -62,27 +66,18 @@ export function ComposerPanel({ connectionId }: Props) {
     });
   }, []);
 
-  useSaveShortcut(draft.dirty, draft.save);
+  const saveActiveDraft = (): void => {
+    if (tab === 'docs' && editingDocs) {
+      if (docs.dirty) docs.save();
+      return;
+    }
+    draft.save();
+  };
+  useSaveShortcut(tab === 'docs' && editingDocs ? docs.dirty : draft.dirty, saveActiveDraft);
 
   // Computed rather than attempted on click: the result is what says whether
   // the button has anything to do, so it decides its own disabled state.
   const beautified = useMemo(() => beautify(draft.text, format), [draft.text, format]);
-
-  const send = (): void => {
-    if (transportKind === null) return;
-    void bridge.connection
-      .send({ connectionId, message: MESSAGE_FACTORIES[transportKind](draft.resolved) })
-      .then((result) => {
-        if (!result.ok) appendLocalError(connectionId, transportKind, result.error);
-      })
-      .catch((cause: unknown) => {
-        appendLocalError(
-          connectionId,
-          transportKind,
-          cause instanceof Error ? cause.message : String(cause),
-        );
-      });
-  };
 
   if (event === null) {
     return (
@@ -98,11 +93,30 @@ export function ComposerPanel({ connectionId }: Props) {
     <section className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-panel">
       <ComposerBreadcrumb collection={collection} event={event.name} />
       <div className="flex items-center gap-2 p-2">
-        <ComposerTabs tab={tab} dirty={draft.dirty} onChange={setTab} />
+        <ComposerTabs
+          tab={tab}
+          docsDirty={docs.dirty}
+          messageDirty={draft.dirty}
+          onChange={setTab}
+        />
         <SendButton connected={connected} empty={draft.empty} onSend={send} />
       </div>
-      <div className="min-h-0 flex-1 overflow-auto" data-part="panel-body">
-        {tab === 'docs' && <DocsView description={event.description} />}
+      <div className="min-h-0 flex-1 overflow-hidden" data-part="panel-body">
+        <div className={clsx('h-full min-h-0', tab !== 'docs' && 'hidden')}>
+          <DocsView
+            eventId={event.id}
+            description={event.description}
+            text={docs.text}
+            editing={editingDocs}
+            onEdit={() => {
+              setEditingDocs(true);
+            }}
+            onClose={() => {
+              setEditingDocs(false);
+            }}
+            onChange={docs.setText}
+          />
+        </div>
         {/* Hidden rather than unmounted: Monaco keeps one instance for the life
             of the panel, and `automaticLayout` measures it again when it comes
             back. Remounting per tab would rebuild the editor on every switch. */}

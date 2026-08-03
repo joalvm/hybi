@@ -5,7 +5,7 @@ import { monaco } from '@/shared/monaco/setup.js';
 import { modelFor, useMonacoEditor } from '@/shared/monaco/useMonacoEditor.js';
 import { decorationsFor } from '@/shared/monaco/useVariableDecorations.js';
 import { useVariableHover } from '@/shared/monaco/useVariableHover.js';
-import { copySelection, pasteClipboard } from './editorClipboard.js';
+import { copySelection, cutSelection, pasteClipboard } from './editorClipboard.js';
 import { PayloadEditorSurface } from './PayloadEditorSurface.js';
 
 type Props = {
@@ -128,6 +128,9 @@ export function PayloadEditor({
       hasSelection={hasSelection}
       hover={hover}
       environmentId={environmentId}
+      onCut={() => {
+        cutSelection(editorRef);
+      }}
       onCopy={() => {
         copySelection(editorRef);
       }}

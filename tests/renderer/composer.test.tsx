@@ -21,9 +21,9 @@ const clipboard = vi.hoisted(() => ({
   writeText: vi.fn(),
 }));
 const connectionBridge = vi.hoisted(() => ({
-  send: vi.fn<
-    () => Promise<{ ok: true; sequence: number } | { ok: false; error: string }>
-  >(() => Promise.resolve({ ok: true, sequence: 1 })),
+  send: vi.fn<() => Promise<{ ok: true; sequence: number } | { ok: false; error: string }>>(() =>
+    Promise.resolve({ ok: true, sequence: 1 }),
+  ),
 }));
 
 vi.mock('@/ipc/bridge.js', () => ({
@@ -40,6 +40,18 @@ vi.mock('@/shared/monaco/setup.js', () => ({
 vi.mock('@/shared/monaco/useMonacoEditor.js', () => ({
   modelFor: () => ({ getValue: () => '', setValue: () => undefined }),
   useMonacoEditor: () => ({ containerRef: { current: null }, editorRef: { current: null } }),
+}));
+
+vi.mock('@/features/composer/MarkdownEditor.js', () => ({
+  MarkdownEditor: ({ text, onChange }: { text: string; onChange: (next: string) => void }) => (
+    <textarea
+      aria-label="Editor Markdown"
+      value={text}
+      onChange={(event) => {
+        onChange(event.target.value);
+      }}
+    />
+  ),
 }));
 
 function seed(): void {
@@ -145,7 +157,9 @@ describe('useComposerDraft', () => {
 
 describe('useSaveShortcut', () => {
   const pressCtrlS = (): boolean =>
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 's', ctrlKey: true, cancelable: true }));
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 's', ctrlKey: true, cancelable: true }),
+    );
 
   it('saves on Ctrl+S while the draft is dirty', () => {
     const onSave = vi.fn();
@@ -184,21 +198,31 @@ describe('useSaveShortcut', () => {
 describe('ComposerTabs', () => {
   it('switches to the docs view and marks the tab it left', () => {
     const onChange = vi.fn();
-    render(<ComposerTabs tab="message" dirty={false} onChange={onChange} />);
+    render(
+      <ComposerTabs tab="message" docsDirty={false} messageDirty={false} onChange={onChange} />,
+    );
 
     expect(screen.getByRole('tab', { name: 'Message' }).getAttribute('aria-selected')).toBe('true');
     fireEvent.click(screen.getByRole('tab', { name: 'Docs' }));
     expect(onChange).toHaveBeenCalledWith('docs');
   });
 
-  /** The dot belongs to Message: the payload is the only thing an edit touches. */
-  it('shows the unsaved dot on Message alone', () => {
-    const { rerender } = render(<ComposerTabs tab="message" dirty={false} onChange={vi.fn()} />);
+  it('shows the unsaved dot on the tab that owns the draft', () => {
+    const { rerender } = render(
+      <ComposerTabs tab="message" docsDirty={false} messageDirty={false} onChange={vi.fn()} />,
+    );
     expect(screen.queryByLabelText('Cambios sin guardar')).toBeNull();
 
-    rerender(<ComposerTabs tab="message" dirty onChange={vi.fn()} />);
+    rerender(<ComposerTabs tab="message" docsDirty={false} messageDirty onChange={vi.fn()} />);
     const dot = screen.getByLabelText('Cambios sin guardar');
     expect(screen.getByRole('tab', { name: /Message/ }).contains(dot)).toBe(true);
+
+    rerender(<ComposerTabs tab="docs" docsDirty messageDirty={false} onChange={vi.fn()} />);
+    expect(
+      screen
+        .getByRole('tab', { name: /Docs/ })
+        .contains(screen.getByLabelText('Cambios sin guardar')),
+    ).toBe(true);
   });
 });
 
@@ -216,14 +240,52 @@ describe('ComposerBreadcrumb', () => {
 
 describe('DocsView', () => {
   it('renders the description as markdown', () => {
-    render(<DocsView description={'# Login\n\nEnvía el **token** del dispositivo.'} />);
+    render(
+      <DocsView
+        eventId="e1"
+        description={'# Login\n\nEnvía el **token** del dispositivo.'}
+        text={'# Login\n\nEnvía el **token** del dispositivo.'}
+        editing={false}
+        onEdit={vi.fn()}
+        onClose={vi.fn()}
+        onChange={vi.fn()}
+      />,
+    );
     expect(screen.getByRole('heading', { name: 'Login' })).toBeTruthy();
     expect(screen.getByText('token').tagName).toBe('STRONG');
   });
 
   it('says so when the event carries no description', () => {
-    render(<DocsView description={undefined} />);
+    render(
+      <DocsView
+        eventId="e1"
+        description={undefined}
+        text=""
+        editing={false}
+        onEdit={vi.fn()}
+        onClose={vi.fn()}
+        onChange={vi.fn()}
+      />,
+    );
     expect(screen.getByText('Este evento no tiene descripción.')).toBeTruthy();
+  });
+
+  it('edits and saves Markdown into the selected catalog event', () => {
+    render(<ComposerPanel connectionId="c1" />);
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Docs' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Editar documentación' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Editor Markdown' }), {
+      target: { value: '# Login\n\nUsa una tabla.' },
+    });
+    fireEvent.keyDown(window, { key: 's', ctrlKey: true });
+
+    expect(useStore.getState().workspace?.catalog.items[0]?.description).toBe(
+      '# Login\n\nUsa una tabla.',
+    );
+    expect(screen.getByRole('textbox', { name: 'Editor Markdown' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar editor' }));
+    expect(screen.getByRole('heading', { name: 'Login' })).toBeTruthy();
   });
 });
 
@@ -333,7 +395,7 @@ describe('payload editor context menu', () => {
     });
   });
 
-  it('offers exactly copy and paste, and pastes through the bridge', async () => {
+  it('offers exactly cut, copy and paste, and pastes through the bridge', async () => {
     const user = userEvent.setup();
     clipboard.readText.mockResolvedValue('{"a":1}');
 
@@ -342,6 +404,7 @@ describe('payload editor context menu', () => {
     await user.pointer({ keys: '[MouseRight]', target: screen.getByTestId('payload-editor') });
 
     expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+      'Cortar',
       'Copiar',
       'Pegar',
     ]);

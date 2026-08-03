@@ -27,6 +27,7 @@ import {
   SendHorizontal,
   Settings,
   ShieldAlert,
+  Scissors,
   Square,
   Sun,
   Trash2,
@@ -105,6 +106,8 @@ export const HideIcon = hairline(EyeOff);
 export const RenameIcon = hairline(Pencil);
 /** Copies an event, or the editor's selection. */
 export const DuplicateIcon = hairline(Copy);
+/** Cuts the editor's selection. */
+export const CutIcon = hairline(Scissors);
 /** Pastes over the editor's selection. */
 export const PasteIcon = hairline(ClipboardPaste);
 /** A move target in a row menu. */
