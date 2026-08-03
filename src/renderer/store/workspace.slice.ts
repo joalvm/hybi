@@ -1,4 +1,3 @@
-import type { StateCreator } from 'zustand';
 import { createEnvironment } from '@shared/domain/factory.js';
 import type {
   Collection,
@@ -9,6 +8,7 @@ import type {
   Workspace,
 } from '@shared/domain/types.js';
 import { mergeImported } from './merge-import.js';
+import type { SliceCreator } from './types.js';
 
 /** Actions are function properties, not methods. See the note on `UiSlice`. */
 export type WorkspaceSlice = {
@@ -35,7 +35,7 @@ function upsert<T extends { id: string }>(list: readonly T[], entry: T): T[] {
     : [...list, entry];
 }
 
-export const createWorkspaceSlice: StateCreator<WorkspaceSlice, [], [], WorkspaceSlice> = (set) => {
+export const createWorkspaceSlice: SliceCreator<WorkspaceSlice> = (set) => {
   // Returning `current` unchanged when no workspace is loaded keeps zustand
   // from notifying subscribers about a set that changed nothing.
   const update = (mutate: (workspace: Workspace) => Workspace): void => {

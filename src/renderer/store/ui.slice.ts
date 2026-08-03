@@ -1,4 +1,4 @@
-import type { StateCreator } from 'zustand';
+import type { SliceCreator } from './types.js';
 
 export type DialogName = 'variables' | null;
 
@@ -41,7 +41,7 @@ export type UiSlice = {
   expandAllCollections: () => void;
 };
 
-export const createUiSlice: StateCreator<UiSlice, [], [], UiSlice> = (set) => ({
+export const createUiSlice: SliceCreator<UiSlice> = (set) => ({
   activeConnectionId: null,
   selectedEventByConnection: {},
   selectedActivityByConnection: {},
