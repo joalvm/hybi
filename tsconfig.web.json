@@ -17,10 +17,9 @@
     "noEmit": true,
     "composite": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
     "paths": {
-      "@shared/*": ["src/shared/*"],
-      "@/*": ["src/renderer/*"]
+      "@shared/*": ["./src/shared/*"],
+      "@/*": ["./src/renderer/*"]
     },
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.web.tsbuildinfo"
   },

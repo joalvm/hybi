@@ -28,6 +28,7 @@ Thumbs.db
 .continue/
 .codebase-memory/
 .rescue/
+*_PLAN.md
 AGENTS.md
 CLAUDE.md
 GEMINI.md
