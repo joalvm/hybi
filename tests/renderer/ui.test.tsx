@@ -31,9 +31,9 @@ describe('IconButton', () => {
 });
 
 describe('Badge', () => {
-  it('renders its tone as a class', () => {
+  it('exposes its semantic tone without coupling tests to presentation classes', () => {
     render(<Badge tone="error">fallo</Badge>);
-    expect(screen.getByText('fallo').className).toContain('error');
+    expect(screen.getByText('fallo').dataset.tone).toBe('error');
   });
 });
 
@@ -69,25 +69,27 @@ describe('Dialog', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it('marks overlay and surface for the fast fade transition', () => {
+  it('exposes overlay and surface state for motion', () => {
     render(
       <Dialog open title="Variables" onClose={() => undefined}>
         <p>contenido</p>
       </Dialog>,
     );
 
-    expect(screen.getByRole('dialog').className).toContain('dialog--fade');
-    expect(document.querySelector('.dialog-backdrop--fade')).not.toBeNull();
+    expect(screen.getByRole('dialog').dataset.state).toBe('open');
+    expect(document.querySelector('[data-part="dialog-backdrop"]')?.getAttribute('data-state')).toBe(
+      'open',
+    );
   });
 
-  it('uses the shared plain dialog surface', () => {
+  it('uses the shared dialog surface', () => {
     render(
       <Dialog open title="Variables" onClose={() => undefined}>
         <p>contenido</p>
       </Dialog>,
     );
 
-    expect(screen.getByRole('dialog').className).toContain('dialog--plain');
+    expect(screen.getByRole('dialog').dataset.part).toBe('dialog');
   });
 });
 
@@ -98,19 +100,19 @@ describe('Dialog sizes', () => {
         <p>cuerpo</p>
       </Dialog>,
     );
-    expect(screen.getByRole('dialog').className).toContain('dialog--md');
+    expect(screen.getByRole('dialog').dataset.size).toBe('md');
 
     rerender(
       <Dialog open title="Ajustes" size="lg" onClose={vi.fn()}>
         <p>cuerpo</p>
       </Dialog>,
     );
-    expect(screen.getByRole('dialog').className).toContain('dialog--lg');
+    expect(screen.getByRole('dialog').dataset.size).toBe('lg');
   });
 });
 
 describe('ConfirmDialog', () => {
-  it('uses the shared plain alert surface', () => {
+  it('uses the shared alert surface', () => {
     const onClose = vi.fn();
     render(
       <ConfirmDialog
@@ -122,7 +124,7 @@ describe('ConfirmDialog', () => {
       />,
     );
 
-    expect(screen.getByRole('alertdialog').className).toContain('dialog--plain');
+    expect(screen.getByRole('alertdialog').dataset.part).toBe('dialog');
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }));
     expect(onClose).toHaveBeenCalledOnce();
   });

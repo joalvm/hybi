@@ -44,7 +44,7 @@ export function Popover({
       <Primitive.Anchor virtualRef={anchorRef} />
       <Primitive.Portal>
         <Primitive.Content
-          className="popover-panel"
+          className="z-20 flex w-65 flex-col gap-2 rounded-lg border border-border bg-panel p-3 shadow-overlay"
           side="bottom"
           align="start"
           sideOffset={6}

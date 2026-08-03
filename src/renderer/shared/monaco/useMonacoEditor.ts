@@ -30,9 +30,9 @@ export function useMonacoEditor(options: editor.IStandaloneEditorConstructionOpt
     const container = containerRef.current;
     if (container === null) return;
     // Dense on purpose: this is a desktop tool, and a payload is read next to a
-    // log, not in a full-window IDE. The gutter is cut to two digits with almost
-    // no decoration strip, and the line height is the tightest that still leaves
-    // the text legible, so more of the frame fits without scrolling.
+    // log, not in a full-window IDE. The line height is the tightest that still
+    // leaves the text legible. Three number columns and an 8px decoration strip
+    // keep the gutter readable without turning it into an IDE-sized rail.
     const instance = monaco.editor.create(container, {
       automaticLayout: true,
       minimap: { enabled: false },
@@ -41,8 +41,8 @@ export function useMonacoEditor(options: editor.IStandaloneEditorConstructionOpt
       fontFamily: 'var(--font-mono)',
       fontSize: 12,
       lineHeight: 17,
-      lineNumbersMinChars: 2,
-      lineDecorationsWidth: 4,
+      lineNumbersMinChars: 3,
+      lineDecorationsWidth: 8,
       glyphMargin: false,
       padding: { top: 4, bottom: 4 },
       tabSize: 4,

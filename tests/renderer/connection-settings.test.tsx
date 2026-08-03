@@ -157,9 +157,9 @@ describe('ConnectionSettingsDialog', () => {
     loadWorkspace();
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
 
-    expect(screen.getByRole('dialog').className).toContain('dialog--settings');
-    expect(screen.getByRole('dialog').querySelector('.dialog-body--settings')).not.toBeNull();
-    expect(screen.getByLabelText('Intentos').className).toContain('settings-control');
+    expect(screen.getByRole('dialog').dataset.size).toBe('settings');
+    expect(screen.getByRole('dialog').querySelector('[data-part="dialog-body"]')).not.toBeNull();
+    expect(screen.getByLabelText('Intentos')).toHaveProperty('type', 'number');
   });
 
   it('keeps the Headers action compact in its section title', () => {
@@ -167,11 +167,9 @@ describe('ConnectionSettingsDialog', () => {
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
 
     expect(screen.getByRole('heading', { name: 'Headers' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Añadir cabecera' }).className).toContain(
-      'settings-section__add',
-    );
-    expect(screen.getByRole('button', { name: 'Añadir cabecera' }).className).toContain(
-      'settings-section__add--inline',
+    const action = screen.getByRole('button', { name: 'Añadir cabecera' });
+    expect(action.closest('section')?.contains(screen.getByRole('heading', { name: 'Headers' }))).toBe(
+      true,
     );
   });
 

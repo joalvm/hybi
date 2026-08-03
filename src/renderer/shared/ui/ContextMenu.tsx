@@ -1,6 +1,6 @@
-import clsx from 'clsx';
 import { ContextMenu as Primitive } from 'radix-ui';
 import type { ReactNode } from 'react';
+import { cn } from '../utils/cn.js';
 import type { MenuItem } from './Menu.js';
 
 type Props = {
@@ -21,15 +21,24 @@ export function ContextMenu({ label, items, children }: Props) {
     <Primitive.Root>
       <Primitive.Trigger asChild>{children}</Primitive.Trigger>
       <Primitive.Portal>
-        <Primitive.Content className="menu-panel" aria-label={label} collisionPadding={8}>
+        <Primitive.Content
+          className="z-20 flex flex-col rounded-lg border border-border bg-panel p-1 shadow-overlay"
+          aria-label={label}
+          collisionPadding={8}
+        >
           {items.map((item) => (
             <Primitive.Item
               key={item.label}
-              className={clsx('menu-item', item.tone === 'danger' && 'menu-item--danger')}
+              className={cn(
+                'menu-item-runtime flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-ui px-2 py-1 text-left select-none outline-none',
+                item.tone === 'danger' && 'text-error',
+              )}
               disabled={item.disabled ?? false}
               onSelect={item.onSelect}
             >
-              <span className="menu-icon">{item.icon}</span>
+              <span className="inline-flex basis-3.5 items-center justify-center text-muted">
+                {item.icon}
+              </span>
               {item.label}
             </Primitive.Item>
           ))}

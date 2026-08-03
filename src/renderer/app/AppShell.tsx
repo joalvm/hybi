@@ -29,9 +29,9 @@ export function AppShell() {
       <ErrorBoundary>
         <WindowChrome resizable />
         {bootstrap.status === 'error' ? (
-          <p className="app-state app-state--error">{bootstrap.message}</p>
+          <p className="p-3 text-error">{bootstrap.message}</p>
         ) : (
-          <p className="app-state">Abriendo workspace…</p>
+          <p className="p-3 text-muted">Abriendo workspace…</p>
         )}
         <AboutDialog />
       </ErrorBoundary>
@@ -47,7 +47,7 @@ export function AppShell() {
         connectionBar={connectionId === null ? null : <ConnectionBar connectionId={connectionId} />}
         composer={
           connectionId === null ? (
-            <p className="app-state">Crea una conexión para empezar.</p>
+            <p className="p-3 text-muted">Crea una conexión para empezar.</p>
           ) : (
             <ComposerPanel connectionId={connectionId} />
           )

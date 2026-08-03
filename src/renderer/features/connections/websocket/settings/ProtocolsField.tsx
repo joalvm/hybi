@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { Field } from '@/shared/ui/Field.js';
+import { Input } from '@/shared/ui/Input.js';
 
 type Props = {
   protocols: string[];
@@ -29,10 +30,14 @@ export function ProtocolsField({ protocols, onChange }: Props) {
   };
 
   return (
-    <Field label="Subprotocolos" htmlFor={id}>
-      <input
+    <Field
+      className="settings-field-grid grid items-center gap-3 py-2"
+      label="Subprotocolos"
+      htmlFor={id}
+    >
+      <Input
         id={id}
-        className="input settings-control settings-control--wide"
+        className="w-48"
         value={draft}
         placeholder="graphql-ws, wamp.2.json"
         onChange={(event) => {

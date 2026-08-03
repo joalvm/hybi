@@ -5,6 +5,7 @@ import {
   WindowMinimizeIcon,
   WindowRestoreIcon,
 } from '@/shared/ui/icons.js';
+import { IconButton } from '@/shared/ui/IconButton.js';
 import { useWindowMaximized } from './useWindowMaximized.js';
 
 type Props = {
@@ -26,44 +27,38 @@ export function WindowControls({ resizable = true }: Props) {
   if (bridge.platform === 'darwin') return null;
 
   return (
-    <div className="window-controls">
+    <div className="app-no-drag flex self-stretch" data-part="window-controls">
       {resizable && (
         <>
-          <button
-            type="button"
-            className="window-control"
-            aria-label="Minimizar"
-            title="Minimizar"
+          <IconButton
+            className="h-full min-h-0 w-12 rounded-none border-0 text-foreground focus-visible:-outline-offset-3"
+            label="Minimizar"
             onClick={() => {
               void bridge.window.minimize();
             }}
           >
             <WindowMinimizeIcon />
-          </button>
-          <button
-            type="button"
-            className="window-control"
-            aria-label={maximized ? 'Restaurar' : 'Maximizar'}
-            title={maximized ? 'Restaurar' : 'Maximizar'}
+          </IconButton>
+          <IconButton
+            className="h-full min-h-0 w-12 rounded-none border-0 text-foreground focus-visible:-outline-offset-3"
+            label={maximized ? 'Restaurar' : 'Maximizar'}
             onClick={() => {
               void bridge.window.toggleMaximize();
             }}
           >
             {maximized ? <WindowRestoreIcon /> : <WindowMaximizeIcon />}
-          </button>
+          </IconButton>
         </>
       )}
-      <button
-        type="button"
-        className="window-control window-control--close"
-        aria-label="Cerrar"
-        title="Cerrar"
+      <IconButton
+        className="h-full min-h-0 w-12 rounded-none border-0 text-foreground enabled:hover:bg-window-close enabled:hover:text-on-danger focus-visible:-outline-offset-3"
+        label="Cerrar"
         onClick={() => {
           void bridge.window.close();
         }}
       >
         <CloseIcon />
-      </button>
+      </IconButton>
     </div>
   );
 }

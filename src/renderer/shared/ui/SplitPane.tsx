@@ -1,4 +1,5 @@
 import { useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
+import { cn } from '../utils/cn.js';
 
 type Props = {
   direction: 'row' | 'column';
@@ -10,6 +11,16 @@ type Props = {
 const STEPS: Record<'row' | 'column', Record<string, number | undefined>> = {
   row: { ArrowLeft: -2, ArrowRight: 2 },
   column: { ArrowUp: -2, ArrowDown: 2 },
+};
+
+const DIRECTION_CLASSES: Record<Props['direction'], string> = {
+  row: 'flex-row',
+  column: 'split-column-runtime flex-col',
+};
+
+const HANDLE_CLASSES: Record<Props['direction'], string> = {
+  row: 'cursor-col-resize',
+  column: 'cursor-row-resize',
 };
 
 export function SplitPane({ direction, initial, min, children }: Props) {
@@ -38,12 +49,21 @@ export function SplitPane({ direction, initial, min, children }: Props) {
   };
 
   return (
-    <div ref={container} className={`split split--${direction}`}>
-      <div className="split-pane" style={{ flexBasis: `${String(size)}%` }}>
+    <div
+      ref={container}
+      className={cn('flex h-full min-h-0 min-w-0 w-full', DIRECTION_CLASSES[direction])}
+    >
+      <div
+        className="split-pane-runtime min-h-0 min-w-0 shrink overflow-hidden"
+        data-size={`${String(size)}%`}
+      >
         {children[0]}
       </div>
       <div
-        className="split-handle"
+        className={cn(
+          'split-handle-runtime relative shrink-0 basis-px bg-border p-0 hover:bg-accent focus-visible:bg-accent focus-visible:outline-none',
+          HANDLE_CLASSES[direction],
+        )}
         role="separator"
         aria-orientation={direction === 'row' ? 'vertical' : 'horizontal'}
         aria-valuenow={Math.round(size)}
@@ -57,7 +77,10 @@ export function SplitPane({ direction, initial, min, children }: Props) {
         }}
         onKeyDown={nudge}
       />
-      <div className="split-pane" style={{ flexBasis: `${String(100 - size)}%` }}>
+      <div
+        className="split-pane-runtime min-h-0 min-w-0 shrink overflow-hidden"
+        data-size={`${String(100 - size)}%`}
+      >
         {children[1]}
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { Badge } from '@/shared/ui/Badge.js';
+import { Input } from '@/shared/ui/Input.js';
 import { TrashIcon } from '@/shared/ui/icons.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 
@@ -18,8 +19,8 @@ export function ActivityToolbar({ query, dropped, onQueryChange, onClear }: Prop
   return (
     <>
       {dropped && <Badge tone="warn">Desconectado</Badge>}
-      <input
-        className="input activity-search"
+      <Input
+        className="w-33"
         type="search"
         aria-label="Buscar en la actividad"
         placeholder="Buscar…"

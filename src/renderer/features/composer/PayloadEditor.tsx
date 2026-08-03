@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import type { editor } from 'monaco-editor/editor/editor.api.js';
 import type { VariableScope } from '@shared/variables/resolve.js';
-import { VariablePopover } from '@/features/workspace/VariablePopover.js';
-import { bridge } from '@/ipc/bridge.js';
-import { ContextMenu } from '@/shared/ui/ContextMenu.js';
-import { DuplicateIcon, PasteIcon } from '@/shared/ui/icons.js';
 import { monaco } from '@/shared/monaco/setup.js';
 import { modelFor, useMonacoEditor } from '@/shared/monaco/useMonacoEditor.js';
 import { decorationsFor } from '@/shared/monaco/useVariableDecorations.js';
 import { useVariableHover } from '@/shared/monaco/useVariableHover.js';
+import { copySelection, pasteClipboard } from './editorClipboard.js';
+import { PayloadEditorSurface } from './PayloadEditorSurface.js';
 
 type Props = {
   eventId: string | null;
@@ -124,62 +122,21 @@ export function PayloadEditor({
 
   const { hover, keepOpen, release, close } = useVariableHover(editorRef, text);
 
-  const selectedText = (): string => {
-    const instance = editorRef.current;
-    const selection = instance?.getSelection() ?? null;
-    if (instance === null || selection === null || selection.isEmpty()) return '';
-    return instance.getModel()?.getValueInRange(selection) ?? '';
-  };
-
-  // Both go through the main process: the renderer is denied every permission
-  // by the security policy, so `navigator.clipboard` is not available to it.
-  const copy = (): void => {
-    void bridge.clipboard.writeText(selectedText());
-  };
-
-  const paste = (): void => {
-    void bridge.clipboard.readText().then((clipboardText) => {
-      const instance = editorRef.current;
-      const selection = instance?.getSelection() ?? null;
-      if (instance === null || selection === null) return;
-      // `executeEdits` rather than `setValue`: it keeps the undo stack, which is
-      // the whole point of pasting into an editor instead of a textarea.
-      instance.executeEdits('paste', [
-        { range: selection, text: clipboardText, forceMoveMarkers: true },
-      ]);
-      instance.focus();
-    });
-  };
-
   return (
-    <>
-      <ContextMenu
-        label="Acciones del editor"
-        items={[
-          {
-            label: 'Copiar',
-            icon: <DuplicateIcon />,
-            disabled: !hasSelection,
-            onSelect: copy,
-          },
-          { label: 'Pegar', icon: <PasteIcon />, onSelect: paste },
-        ]}
-      >
-        <div className="payload-editor" ref={containerRef} data-testid="payload-editor" />
-      </ContextMenu>
-      {hover !== null && (
-        <VariablePopover
-          // A remount per token, so the field is seeded from the store rather
-          // than carrying the value of whatever was pointed at before.
-          key={hover.name}
-          name={hover.name}
-          environmentId={environmentId}
-          anchor={hover.anchor}
-          onClose={close}
-          onPointerEnter={keepOpen}
-          onPointerLeave={release}
-        />
-      )}
-    </>
+    <PayloadEditorSurface
+      containerRef={containerRef}
+      hasSelection={hasSelection}
+      hover={hover}
+      environmentId={environmentId}
+      onCopy={() => {
+        copySelection(editorRef);
+      }}
+      onPaste={() => {
+        pasteClipboard(editorRef);
+      }}
+      onCloseHover={close}
+      onKeepHover={keepOpen}
+      onReleaseHover={release}
+    />
   );
 }

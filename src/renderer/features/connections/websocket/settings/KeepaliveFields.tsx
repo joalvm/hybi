@@ -1,5 +1,6 @@
 import type { KeepalivePolicy } from '@shared/domain/connections/websocket.js';
 import { NumberField } from '../../settings/NumberField.js';
+import { SettingsSection } from '../../settings/SettingsSection.js';
 import { ToggleField } from '../../settings/ToggleField.js';
 
 type Props = {
@@ -14,8 +15,7 @@ type Props = {
  */
 export function KeepaliveFields({ keepalive, onChange }: Props) {
   return (
-    <section className="settings-section">
-      <h3 className="settings-section__title">Keepalive</h3>
+    <SettingsSection title="Keepalive">
       <ToggleField
         label="Enviar ping periódico"
         hint="Si no llega el pong dentro del tiempo de espera, la conexión se da por caída."
@@ -24,7 +24,7 @@ export function KeepaliveFields({ keepalive, onChange }: Props) {
           onChange({ ...keepalive, enabled });
         }}
       />
-      <div className="settings-grid">
+      <div className="flex flex-col gap-0">
         <NumberField
           label="Intervalo (ms)"
           value={keepalive.intervalMs}
@@ -46,6 +46,6 @@ export function KeepaliveFields({ keepalive, onChange }: Props) {
           }}
         />
       </div>
-    </section>
+    </SettingsSection>
   );
 }

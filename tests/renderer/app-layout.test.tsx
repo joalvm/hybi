@@ -15,8 +15,8 @@ describe('AppLayout', () => {
       />,
     );
 
-    const catalogRail = container.querySelector('.app__catalog-rail');
-    const connectionSurface = container.querySelector('.app__connection-surface');
+    const catalogRail = container.querySelector('[data-part="catalog-rail"]');
+    const connectionSurface = container.querySelector('[data-part="connection-surface"]');
 
     expect(catalogRail).not.toBeNull();
     expect(connectionSurface).not.toBeNull();

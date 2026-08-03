@@ -28,8 +28,8 @@ export function ConnectionTabs() {
   const closing = connections.find((entry) => entry.id === actions.closingId) ?? null;
 
   return (
-    <div className="connection-tabs-bar">
-      <div className="connection-tabs">
+    <div className="flex min-w-0 items-center">
+      <div className="flex h-9.5 min-w-0 shrink items-center gap-1 overflow-x-auto overflow-y-hidden py-0 pr-1 pl-2">
         {connections.map((connection) => (
           <ConnectionTab
             key={connection.id}
@@ -48,7 +48,7 @@ export function ConnectionTabs() {
         ))}
       </div>
       {/* Outside the strip: the tabs scroll, the button that adds one does not. */}
-      <div className="connection-tabs__add">
+      <div className="shrink-0 pr-1">
         <IconButton label="Nueva conexión" onClick={actions.create}>
           <PlusIcon />
         </IconButton>

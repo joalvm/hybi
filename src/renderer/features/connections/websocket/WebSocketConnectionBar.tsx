@@ -49,7 +49,7 @@ export function WebSocketConnectionBar(props: Props) {
   };
 
   return (
-    <div className="connection-bar">
+    <div className="flex items-center gap-2 bg-panel px-3 py-2">
       <UrlInput
         value={transport.url}
         missing={resolution.missing}

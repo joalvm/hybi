@@ -1,4 +1,6 @@
 import type { ConnectionHeader } from '@shared/domain/connections/websocket.js';
+import { Button } from '@/shared/ui/Button.js';
+import { SettingsSection } from '../../settings/SettingsSection.js';
 import { HeaderRow } from './HeaderRow.js';
 
 type Props = {
@@ -19,12 +21,11 @@ export function HeadersEditor({ headers, onChange }: Props) {
   };
 
   return (
-    <section className="settings-section">
-      <div className="settings-section__heading">
-        <h3 className="settings-section__title">Headers</h3>
-        <button
-          type="button"
-          className="settings-section__add settings-section__add--inline"
+    <SettingsSection
+      title="Headers"
+      action={
+        <Button
+          className="min-h-0 rounded-none border-0 bg-transparent p-0 text-section leading-4.5 text-accent-text enabled:hover:bg-transparent enabled:hover:underline"
           aria-label="Añadir cabecera"
           title="Añadir cabecera"
           onClick={() => {
@@ -32,16 +33,17 @@ export function HeadersEditor({ headers, onChange }: Props) {
           }}
         >
           [+]
-        </button>
-      </div>
-      <p className="settings-hint">
+        </Button>
+      }
+    >
+      <p className="mt-2 text-ui leading-4 text-muted">
         Los valores admiten <code>{'{{variables}}'}</code>. Un token va en una variable secreta
         del entorno: escrito aquí quedaría guardado en el archivo del workspace.
       </p>
       {headers.length === 0 ? (
-        <p className="settings-empty">Sin cabeceras.</p>
+        <p className="mt-2 text-ui leading-4 text-muted">Sin cabeceras.</p>
       ) : (
-        <ul className="headers-list">
+        <ul className="mt-2 flex list-none flex-col gap-1 p-0">
           {headers.map((header, index) => (
             <HeaderRow
               key={index}
@@ -56,6 +58,6 @@ export function HeadersEditor({ headers, onChange }: Props) {
           ))}
         </ul>
       )}
-    </section>
+    </SettingsSection>
   );
 }

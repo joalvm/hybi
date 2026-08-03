@@ -1,5 +1,5 @@
-import clsx from 'clsx';
 import { Select as Primitive } from 'radix-ui';
+import { cn } from '../utils/cn.js';
 import { CaretDownIcon, CheckIcon } from './icons.js';
 
 export type SelectOption = { value: string; label: string };
@@ -21,20 +21,34 @@ type Props = {
 export function Select({ label, value, options, className, onChange }: Props) {
   return (
     <Primitive.Root value={value} onValueChange={onChange}>
-      <Primitive.Trigger className={clsx('select-trigger', className)} aria-label={label}>
+      <Primitive.Trigger
+        className={cn(
+          'inline-flex min-h-control cursor-pointer items-center gap-1 rounded-ui border border-border bg-app px-2 text-foreground hover:bg-hover focus-visible:border-accent focus-visible:outline-none',
+          className,
+        )}
+        aria-label={label}
+      >
         <Primitive.Value />
-        <Primitive.Icon className="select-caret">
+        <Primitive.Icon className="inline-flex text-muted">
           <CaretDownIcon />
         </Primitive.Icon>
       </Primitive.Trigger>
       <Primitive.Portal>
-        <Primitive.Content className="menu-panel select-panel" position="popper" sideOffset={4}>
+        <Primitive.Content
+          className="select-panel-runtime z-20 flex flex-col rounded-lg border border-border bg-panel p-1 shadow-overlay"
+          position="popper"
+          sideOffset={4}
+        >
           <Primitive.Viewport>
             {options.map((option) => (
-              <Primitive.Item key={option.value} value={option.value} className="menu-item">
+              <Primitive.Item
+                key={option.value}
+                value={option.value}
+                className="menu-item-runtime flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-ui px-2 py-1 text-left select-none outline-none"
+              >
                 {/* The tick sits in the icon slot every menu reserves, so the
                     chosen row does not sit a glyph's width off the others. */}
-                <span className="menu-icon">
+                <span className="inline-flex basis-3.5 items-center justify-center text-muted">
                   <Primitive.ItemIndicator>
                     <CheckIcon />
                   </Primitive.ItemIndicator>

@@ -66,7 +66,7 @@ export function CatalogTree({
   });
 
   if (groups.length === 0) {
-    return <p className="catalog-empty">No hay eventos que coincidan.</p>;
+    return <p className="p-3 text-muted">No hay eventos que coincidan.</p>;
   }
 
   return (
@@ -74,7 +74,6 @@ export function CatalogTree({
       ref={containerRef}
       role="tree"
       aria-label="Colecciones"
-      className="catalog-tree"
       onKeyDown={onKeyDown}
     >
       {groups.map((group) => (

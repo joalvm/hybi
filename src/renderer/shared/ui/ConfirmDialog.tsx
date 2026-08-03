@@ -1,4 +1,5 @@
 import { AlertDialog } from 'radix-ui';
+import { Button } from './Button.js';
 import { CloseIcon } from './icons.js';
 import { IconButton } from './IconButton.js';
 
@@ -36,27 +37,34 @@ export function ConfirmDialog({
       }}
     >
       <AlertDialog.Portal>
-        <AlertDialog.Overlay className="dialog-backdrop dialog-backdrop--fade" />
-        <AlertDialog.Content className="dialog dialog--plain dialog--fade dialog--sm">
-          <header className="dialog-header">
-            <AlertDialog.Title className="dialog-title">{title}</AlertDialog.Title>
-            <IconButton label="Cerrar" className="dialog-close" onClick={onClose}>
+        <AlertDialog.Overlay
+          className="dialog-motion fixed inset-0 z-10 bg-dialog-backdrop"
+          data-part="dialog-backdrop"
+        />
+        <AlertDialog.Content
+          className="dialog-motion fixed top-1/2 left-1/2 z-11 flex min-h-25 w-dialog-sm max-w-dialog -translate-x-1/2 -translate-y-1/2 flex-col rounded-dialog bg-panel shadow-modal"
+          data-part="dialog"
+          data-size="sm"
+        >
+          <header className="flex min-h-15 items-center gap-2 rounded-t-dialog bg-panel p-4">
+            <AlertDialog.Title className="flex-1 text-dialog-title leading-6 font-semibold">
+              {title}
+            </AlertDialog.Title>
+            <IconButton label="Cerrar" className="-mr-1 min-h-6 min-w-6 p-0" onClick={onClose}>
               <CloseIcon />
             </IconButton>
           </header>
-          <div className="dialog-body">
-            <AlertDialog.Description className="dialog-message">{message}</AlertDialog.Description>
+          <div className="min-h-0 flex-1 overflow-auto px-4 pt-3 pb-4" data-part="dialog-body">
+            <AlertDialog.Description className="text-muted">{message}</AlertDialog.Description>
           </div>
-          <footer className="dialog-footer">
+          <footer className="flex justify-end gap-2 rounded-b-dialog bg-panel px-4 pt-3 pb-4">
             <AlertDialog.Cancel asChild>
-              <button type="button" className="button">
-                Cancelar
-              </button>
+              <Button size="sm">Cancelar</Button>
             </AlertDialog.Cancel>
             <AlertDialog.Action asChild>
-              <button type="button" className="button button--danger" onClick={onConfirm}>
+              <Button tone="danger" size="sm" onClick={onConfirm}>
                 {confirmLabel}
-              </button>
+              </Button>
             </AlertDialog.Action>
           </footer>
         </AlertDialog.Content>

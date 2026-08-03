@@ -12,11 +12,16 @@ type Props = {
  */
 export function ComposerBreadcrumb({ collection, event }: Props) {
   return (
-    <nav className="breadcrumb" aria-label="Ubicación del evento">
-      <CollectionIcon className="breadcrumb__icon" />
-      <span className="breadcrumb__crumb">{collection}</span>
-      <CaretRightIcon className="breadcrumb__separator" />
-      <span className="breadcrumb__crumb breadcrumb__crumb--current">{event}</span>
+    <nav
+      className="flex min-h-9 items-center gap-1 px-3 pt-2 pb-1 text-label text-muted"
+      aria-label="Ubicación del evento"
+    >
+      <CollectionIcon className="shrink-0" />
+      <span className="overflow-hidden text-ellipsis whitespace-nowrap">{collection}</span>
+      <CaretRightIcon className="shrink-0" />
+      <span className="overflow-hidden font-semibold text-ellipsis whitespace-nowrap text-foreground">
+        {event}
+      </span>
     </nav>
   );
 }

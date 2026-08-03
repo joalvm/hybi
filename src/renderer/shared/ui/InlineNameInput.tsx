@@ -48,7 +48,7 @@ export function InlineNameInput({ value, label, onCommit, onCancel }: Props) {
 
   return (
     <input
-      className="inline-name"
+      className="h-5.5 min-w-0 flex-1 rounded-ui border border-accent bg-app px-1 text-foreground focus-visible:outline-none"
       aria-label={label}
       value={text}
       autoFocus

@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Button } from '@/shared/ui/Button.js';
 
 type Props = { children: ReactNode };
 type State = { message: string | null };
@@ -21,17 +22,15 @@ export class ErrorBoundary extends Component<Props, State> {
   override render(): ReactNode {
     if (this.state.message === null) return this.props.children;
     return (
-      <div className="app-state app-state--error">
+      <div className="flex flex-col items-start gap-3 p-3 text-error" role="alert">
         <p>{this.state.message}</p>
-        <button
-          type="button"
-          className="button"
+        <Button
           onClick={() => {
             window.location.reload();
           }}
         >
           Recargar
-        </button>
+        </Button>
       </div>
     );
   }

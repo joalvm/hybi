@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { Environment, Variable } from '@shared/domain/types.js';
+import { Button } from '@/shared/ui/Button.js';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog.js';
 import { Dialog } from '@/shared/ui/Dialog.js';
+import { Input } from '@/shared/ui/Input.js';
 import { useStore } from '@/store/index.js';
 import { EnvironmentList } from './EnvironmentList.js';
 import { VariableRow } from './VariableRow.js';
@@ -49,7 +51,7 @@ export function VariablesDialog() {
         setDialog(null);
       }}
     >
-      <div className="variables">
+      <div className="variables-grid grid min-h-72 gap-3">
         <EnvironmentList
           environments={environments}
           selectedId={current?.id ?? null}
@@ -57,32 +59,30 @@ export function VariablesDialog() {
           onCreate={create}
         />
 
-        <section className="variables__detail">
+        <section className="flex min-w-0 flex-col gap-2">
           {current === null ? (
-            <p className="variables__note">Crea un entorno para añadir variables.</p>
+            <p className="text-label text-muted">Crea un entorno para añadir variables.</p>
           ) : (
             <>
-              <div className="variables__head">
-                <input
-                  className="input"
+              <div className="flex items-center gap-2">
+                <Input
                   aria-label="Nombre del entorno"
                   value={current.name}
                   onChange={(event) => {
                     renameEnvironment(current.id, event.target.value);
                   }}
                 />
-                <button
-                  type="button"
-                  className="button button--danger"
+                <Button
+                  tone="danger"
                   onClick={() => {
                     setConfirming(true);
                   }}
                 >
                   Eliminar
-                </button>
+                </Button>
               </div>
 
-              <p className="variables__note">
+              <p className="text-label text-muted">
                 Los valores marcados como secretos no se guardan en disco.
               </p>
 
@@ -100,16 +100,14 @@ export function VariablesDialog() {
                 />
               ))}
 
-              <div className="dialog-actions">
-                <button
-                  type="button"
-                  className="button"
+              <div className="flex justify-end gap-2">
+                <Button
                   onClick={() => {
                     write([...variables, { name: '', value: '', secret: false }]);
                   }}
                 >
                   Añadir variable
-                </button>
+                </Button>
               </div>
             </>
           )}

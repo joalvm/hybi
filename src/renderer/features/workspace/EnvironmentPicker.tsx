@@ -18,7 +18,7 @@ export function EnvironmentPicker({ environments, value, onChange }: Props) {
   return (
     <Select
       label="Entorno"
-      className="environment-picker"
+      className="h-control w-32 justify-between gap-2 rounded-none border-0 bg-transparent px-2 text-muted hover:bg-hover focus-visible:border-0 focus-visible:bg-panel"
       value={value ?? NONE}
       options={[
         { value: NONE, label: 'Sin entorno' },

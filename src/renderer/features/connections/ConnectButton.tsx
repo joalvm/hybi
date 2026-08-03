@@ -1,5 +1,5 @@
-import clsx from 'clsx';
 import type { ConnectionState } from '@shared/ipc/activity.js';
+import { Button } from '@/shared/ui/Button.js';
 
 type Props = {
   state: ConnectionState;
@@ -20,17 +20,13 @@ type Props = {
 export function ConnectButton({ state, canConnect, onConnect, onDisconnect }: Props) {
   const connected = state === 'open' || state === 'connecting';
   return (
-    <button
-      type="button"
-      className={clsx(
-        'button',
-        'connect-button',
-        connected ? 'connect-button--live' : 'connect-button--idle',
-      )}
+    <Button
+      className="w-22 shrink-0 px-2 text-center"
+      tone={connected ? 'quiet' : 'primary'}
       disabled={!connected && !canConnect}
       onClick={connected ? onDisconnect : onConnect}
     >
       {connected ? 'Desconectar' : 'Conectar'}
-    </button>
+    </Button>
   );
 }

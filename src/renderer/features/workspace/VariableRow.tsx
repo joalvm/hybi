@@ -1,5 +1,6 @@
 import type { Variable } from '@shared/domain/types.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
+import { Input } from '@/shared/ui/Input.js';
 
 type Props = {
   variable: Variable;
@@ -12,17 +13,15 @@ type Props = {
 export function VariableRow({ variable, index, onChange, onRemove }: Props) {
   const position = String(index + 1);
   return (
-    <div className="variable-row">
-      <input
-        className="input"
+    <div className="variable-row-grid grid items-center gap-2">
+      <Input
         aria-label={`Nombre de la variable ${position}`}
         value={variable.name}
         onChange={(event) => {
           onChange({ ...variable, name: event.target.value });
         }}
       />
-      <input
-        className="input"
+      <Input
         type={variable.secret ? 'password' : 'text'}
         aria-label={`Valor de la variable ${position}`}
         value={variable.value}
@@ -30,7 +29,7 @@ export function VariableRow({ variable, index, onChange, onRemove }: Props) {
           onChange({ ...variable, value: event.target.value });
         }}
       />
-      <label className="variable-row__secret">
+      <label className="flex items-center gap-1 whitespace-nowrap text-label text-muted">
         <input
           type="checkbox"
           checked={variable.secret}

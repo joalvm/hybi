@@ -1,4 +1,5 @@
 import { bridge } from '@/ipc/bridge.js';
+import { IconButton } from '@/shared/ui/IconButton.js';
 import { MenuBarIcon } from '@/shared/ui/icons.js';
 
 /**
@@ -12,17 +13,15 @@ export function AppMenuButton() {
   if (bridge.platform === 'darwin') return null;
 
   return (
-    <button
-      type="button"
-      className="app-menu-button"
-      aria-label="Menú"
-      title="Menú"
+    <IconButton
+      className="app-no-drag h-control w-control shrink-0 border-0 text-muted"
+      label="Menú"
       onClick={(event) => {
         const box = event.currentTarget.getBoundingClientRect();
         void bridge.window.popupAppMenu({ x: box.left, y: box.bottom });
       }}
     >
       <MenuBarIcon />
-    </button>
+    </IconButton>
   );
 }

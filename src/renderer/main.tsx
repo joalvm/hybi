@@ -3,9 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { AppShell } from './app/AppShell.js';
 import { WelcomeApp } from './app/WelcomeApp.js';
 import { bridge } from './ipc/bridge.js';
-import './shared/styles/tokens.css';
-import './shared/styles/global.css';
-import './shared/styles/overlays.css';
+import './shared/styles/index.css';
 
 const container = document.getElementById('root');
 if (container === null) throw new Error('root container missing');

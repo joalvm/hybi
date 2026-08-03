@@ -87,7 +87,7 @@ test('opens an event with a schema without validating it, and beautifies on dema
     );
 
     // One line in, six out: what the footer replaced the validator with.
-    const lines = window.locator('.payload-editor .view-line');
+    const lines = window.locator('[data-part="payload-editor"] .view-line');
     await expect(lines).toHaveCount(1);
     await window.getByRole('button', { name: 'Formatear' }).click();
     await expect(lines).toHaveCount(6);

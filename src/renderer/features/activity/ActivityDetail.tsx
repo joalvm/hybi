@@ -43,18 +43,18 @@ export function ActivityDetail({ record, onClose }: Props) {
   }, [body, editorRef]);
 
   return (
-    <div className="activity-detail" data-testid="activity-detail">
-      <header className="activity-detail__header">
+    <div className="flex h-full min-h-0 flex-col" data-testid="activity-detail">
+      <header className="flex items-center gap-3 px-3 py-2 text-label">
         <span>{KIND_LABEL[record.kind]}</span>
-        <span className="text-dim">{String(record.bytes)} B</span>
-        <span className="text-dim">{new Date(record.at).toLocaleTimeString('es')}</span>
+        <span className="text-muted">{String(record.bytes)} B</span>
+        <span className="text-muted">{new Date(record.at).toLocaleTimeString('es')}</span>
         {/* Clicking the marked line again also closes the pane, but that is not
             discoverable — the pane has to carry its own way out. */}
-        <IconButton label="Cerrar detalle" onClick={onClose}>
+        <IconButton className="ml-auto" label="Cerrar detalle" onClick={onClose}>
           <CloseIcon />
         </IconButton>
       </header>
-      <div className="activity-detail__editor" ref={containerRef} />
+      <div className="min-h-0 flex-1" ref={containerRef} />
     </div>
   );
 }

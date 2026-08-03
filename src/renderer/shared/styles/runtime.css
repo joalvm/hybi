@@ -1,0 +1,129 @@
+/* Runtime geometry stays declarative: React writes data, CSS owns presentation. */
+.split-pane-runtime {
+  flex-basis: attr(data-size type(<percentage>), 50%);
+}
+
+.split-handle-runtime::after {
+  position: absolute;
+  inset: 0 -3px;
+  content: '';
+}
+
+.split-column-runtime > .split-handle-runtime::after {
+  inset: -3px 0;
+}
+
+.activity-canvas-runtime {
+  height: attr(data-height px, 0px);
+}
+
+.activity-list-runtime {
+  contain: strict;
+}
+
+.activity-slot-runtime {
+  height: attr(data-height px, 0px);
+  transform: translateY(attr(data-start px, 0px));
+}
+
+/* Electron needs native drag regions; interactive descendants opt out. */
+.app-drag-region {
+  -webkit-app-region: drag;
+}
+
+.app-no-drag,
+.app-drag-region button,
+.app-drag-region input {
+  -webkit-app-region: no-drag;
+}
+
+[data-platform='darwin'] .platform-titlebar {
+  padding-left: var(--traffic-lights-w);
+}
+
+/* External engines add these classes outside React and Tailwind source scanning. */
+.wsw-var-resolved {
+  color: var(--var-resolved);
+}
+
+.wsw-var-missing {
+  color: var(--var-missing);
+  text-decoration: underline wavy;
+}
+
+.select-panel-runtime {
+  min-width: var(--radix-select-trigger-width);
+}
+
+.menu-item-runtime[data-highlighted] {
+  background: var(--bg-hover);
+}
+
+.menu-item-runtime[data-disabled] {
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+.menu-group-runtime:not(:first-child) {
+  margin-top: var(--space-1);
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--border);
+}
+
+.url-input-field-runtime::selection {
+  color: var(--text-on-brand);
+  background: var(--accent);
+}
+
+/* These controls depend on sibling and pseudo-element state. */
+.toggle-switch-runtime {
+  background: var(--switch-off);
+}
+
+.toggle-switch-runtime::after {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: var(--bg-panel);
+  border-radius: 50%;
+  box-shadow: var(--shadow-switch);
+  content: '';
+  transition: transform 120ms ease-out;
+}
+
+.toggle-field-runtime input:checked + .toggle-switch-runtime {
+  background: var(--accent);
+}
+
+.toggle-field-runtime input:checked + .toggle-switch-runtime::after {
+  transform: translateX(16px);
+}
+
+.toggle-field-runtime input:focus-visible + .toggle-switch-runtime {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.catalog-actions-runtime .catalog-action-runtime,
+.catalog-actions-runtime .row-menu-runtime {
+  opacity: 0;
+}
+
+.catalog-actions-runtime:hover .catalog-action-runtime,
+.catalog-actions-runtime:hover .row-menu-runtime,
+.catalog-actions-runtime:focus-within .catalog-action-runtime,
+.catalog-actions-runtime:focus-within .row-menu-runtime,
+.catalog-actions-runtime[data-selected='true'] .row-menu-runtime,
+.catalog-actions-runtime .row-menu-runtime:has(> [data-state='open']) {
+  opacity: 1;
+}
+
+.tab-actions-runtime .row-menu-runtime {
+  opacity: 0;
+}
+
+.tab-actions-runtime:hover .row-menu-runtime,
+.tab-actions-runtime:focus-within .row-menu-runtime,
+.tab-actions-runtime[data-active='true'] .row-menu-runtime {
+  opacity: 1;
+}

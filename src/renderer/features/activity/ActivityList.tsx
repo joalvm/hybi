@@ -38,16 +38,24 @@ export function ActivityList({ records, origin, selectedId, onSelect }: Props) {
   };
 
   return (
-    <div className="activity-list" ref={scrollRef} onScroll={trackPin}>
-      <div className="activity-list__canvas" style={{ height: `${String(virtualizer.getTotalSize())}px` }}>
+    <div
+      className="activity-list-runtime h-full overflow-auto"
+      ref={scrollRef}
+      onScroll={trackPin}
+    >
+      <div
+        className="activity-canvas-runtime relative w-full"
+        data-height={virtualizer.getTotalSize()}
+      >
         {virtualizer.getVirtualItems().map((row) => {
           const record = records[row.index];
           if (record === undefined) return null;
           return (
             <div
               key={record.id}
-              className="activity-list__slot"
-              style={{ height: `${String(row.size)}px`, transform: `translateY(${String(row.start)}px)` }}
+              className="activity-slot-runtime absolute top-0 left-0 w-full"
+              data-height={row.size}
+              data-start={row.start}
             >
               <ActivityRow
                 record={record}

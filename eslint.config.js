@@ -28,6 +28,15 @@ export default tseslint.config(
   {
     files: ["src/renderer/**/*.{ts,tsx}"],
     extends: [reactHooks.configs.flat["recommended-latest"]],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXAttribute[name.name='style']",
+          message: "Use Tailwind classes instead of the JSX style prop.",
+        },
+      ],
+    },
   },
   {
     files: ["**/*.js"],

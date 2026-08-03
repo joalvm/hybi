@@ -54,7 +54,7 @@ test('undoes and redoes a payload edit with the keyboard', async () => {
     await expect(window.getByLabel('Ubicación del evento')).toContainText('Ping');
 
     // The text itself, not the hidden textarea Monaco keeps for IME input.
-    const editor = window.locator('.payload-editor');
+    const editor = window.locator('[data-part="payload-editor"]');
     await editor.locator('.view-lines').click();
     await window.keyboard.press('End');
     await window.keyboard.type('zzz');
