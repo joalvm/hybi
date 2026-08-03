@@ -81,13 +81,35 @@ Las claves y contraseñas que marques como secretas nunca se escriben en el disc
 
 ## Instalación
 
-Las versiones publicadas están en la
-[página de releases](https://github.com/joalvm/hybi/releases), con instaladores
-para Windows, macOS y Linux. Mientras dure la alpha se marcan como versiones de
-prueba (*pre-release*).
+Descarga la última versión desde la
+[página de releases](https://github.com/joalvm/hybi/releases). Mientras dure la
+alpha se marcan como versiones de prueba (*pre-release*).
 
-Cada release incluye un archivo `SHA256SUMS.txt` para comprobar que lo que
-descargaste es exactamente lo que se publicó.
+| Sistema | Archivo |
+| --- | --- |
+| Windows 10/11 (64 bits) | `Hybi-<versión>-win-x64.exe`, o el `.zip` si prefieres no instalar nada |
+| macOS (Intel y Apple Silicon) | `Hybi-<versión>-mac-universal.dmg` |
+| Linux (cualquier distro) | `Hybi-<versión>-linux-x64.AppImage` |
+| Debian / Ubuntu | `Hybi-<versión>-linux-x64.deb` |
+| Fedora / RHEL / openSUSE | `Hybi-<versión>-linux-x64.rpm` |
+
+### El sistema avisará de que no está firmado
+
+Hybi todavía no tiene certificados de firma de código, así que Windows y macOS
+avisarán de que el programa viene de un origen desconocido:
+
+- **Windows**: en la pantalla de SmartScreen, pulsa **Más información** y luego
+  **Ejecutar de todas formas**.
+- **macOS**: arrastra la aplicación a Aplicaciones y ejecuta una vez
+  `xattr -dr com.apple.quarantine /Applications/Hybi.app`, o ábrela desde
+  **Ajustes del sistema → Privacidad y seguridad → Abrir de todas formas**.
+- **Linux**: el AppImage necesita `chmod +x` y la librería `libfuse2`. Los
+  paquetes `.deb` y `.rpm` no necesitan nada.
+
+Los instaladores se compilan en GitHub Actions a partir del código de la
+etiqueta publicada, nunca en una máquina personal. Cada release incluye un
+archivo `SHA256SUMS.txt` para comprobar que lo que descargaste es exactamente lo
+que se publicó: mientras no haya firma, esa es la verificación que cuenta.
 
 ## Estado del proyecto
 

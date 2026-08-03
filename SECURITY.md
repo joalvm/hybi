@@ -43,6 +43,10 @@ servidores que elige la persona usuaria. Interesan especialmente:
 
 - Los binarios se compilan en GitHub Actions, no en máquinas personales.
 - Cada release lleva `SHA256SUMS.txt` con la huella de cada artefacto.
+- Mientras no haya certificados de firma, los artefactos salen sin firmar y la
+  propia release lo dice: el checksum es la única verificación disponible.
 - Cuando hay credenciales de firma configuradas, los artefactos se firman y se
   verifican dentro del propio flujo, y en macOS además se notarizan.
-- Toda release nace en borrador y solo se publica tras revisión manual.
+- Las versiones de prueba (`vX.Y.Z-...`) se publican automáticamente al terminar
+  el build. Las versiones estables nacen en borrador y se publican tras revisión
+  manual.
