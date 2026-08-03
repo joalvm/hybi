@@ -1,4 +1,4 @@
-import type { ConnectionHeader } from '@shared/domain/types.js';
+import type { ConnectionHeader } from '@shared/domain/connections/websocket.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import { TrashIcon } from '@/shared/ui/icons.js';
 

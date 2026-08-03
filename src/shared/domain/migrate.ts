@@ -1,4 +1,4 @@
-import { cloneConnectionSettings } from './defaults.js';
+import { cloneWebSocketSettings } from './connections/defaults.js';
 import { DEFAULT_COLLECTION_NAME } from './factory.js';
 
 type Unknowns = Record<string, unknown>;
@@ -22,7 +22,8 @@ export function migrateWorkspace(input: unknown): unknown {
   // Chained rather than branched: a v1 file has to pass through v2 to reach the
   // current shape, and each step only has to know about the one before it.
   const v2 = input.version === 1 ? fromV1(input) : input;
-  return v2.version === 2 ? fromV2(v2) : v2;
+  const v3 = v2.version === 2 ? fromV2(v2) : v2;
+  return v3.version === 3 ? fromV3(v3) : v3;
 }
 
 /**
@@ -79,7 +80,19 @@ function fromV2(workspace: Unknowns): Unknowns {
     connections: records(workspace.connections).map((connection) => ({
       ...connection,
       // Per connection, so a header added to one never appears on another.
-      settings: cloneConnectionSettings(),
+      settings: cloneWebSocketSettings(),
+    })),
+  };
+}
+
+/** v4 owns protocol-specific fields under one discriminated transport. */
+function fromV3(workspace: Unknowns): Unknowns {
+  return {
+    ...workspace,
+    version: 4,
+    connections: records(workspace.connections).map(({ url, settings, ...connection }) => ({
+      ...connection,
+      transport: { kind: 'websocket', url, settings },
     })),
   };
 }

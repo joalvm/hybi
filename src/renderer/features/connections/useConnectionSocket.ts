@@ -10,10 +10,10 @@ import { useStore } from '@/store/index.js';
 export function useConnectionSocket(): void {
   useEffect(() => {
     const { setConnectionState, appendActivity } = useStore.getState();
-    const offState = bridge.ws.onState((event) => {
+    const offState = bridge.connection.onState((event) => {
       setConnectionState(event.connectionId, event.state);
     });
-    const offActivity = bridge.ws.onActivity((records) => {
+    const offActivity = bridge.connection.onActivity((records) => {
       appendActivity(records);
     });
     return () => {

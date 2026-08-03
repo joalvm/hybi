@@ -1,10 +1,6 @@
-import type { ConnectionSettings } from '@shared/domain/types.js';
 import { Dialog } from '@/shared/ui/Dialog.js';
 import { useStore } from '@/store/index.js';
-import { AdvancedFields } from './AdvancedFields.js';
-import { HeadersEditor } from './HeadersEditor.js';
-import { KeepaliveFields } from './KeepaliveFields.js';
-import { RetryFields } from './RetryFields.js';
+import { TransportSettings } from './TransportSettings.js';
 
 type Props = { connectionId: string; onClose: () => void };
 
@@ -29,10 +25,7 @@ export function ConnectionSettingsDialog({ connectionId, onClose }: Props) {
 
   if (connection === null) return null;
 
-  const { settings } = connection;
-  const update = (next: Partial<ConnectionSettings>): void => {
-    upsertConnection({ ...connection, settings: { ...settings, ...next } });
-  };
+  const { transport } = connection;
 
   return (
     <Dialog
@@ -48,26 +41,12 @@ export function ConnectionSettingsDialog({ connectionId, onClose }: Props) {
             El socket sigue abierto: lo que cambies aquí se aplica al volver a conectar.
           </p>
         )}
-        <HeadersEditor
-          headers={settings.headers}
-          onChange={(headers) => {
-            update({ headers });
+        <TransportSettings
+          transport={transport}
+          onChange={(next) => {
+            upsertConnection({ ...connection, transport: next });
           }}
         />
-        <RetryFields
-          retry={settings.retry}
-          onChange={(retry) => {
-            update({ retry });
-          }}
-        />
-        <KeepaliveFields
-          keepalive={settings.keepalive}
-          onChange={(keepalive) => {
-            update({ keepalive });
-          }}
-        />
-        <AdvancedFields settings={settings} onChange={update} />
-        
       </div>
     </Dialog>
   );

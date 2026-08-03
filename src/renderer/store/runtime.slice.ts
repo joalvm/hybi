@@ -1,4 +1,5 @@
 import type { ActivityRecord, ConnectionState } from '@shared/ipc/activity.js';
+import type { TransportKind } from '@shared/domain/connections/connection.js';
 import type { SliceCreator } from './types.js';
 
 /** How many records a single connection keeps before the oldest fall off. */
@@ -11,7 +12,7 @@ export type RuntimeSlice = {
   drafts: Record<string, string>;
   setConnectionState: (connectionId: string, state: ConnectionState) => void;
   appendActivity: (records: ActivityRecord[]) => void;
-  appendLocalError: (connectionId: string, message: string) => void;
+  appendLocalError: (connectionId: string, transportKind: TransportKind, message: string) => void;
   clearActivity: (connectionId: string) => void;
   setDraft: (connectionId: string, eventId: string, text: string) => void;
   clearDraft: (connectionId: string, eventId: string) => void;
@@ -47,13 +48,14 @@ export const createRuntimeSlice: SliceCreator<RuntimeSlice> = (set) => ({
   // A failure the main process never saw — the bridge itself refusing — still
   // belongs in the log, because the log is the only place errors are reported.
   // The sequence continues the connection's own numbering so the row sorts last.
-  appendLocalError: (connectionId, message) => {
+  appendLocalError: (connectionId, transportKind, message) => {
     set((current) => {
       const existing = current.activity[connectionId] ?? [];
       const sequence = (existing.at(-1)?.sequence ?? 0) + 1;
       const record: ActivityRecord = {
         id: `${connectionId}:local:${String(sequence)}`,
         connectionId,
+        transportKind,
         sequence,
         kind: 'error',
         at: Date.now(),

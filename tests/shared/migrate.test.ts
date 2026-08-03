@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_CONNECTION_SETTINGS } from '@shared/domain/defaults.js';
+import { DEFAULT_WEBSOCKET_SETTINGS } from '@shared/domain/connections/defaults.js';
 import { migrateWorkspace } from '@shared/domain/migrate.js';
 import { parseWorkspace } from '@shared/domain/schema.js';
 import { createWorkspace } from '@shared/domain/factory.js';
@@ -14,7 +14,6 @@ function v1(items: unknown[], folders: unknown[] = [], connections: unknown[] = 
     catalog: { folders, items },
   };
 }
-
 function v2(connections: unknown[]): unknown {
   return {
     id: 'w2',
@@ -25,7 +24,16 @@ function v2(connections: unknown[]): unknown {
     catalog: { collections: [{ id: 'c1', name: 'General' }], items: [] },
   };
 }
-
+function v3(connections: unknown[]): unknown {
+  return {
+    id: 'w3',
+    version: 3,
+    name: 'Legacy',
+    environments: [],
+    connections,
+    catalog: { collections: [{ id: 'c1', name: 'General' }], items: [] },
+  };
+}
 const connection = (overrides: Record<string, unknown> = {}) => ({
   id: 'n1',
   name: 'local',
@@ -33,7 +41,6 @@ const connection = (overrides: Record<string, unknown> = {}) => ({
   environmentId: null,
   ...overrides,
 });
-
 const item = (overrides: Record<string, unknown>) => ({
   id: 'e1',
   name: 'Login',
@@ -48,7 +55,7 @@ describe('migrateWorkspace', () => {
       migrateWorkspace(v1([item({ folderId: 'f1' })], [{ id: 'f1', name: 'devices' }])),
     );
 
-    expect(migrated.version).toBe(3);
+    expect(migrated.version).toBe(4);
     expect(migrated.catalog.collections).toEqual([{ id: 'f1', name: 'devices' }]);
     expect(migrated.catalog.items[0]?.collectionId).toBe('f1');
   });
@@ -58,8 +65,12 @@ describe('migrateWorkspace', () => {
       migrateWorkspace(v1([item({ folderId: 'f1' })], [{ id: 'f1', name: 'devices' }], [connection()])),
     );
 
-    expect(migrated.version).toBe(3);
-    expect(migrated.connections[0]?.settings).toEqual(DEFAULT_CONNECTION_SETTINGS);
+    expect(migrated.version).toBe(4);
+    expect(migrated.connections[0]?.transport).toEqual({
+      kind: 'websocket',
+      url: 'ws://127.0.0.1:3000',
+      settings: DEFAULT_WEBSOCKET_SETTINGS,
+    });
   });
 
   it('moves an orphan event into a General collection it creates', () => {
@@ -89,10 +100,10 @@ describe('migrateWorkspace', () => {
       migrateWorkspace(v2([connection(), connection({ id: 'n2', name: 'staging' })])),
     );
 
-    expect(migrated.version).toBe(3);
-    expect(migrated.connections.map((entry) => entry.settings)).toEqual([
-      DEFAULT_CONNECTION_SETTINGS,
-      DEFAULT_CONNECTION_SETTINGS,
+    expect(migrated.version).toBe(4);
+    expect(migrated.connections.map((entry) => entry.transport.settings)).toEqual([
+      DEFAULT_WEBSOCKET_SETTINGS,
+      DEFAULT_WEBSOCKET_SETTINGS,
     ]);
   });
 
@@ -102,12 +113,33 @@ describe('migrateWorkspace', () => {
       migrateWorkspace(v2([connection(), connection({ id: 'n2', name: 'staging' })])),
     );
 
-    migrated.connections[0]?.settings.headers.push({
+    migrated.connections[0]?.transport.settings.headers.push({
       name: 'Authorization',
       value: '{{token}}',
       enabled: true,
     });
-    expect(migrated.connections[1]?.settings.headers).toHaveLength(0);
+    expect(migrated.connections[1]?.transport.settings.headers).toHaveLength(0);
+  });
+
+  it('moves a v3 connection into one discriminated WebSocket transport', () => {
+    const settings = {
+      ...structuredClone(DEFAULT_WEBSOCKET_SETTINGS),
+      protocols: ['graphql-ws'],
+    };
+    const migrated = parseWorkspace(migrateWorkspace(v3([connection({ settings })])));
+
+    expect(migrated.connections[0]).toEqual({
+      id: 'n1',
+      name: 'local',
+      environmentId: null,
+      transport: {
+        kind: 'websocket',
+        url: 'ws://127.0.0.1:3000',
+        settings,
+      },
+    });
+    expect(migrated.connections[0]).not.toHaveProperty('url');
+    expect(migrated.connections[0]).not.toHaveProperty('settings');
   });
 
   it('leaves a current document untouched', () => {

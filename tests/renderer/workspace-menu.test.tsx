@@ -24,7 +24,7 @@ const workspaceBridge = {
 
 vi.mock('@/ipc/bridge.js', () => ({
   bridge: {
-    ws: {
+    connection: {
       open: vi.fn(),
       close: vi.fn(),
       send: vi.fn(),

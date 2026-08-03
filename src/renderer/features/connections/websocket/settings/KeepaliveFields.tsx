@@ -1,6 +1,6 @@
-import type { KeepalivePolicy } from '@shared/domain/types.js';
-import { NumberField } from './NumberField.js';
-import { ToggleField } from './ToggleField.js';
+import type { KeepalivePolicy } from '@shared/domain/connections/websocket.js';
+import { NumberField } from '../../settings/NumberField.js';
+import { ToggleField } from '../../settings/ToggleField.js';
 
 type Props = {
   keepalive: KeepalivePolicy;

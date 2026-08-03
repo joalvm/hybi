@@ -1,6 +1,6 @@
-import type { RetryPolicy } from '@shared/domain/types.js';
-import { NumberField } from './NumberField.js';
-import { ToggleField } from './ToggleField.js';
+import type { RetryPolicy } from '@shared/domain/connections/websocket.js';
+import { NumberField } from '../../settings/NumberField.js';
+import { ToggleField } from '../../settings/ToggleField.js';
 
 type Props = {
   retry: RetryPolicy;

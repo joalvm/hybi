@@ -74,7 +74,7 @@ export function useConnectionTabActions() {
     setClosingId(null);
     // Dropping the tab without closing the socket would leave a live session in
     // the main process with no UI left to observe it.
-    void bridge.ws.close({ connectionId }).catch((cause: unknown) => {
+    void bridge.connection.close({ connectionId }).catch((cause: unknown) => {
       console.error(cause);
     });
 

@@ -2,7 +2,7 @@ import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { cloneConnectionSettings } from '@shared/domain/defaults.js';
+import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
 import { createWorkspace } from '@shared/domain/factory.js';
 import { WorkspaceRepository } from '../../src/main/workspace/repository.js';
 
@@ -51,9 +51,12 @@ describe('WorkspaceRepository', () => {
     source.connections.push({
       id: 'c1',
       name: 'local',
-      url: 'ws://x',
       environmentId: 'env1',
-      settings: cloneConnectionSettings(),
+      transport: {
+        kind: 'websocket',
+        url: 'ws://x',
+        settings: cloneWebSocketSettings(),
+      },
     });
     const [collection] = source.catalog.collections;
     source.catalog.items.push({
@@ -117,7 +120,7 @@ describe('WorkspaceRepository', () => {
     );
 
     const loaded = await repository.load('legacy');
-    expect(loaded.version).toBe(3);
+    expect(loaded.version).toBe(4);
     expect(loaded.catalog.collections.map((entry) => entry.name)).toEqual(['General', 'devices']);
     expect(loaded.catalog.items.map((entry) => entry.name)).toEqual(['Login', 'Ad hoc']);
   });

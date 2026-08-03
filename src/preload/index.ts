@@ -21,16 +21,16 @@ function subscribe(channel: string, handler: ChannelListener): () => void {
 }
 
 const bridge: WorkbenchBridge = {
-  ws: {
-    open: (request) => ipcRenderer.invoke(CHANNELS.wsOpen, request),
-    close: (request) => ipcRenderer.invoke(CHANNELS.wsClose, request),
-    send: (request) => ipcRenderer.invoke(CHANNELS.wsSend, request),
+  connection: {
+    open: (request) => ipcRenderer.invoke(CHANNELS.connectionOpen, request),
+    close: (request) => ipcRenderer.invoke(CHANNELS.connectionClose, request),
+    send: (request) => ipcRenderer.invoke(CHANNELS.connectionSend, request),
     onState: (listener) =>
-      subscribe(CHANNELS.wsState, (_event, payload: ConnectionStateEvent) => {
+      subscribe(CHANNELS.connectionState, (_event, payload: ConnectionStateEvent) => {
         listener(payload);
       }),
     onActivity: (listener) =>
-      subscribe(CHANNELS.wsActivity, (_event, records: ActivityRecord[]) => {
+      subscribe(CHANNELS.connectionActivity, (_event, records: ActivityRecord[]) => {
         listener(records);
       }),
   },

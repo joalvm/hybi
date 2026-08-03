@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import type { VariableScope } from '@shared/variables/resolve.js';
+import type { TransportFactoryMap, TransportMessage } from '@shared/transport/contract.js';
 import { bridge } from '@/ipc/bridge.js';
 import { registerVariableProviders } from '@/shared/monaco/setup.js';
 import { Panel } from '@/shared/ui/Panel.js';
@@ -20,6 +21,10 @@ import { useSaveShortcut } from './useSaveShortcut.js';
 /** A module constant so the hover provider keeps a stable empty scope. */
 const EMPTY_SCOPE: VariableScope = new Map();
 
+const MESSAGE_FACTORIES = {
+  websocket: (text: string): TransportMessage => ({ kind: 'websocket', text }),
+} satisfies TransportFactoryMap<(text: string) => TransportMessage>;
+
 type Props = { connectionId: string };
 
 /** The only file in this feature that reads the store. Children take props. */
@@ -29,6 +34,12 @@ export function ComposerPanel({ connectionId }: Props) {
   const collection = useStore(selectCollectionNameFor(connectionId));
   const scope = useStore(useShallow(selectScopeFor(connectionId)));
   const connected = useStore((state) => state.states[connectionId] === 'open');
+  const appendLocalError = useStore((state) => state.appendLocalError);
+  const transportKind = useStore(
+    (state) =>
+      state.workspace?.connections.find((entry) => entry.id === connectionId)?.transport.kind ??
+      null,
+  );
   // The editor's variable popover writes into this environment, the same one
   // the scope above was resolved against.
   const environmentId = useStore(
@@ -58,9 +69,19 @@ export function ComposerPanel({ connectionId }: Props) {
   const beautified = useMemo(() => beautify(draft.text, format), [draft.text, format]);
 
   const send = (): void => {
-    void bridge.ws.send({ connectionId, text: draft.resolved }).catch((cause: unknown) => {
-      console.error(cause);
-    });
+    if (transportKind === null) return;
+    void bridge.connection
+      .send({ connectionId, message: MESSAGE_FACTORIES[transportKind](draft.resolved) })
+      .then((result) => {
+        if (!result.ok) appendLocalError(connectionId, transportKind, result.error);
+      })
+      .catch((cause: unknown) => {
+        appendLocalError(
+          connectionId,
+          transportKind,
+          cause instanceof Error ? cause.message : String(cause),
+        );
+      });
   };
 
   if (event === null) {

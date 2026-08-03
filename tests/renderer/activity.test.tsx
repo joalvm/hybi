@@ -17,6 +17,7 @@ vi.mock('@/shared/monaco/useMonacoEditor.js', () => ({
 const record = (over: Partial<ActivityRecord>): ActivityRecord => ({
   id: 'c1:1',
   connectionId: 'c1',
+  transportKind: 'websocket',
   sequence: 1,
   kind: 'incoming',
   at: 1000,

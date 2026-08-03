@@ -1,12 +1,12 @@
-import type { ConnectionSettings } from '@shared/domain/types.js';
+import type { WebSocketTransportSettings } from '@shared/domain/connections/websocket.js';
 import { ShieldAlertIcon } from '@/shared/ui/icons.js';
-import { NumberField } from './NumberField.js';
+import { NumberField } from '../../settings/NumberField.js';
 import { ProtocolsField } from './ProtocolsField.js';
-import { ToggleField } from './ToggleField.js';
+import { ToggleField } from '../../settings/ToggleField.js';
 
 type Props = {
-  settings: ConnectionSettings;
-  onChange: (next: Partial<ConnectionSettings>) => void;
+  settings: WebSocketTransportSettings;
+  onChange: (next: Partial<WebSocketTransportSettings>) => void;
 };
 
 const KIB = 1024;

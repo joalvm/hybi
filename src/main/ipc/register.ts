@@ -1,10 +1,10 @@
 import type { BrowserWindow, Menu } from 'electron';
 import { registerAsyncApiHandlers } from './asyncapi.handlers.js';
 import { registerClipboardHandlers } from './clipboard.handlers.js';
+import { registerConnectionHandlers } from './connection.handlers.js';
 import { registerShellHandlers } from './shell.handlers.js';
 import { registerWindowHandlers } from './window.handlers.js';
 import { registerWorkspaceHandlers } from './workspace.handlers.js';
-import { registerWsHandlers } from './ws.handlers.js';
 
 type AppActions = {
   openWorkspace: (workspaceId: string, from: BrowserWindow | null) => void;
@@ -35,7 +35,7 @@ export function registerAppIpc(actions: AppActions): () => void {
  * die with the workbench window rather than with the app.
  */
 export function registerWorkbenchIpc(window: BrowserWindow): () => void {
-  const disposers = [registerWsHandlers(window), registerAsyncApiHandlers(window)];
+  const disposers = [registerConnectionHandlers(window), registerAsyncApiHandlers(window)];
 
   return () => {
     for (const dispose of disposers) dispose();

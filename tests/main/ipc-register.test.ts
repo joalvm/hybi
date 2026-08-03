@@ -6,8 +6,8 @@ import { CHANNELS } from '../../src/shared/ipc/contract.js';
  * `webContents.send`, so they never get an `ipcMain.handle` registration.
  */
 const PUSH_ONLY = new Set<string>([
-  CHANNELS.wsState,
-  CHANNELS.wsActivity,
+  CHANNELS.connectionState,
+  CHANNELS.connectionActivity,
   CHANNELS.windowState,
   CHANNELS.appAbout,
 ]);
@@ -85,7 +85,7 @@ describe('IPC registration', () => {
   });
 
   /**
-   * Opening a second document registers the socket channels again, which
+   * Opening a second document registers the connection channels again, which
    * `ipcMain.handle` refuses while the first registration is still standing.
    */
   it('frees the workbench channels for the next window', () => {
@@ -93,7 +93,7 @@ describe('IPC registration', () => {
     const dispose = registerWorkbenchIpc(fakeWindow());
     dispose();
 
-    expect(handlers.has(CHANNELS.wsOpen)).toBe(false);
+    expect(handlers.has(CHANNELS.connectionOpen)).toBe(false);
     expect(handlers.has(CHANNELS.asyncapiImport)).toBe(false);
     expect(handlers.has(CHANNELS.workspaceList)).toBe(true);
   });

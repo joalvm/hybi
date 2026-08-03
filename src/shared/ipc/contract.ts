@@ -1,19 +1,23 @@
 import type {
   Collection,
   EventItem,
-  KeepalivePolicy,
-  RetryPolicy,
   Workspace,
   WorkspaceSummary,
 } from '../domain/types.js';
 import type { ActivityRecord, ConnectionStateEvent } from './activity.js';
+import type {
+  CloseConnectionRequest,
+  OpenConnectionRequest,
+  SendConnectionRequest,
+  TransportSendResult,
+} from '../transport/contract.js';
 
 export const CHANNELS = {
-  wsOpen: 'ws:open',
-  wsClose: 'ws:close',
-  wsSend: 'ws:send',
-  wsState: 'ws:state',
-  wsActivity: 'ws:activity',
+  connectionOpen: 'connection:open',
+  connectionClose: 'connection:close',
+  connectionSend: 'connection:send',
+  connectionState: 'connection:state',
+  connectionActivity: 'connection:activity',
   workspaceList: 'workspace:list',
   workspaceLoad: 'workspace:load',
   workspaceSave: 'workspace:save',
@@ -54,28 +58,6 @@ export type Result<T> = Success<T> | Failure;
  */
 export type Empty = Record<never, never>;
 
-/**
- * A connection's settings as the socket needs them, not as they are stored.
- *
- * `headers` arrives already resolved and flattened: the renderer substitutes
- * `{{variables}}` before it calls, exactly as it does for the URL, so the
- * variable scope — which holds secret values that are kept out of the workspace
- * file — never has to cross to the main process.
- */
-export type SocketOptions = {
-  headers: Record<string, string>;
-  protocols: string[];
-  retry: RetryPolicy;
-  keepalive: KeepalivePolicy;
-  verifyCertificate: boolean;
-  maxMessageBytes: number;
-};
-
-/** Omitting `options` opens with the defaults, which is what v2 always did. */
-export type OpenRequest = { connectionId: string; url: string; options?: SocketOptions };
-export type SendRequest = { connectionId: string; text: string };
-export type CloseRequest = { connectionId: string };
-
 export type ImportResult = {
   collections: Collection[];
   items: EventItem[];
@@ -87,10 +69,10 @@ export type ImportOutcome = Result<ImportResult> | { ok: false; cancelled: true;
 
 /** The complete surface the preload exposes. Nothing else crosses the bridge. */
 export type WorkbenchBridge = {
-  ws: {
-    open(request: OpenRequest): Promise<Result<Empty>>;
-    close(request: CloseRequest): Promise<Result<Empty>>;
-    send(request: SendRequest): Promise<Result<{ sequence: number }>>;
+  connection: {
+    open(request: OpenConnectionRequest): Promise<Result<Empty>>;
+    close(request: CloseConnectionRequest): Promise<Result<Empty>>;
+    send(request: SendConnectionRequest): Promise<Result<TransportSendResult>>;
     onState(listener: (event: ConnectionStateEvent) => void): () => void;
     onActivity(listener: (records: ActivityRecord[]) => void): () => void;
   };
