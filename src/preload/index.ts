@@ -45,6 +45,7 @@ const bridge: WorkbenchBridge = {
   },
   asyncapi: {
     import: () => ipcRenderer.invoke(CHANNELS.asyncapiImport),
+    export: (workspace) => ipcRenderer.invoke(CHANNELS.asyncapiExport, workspace),
   },
   clipboard: {
     readText: () => ipcRenderer.invoke(CHANNELS.clipboardRead),

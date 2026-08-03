@@ -25,6 +25,7 @@ export const CHANNELS = {
   workspaceDuplicate: 'workspace:duplicate',
   workspaceDelete: 'workspace:delete',
   asyncapiImport: 'asyncapi:import',
+  asyncapiExport: 'asyncapi:export',
   clipboardRead: 'clipboard:read',
   clipboardWrite: 'clipboard:write',
   windowMinimize: 'window:minimize',
@@ -67,6 +68,9 @@ export type ImportResult = {
 /** Cancelling the native file dialog is not an error, so it gets its own shape. */
 export type ImportOutcome = Result<ImportResult> | { ok: false; cancelled: true; error: string };
 
+/** Cancelling export is expected; the selected path stays inside the main process. */
+export type ExportOutcome = Result<Empty> | { ok: false; cancelled: true; error: string };
+
 /** The complete surface the preload exposes. Nothing else crosses the bridge. */
 export type WorkbenchBridge = {
   connection: {
@@ -88,6 +92,7 @@ export type WorkbenchBridge = {
   };
   asyncapi: {
     import(): Promise<ImportOutcome>;
+    export(workspace: Workspace): Promise<ExportOutcome>;
   };
   /**
    * The renderer is denied every permission by the security policy, so

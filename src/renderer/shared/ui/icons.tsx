@@ -11,6 +11,7 @@ import {
   CircleCheck,
   CircleX,
   Copy,
+  Download,
   Eye,
   EyeOff,
   Folder,
@@ -86,6 +87,8 @@ export const PlusIcon = hairline(Plus);
 export const NewCollectionIcon = hairline(FolderPlus);
 /** Reads an AsyncAPI document into the catalog. */
 export const ImportIcon = hairline(Import);
+/** Writes the complete workspace as an AsyncAPI JSON document. */
+export const ExportIcon = hairline(Download);
 /** Work already running: an import parsing a document, and nothing else so far. */
 export const SpinnerIcon = hairline(LoaderCircle);
 /** The `…` a row shows instead of a strip of buttons. */
