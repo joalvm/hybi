@@ -32,7 +32,7 @@ beforeEach(() => {
 describe('workspace export', () => {
   it('exports the complete open workspace as AsyncAPI', async () => {
     fireEvent.pointerDown(screen.getByRole('button', { name: 'Workspace' }));
-    fireEvent.click(await screen.findByRole('menuitem', { name: 'Exportar como AsyncAPI' }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Export' }));
 
     await waitFor(() => {
       expect(exportAsyncApi).toHaveBeenCalledWith(current);

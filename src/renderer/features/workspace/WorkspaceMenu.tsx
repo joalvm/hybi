@@ -55,7 +55,7 @@ export function WorkspaceMenu() {
       },
     },
     {
-      label: 'Exportar como AsyncAPI',
+      label: 'Export',
       icon: <ExportIcon />,
       onSelect: exportAsyncApi,
     },
