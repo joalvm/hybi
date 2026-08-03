@@ -1,0 +1,106 @@
+@layer theme, base, components, utilities;
+
+@import './tokens.css';
+@import './dark.css';
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+@import './fonts.css' layer(base);
+@import './base.css' layer(base);
+@import './runtime.css' layer(components);
+@import './motion.css' layer(components);
+@import './markdown.css' layer(components);
+
+@source '../../';
+
+@theme inline {
+  --color-*: initial;
+  --font-*: initial;
+  --color-app: var(--bg-app);
+  --color-panel: var(--bg-panel);
+  --color-chrome: var(--bg-chrome);
+  --color-control: var(--bg-control);
+  --color-tab-active: var(--bg-tab-active);
+  --color-elevated: var(--bg-elevated);
+  --color-hover: var(--bg-hover);
+  --color-selected: var(--bg-selected);
+  --color-dialog-backdrop: var(--backdrop-dialog);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-foreground: var(--text);
+  --color-muted: var(--text-dim);
+  --color-brand: var(--brand-primary);
+  --color-on-brand: var(--text-on-brand);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
+  --color-blue: var(--blue);
+  --color-blue-strong: var(--blue-strong);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-error: var(--error);
+  --color-window-close: var(--window-close-hover);
+  --color-on-danger: #ffffff;
+  --color-switch-off: var(--switch-off);
+  --color-variable-resolved: var(--var-resolved);
+  --color-variable-missing: var(--var-missing);
+  --font-ui: var(--text-family-default);
+  --font-mono: var(--text-family-code);
+  --spacing: 4px;
+  --spacing-row: var(--row-h);
+  --spacing-control: var(--control-h);
+  --spacing-header: var(--header-h);
+  --spacing-titlebar: var(--titlebar-h);
+  --spacing-traffic-lights: var(--traffic-lights-w);
+  --spacing-dialog-sm: 400px;
+  --spacing-dialog-md: 520px;
+  --spacing-dialog-settings: 624px;
+  --spacing-dialog-lg: 720px;
+  --spacing-screen-safe: calc(100vh - 32px);
+  --container-dialog: 92vw;
+  --container-welcome: 40ch;
+  --container-welcome-title: 22rem;
+  --container-welcome-intro: 24rem;
+  --container-about: 42ch;
+  --radius-ui: var(--radius);
+  --radius-worktab: var(--radius-tab);
+  --radius-dialog: 11px;
+  --shadow-modal: var(--shadow-dialog);
+  --shadow-overlay: 0 8px 24px rgb(28 28 30 / 14%);
+  --text-ui: 12px;
+  --text-label: 11px;
+  --text-section: 13px;
+  --text-dialog-title: 18px;
+  --text-welcome-title: clamp(34px, 4vw, 48px);
+  --text-brand-name: 15px;
+  --text-kicker: 10px;
+  --leading-badge: 18px;
+  --leading-copy: 1.5;
+  --leading-intro: 1.6;
+  --leading-url: 28px;
+  --leading-welcome: 0.98;
+  --tracking-brand: -0.01em;
+  --tracking-kicker: 0.12em;
+  --tracking-section: 0.04em;
+  --tracking-welcome: -0.055em;
+}
+
+@utility variables-grid {
+  grid-template-columns: 12rem minmax(0, 1fr);
+}
+
+@utility variable-row-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
+}
+
+@utility settings-field-grid {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+@utility header-row-grid {
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 2fr) auto;
+}
+
+@utility max-w-activity-label {
+  max-width: 45%;
+}

@@ -4,6 +4,7 @@ import { BracesIcon } from '@/shared/ui/icons.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import { useStore } from '@/store/index.js';
 import { AppMenuButton } from './AppMenuButton.js';
+import { ThemeToggle } from './ThemeToggle.js';
 import { WindowControls } from './WindowControls.js';
 
 /**
@@ -17,18 +18,18 @@ export function TitleBar() {
   const setDialog = useStore((state) => state.setDialog);
 
   return (
-    <div className="title-bar">
+    <div className="flex h-full w-full items-center gap-2">
       {/* The application menu sits left of the switcher, as in Postman: it acts
           on the app, the switcher on the document. */}
       <AppMenuButton />
       <WorkspaceMenu />
-      <div className="title-bar__right">
-        <div className="title-bar__environment">
+      <div className="ml-auto flex h-full items-center gap-2">
+        <div className="app-no-drag flex items-center overflow-hidden rounded-ui border border-border bg-control focus-within:border-accent focus-within:outline focus-within:outline-1 focus-within:outline-accent">
           <ActiveEnvironmentPicker />
           {/* The picker and values action operate on one environment, so they
               share one bounded control instead of reading as two controls. */}
           <IconButton
-            className="title-bar__variables"
+            className="min-h-control min-w-control rounded-none border-0 border-l border-l-border bg-transparent"
             label="Variables"
             onClick={() => {
               setDialog('variables');
@@ -37,6 +38,7 @@ export function TitleBar() {
             <BracesIcon />
           </IconButton>
         </div>
+        <ThemeToggle />
         <WindowControls />
       </div>
     </div>

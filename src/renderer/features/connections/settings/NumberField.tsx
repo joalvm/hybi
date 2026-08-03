@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { Field } from '@/shared/ui/Field.js';
+import { Input } from '@/shared/ui/Input.js';
 
 type Props = {
   label: string;
@@ -30,10 +31,10 @@ export function NumberField({ label, value, min, max, disabled = false, onChange
   };
 
   return (
-    <Field label={label} htmlFor={id}>
-      <input
+    <Field className="settings-field-grid grid items-center gap-3 py-2" label={label} htmlFor={id}>
+      <Input
         id={id}
-        className="input settings-control"
+        className="w-26"
         type="number"
         inputMode="numeric"
         min={min}

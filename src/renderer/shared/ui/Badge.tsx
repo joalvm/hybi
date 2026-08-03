@@ -1,5 +1,5 @@
-import clsx from 'clsx';
 import type { ReactNode } from 'react';
+import { cn } from '../utils/cn.js';
 
 type Props = {
   tone: 'neutral' | 'ok' | 'warn' | 'error';
@@ -7,5 +7,23 @@ type Props = {
 };
 
 export function Badge({ tone, children }: Props) {
-  return <span className={clsx('badge', `badge--${tone}`)}>{children}</span>;
+  const tones: Record<Props['tone'], string> = {
+    neutral: 'text-muted',
+    ok: 'text-ok',
+    warn: 'text-warn',
+    error: 'text-error',
+  };
+
+  return (
+    <span
+      className={cn(
+        'inline-block whitespace-nowrap rounded-full border border-current px-2 text-label leading-badge',
+        tones[tone],
+      )}
+      data-part="badge"
+      data-tone={tone}
+    >
+      {children}
+    </span>
+  );
 }

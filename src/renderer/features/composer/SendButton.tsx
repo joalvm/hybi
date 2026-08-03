@@ -1,4 +1,5 @@
 import { SendIcon } from '@/shared/ui/icons.js';
+import { Button } from '@/shared/ui/Button.js';
 
 type Props = {
   connected: boolean;
@@ -23,15 +24,14 @@ export function SendButton({ connected, empty, onSend }: Props) {
       : 'Envía el payload resuelto por el socket';
 
   return (
-    <button
-      type="button"
-      className="button composer-send"
+    <Button
+      className="min-h-5.5 shrink-0 px-3"
       disabled={!connected || empty}
       title={reason}
       onClick={onSend}
     >
       <SendIcon />
       Enviar
-    </button>
+    </Button>
   );
 }

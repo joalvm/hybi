@@ -18,10 +18,10 @@ type Props = {
  */
 export function ComposerFooter({ format, beautified, onFormatChange, onBeautify }: Props) {
   return (
-    <div className="composer-footer">
+    <div className="flex min-h-9 items-center gap-1 bg-panel px-2">
       <Select
         label="Formato del payload"
-        className="composer-format"
+        className="h-control border-border bg-panel px-1 text-label text-muted"
         value={format}
         options={PAYLOAD_FORMATS.map((entry) => ({ value: entry.id, label: entry.label }))}
         onChange={(next) => {

@@ -1,7 +1,7 @@
-import clsx from 'clsx';
 import { memo } from 'react';
 import type { EventItem } from '@shared/domain/types.js';
 import { InlineNameInput } from '@/shared/ui/InlineNameInput.js';
+import { cn } from '@/shared/utils/cn.js';
 import { CatalogItemMenu } from './CatalogItemMenu.js';
 import type { CatalogRowActions } from './useCatalogActions.js';
 
@@ -36,9 +36,13 @@ export const CatalogItem = memo(function CatalogItem({
       aria-selected={selected}
       aria-label={item.name}
       data-row-id={item.id}
+      data-selected={selected}
       tabIndex={tabIndexFor(item.id)}
       title={item.source === 'asyncapi' ? `${item.name} — importado de AsyncAPI` : item.name}
-      className={clsx('catalog-item', selected && 'catalog-item--selected')}
+      className={cn(
+        'catalog-actions-runtime flex min-h-row cursor-pointer items-center gap-2 rounded-ui px-2 pl-3 focus-visible:bg-hover focus-visible:outline focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-accent hover:bg-hover',
+        selected && 'bg-selected',
+      )}
       onClick={() => {
         onSelect(item.id);
       }}
@@ -56,7 +60,7 @@ export const CatalogItem = memo(function CatalogItem({
           onCancel={actions.cancelRename}
         />
       ) : (
-        <span className="catalog-item-name">{item.name}</span>
+        <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{item.name}</span>
       )}
       {actions !== undefined && <CatalogItemMenu item={item} actions={actions} />}
     </li>

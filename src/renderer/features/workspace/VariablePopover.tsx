@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { Variable } from '@shared/domain/types.js';
+import { Button } from '@/shared/ui/Button.js';
 import { HideIcon, RevealIcon } from '@/shared/ui/icons.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
+import { Input } from '@/shared/ui/Input.js';
 import { Popover, type VirtualAnchor } from '@/shared/ui/Popover.js';
 import { useStore } from '@/store/index.js';
 
@@ -74,25 +76,24 @@ export function VariablePopover({
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
     >
-      <p className="popover-title">{`{{${name}}}`}</p>
+      <p className="font-mono text-ui text-variable-resolved">{`{{${name}}}`}</p>
 
       {environment === null ? (
-        <p className="popover-note">
+        <p className="text-label text-muted">
           Esta conexión no tiene entorno. Elige uno para definir variables.
         </p>
       ) : variable === null ? (
         <>
-          <p className="popover-note">{`No está definida en ${environment.name}.`}</p>
-          <button type="button" className="button" onClick={create}>
+          <p className="text-label text-muted">{`No está definida en ${environment.name}.`}</p>
+          <Button onClick={create}>
             {`Crear en ${environment.name}`}
-          </button>
+          </Button>
         </>
       ) : (
         <>
-          <p className="popover-note">{`Entorno ${environment.name}`}</p>
-          <div className="popover-value">
-            <input
-              className="input"
+          <p className="text-label text-muted">{`Entorno ${environment.name}`}</p>
+          <div className="flex items-center gap-1">
+            <Input
               // A secret is never printed by default, here or in the log.
               type={variable.secret && !revealed ? 'password' : 'text'}
               aria-label={`Valor de ${name}`}
@@ -126,16 +127,15 @@ export function VariablePopover({
         </>
       )}
 
-      <button
-        type="button"
-        className="popover-link"
+      <Button
+        className="min-h-0 self-start border-0 bg-transparent p-0 text-label text-accent-text enabled:hover:bg-transparent enabled:hover:underline"
         onClick={() => {
           onClose();
           setDialog('variables');
         }}
       >
         Ver todas las variables
-      </button>
+      </Button>
     </Popover>
   );
 }

@@ -20,7 +20,7 @@ type Props = {
 export function RowMenu({ label, items, groups = [] }: Props) {
   return (
     <div
-      className="row-menu"
+      className="row-menu-runtime relative flex"
       onClick={(event) => {
         event.stopPropagation();
       }}
@@ -30,7 +30,12 @@ export function RowMenu({ label, items, groups = [] }: Props) {
         items={items}
         groups={groups}
         trigger={
-          <button type="button" className="row-menu__trigger" aria-label={label} title={label}>
+          <button
+            type="button"
+            className="inline-flex min-h-row cursor-pointer items-center justify-center rounded-ui border-0 bg-transparent px-1 leading-none text-muted hover:bg-hover hover:text-foreground focus-visible:bg-hover focus-visible:text-foreground focus-visible:outline-none"
+            aria-label={label}
+            title={label}
+          >
             <MoreIcon />
           </button>
         }

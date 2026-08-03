@@ -1,6 +1,8 @@
 import { useState, type SyntheticEvent } from 'react';
+import { Button } from './Button.js';
 import { Dialog } from './Dialog.js';
 import { Field } from './Field.js';
+import { Input } from './Input.js';
 
 type Props = {
   open: boolean;
@@ -28,11 +30,10 @@ export function NameDialog({ open, title, initial, label = 'Nombre', onSubmit, o
 
   return (
     <Dialog open={open} title={title} onClose={onClose}>
-      <form className="dialog-form" onSubmit={submit}>
+      <form className="flex flex-col gap-3" onSubmit={submit}>
         <Field label={label} htmlFor="name-dialog-value">
-          <input
+          <Input
             id="name-dialog-value"
-            className="input"
             value={name}
             autoFocus
             onChange={(event) => {
@@ -40,13 +41,11 @@ export function NameDialog({ open, title, initial, label = 'Nombre', onSubmit, o
             }}
           />
         </Field>
-        <div className="dialog-actions">
-          <button type="button" className="button" onClick={onClose}>
-            Cancelar
-          </button>
-          <button type="submit" className="button button--primary" disabled={name.trim() === ''}>
+        <div className="flex justify-end gap-2">
+          <Button onClick={onClose}>Cancelar</Button>
+          <Button type="submit" tone="primary" disabled={name.trim() === ''}>
             Guardar
-          </button>
+          </Button>
         </div>
       </form>
     </Dialog>

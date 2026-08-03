@@ -35,7 +35,7 @@ export function CatalogToolbar({
   onToggleAll,
 }: Props) {
   return (
-    <div className="catalog-toolbar">
+    <div className="flex items-center gap-1 p-2">
       <CatalogSearch value={query} onChange={onQueryChange} />
       <IconButton label="Nueva colección" onClick={onCreateCollection}>
         <NewCollectionIcon />

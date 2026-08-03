@@ -28,9 +28,11 @@ import {
   Settings,
   ShieldAlert,
   Square,
+  Sun,
   Trash2,
   WandSparkles,
   X,
+  Moon,
   type LucideIcon,
   type LucideProps,
 } from 'lucide-react';
@@ -127,3 +129,7 @@ export const SearchIcon = hairline(Search);
 export const SettingsIcon = hairline(Settings);
 /** Marks a setting that weakens the connection's own defences. */
 export const ShieldAlertIcon = hairline(ShieldAlert);
+/** Switches the QA theme to the light palette. */
+export const SunIcon = hairline(Sun);
+/** Switches the QA theme to the dark palette. */
+export const MoonIcon = hairline(Moon);

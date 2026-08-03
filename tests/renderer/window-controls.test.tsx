@@ -63,6 +63,6 @@ describe('WindowControls', () => {
     bridge.platform = 'darwin';
     const { container } = render(<WindowControls />);
 
-    expect(container.querySelector('.window-controls')).toBeNull();
+    expect(container.querySelector('[data-part="window-controls"]')).toBeNull();
   });
 });

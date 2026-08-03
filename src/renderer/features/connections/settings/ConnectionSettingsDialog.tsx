@@ -32,12 +32,12 @@ export function ConnectionSettingsDialog({ connectionId, onClose }: Props) {
       open
       size="settings"
       title={`Configuración · ${connection.name}`}
-      bodyClassName="dialog-body--settings"
+      bodyClassName="pt-0 pb-0"
       onClose={onClose}
     >
-      <div className="connection-settings">
+      <div className="flex flex-col gap-0 pb-4">
         {(state === 'open' || state === 'connecting') && (
-          <p className="settings-note">
+          <p className="border-l-2 border-border bg-chrome px-3 py-2 text-label text-muted">
             El socket sigue abierto: lo que cambies aquí se aplica al volver a conectar.
           </p>
         )}

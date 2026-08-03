@@ -8,11 +8,11 @@ type Props = {
 /** The message read as prose. Markdown, because that is what a summary is written in. */
 export function DocsView({ description }: Props) {
   if (description === undefined || description.trim() === '') {
-    return <p className="app-state">Este evento no tiene descripción.</p>;
+    return <p className="p-3 text-muted">Este evento no tiene descripción.</p>;
   }
 
   return (
-    <div className="composer-docs">
+    <div className="px-4 py-3">
       <Markdown source={description} />
     </div>
   );

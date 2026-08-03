@@ -87,7 +87,7 @@ export function ComposerPanel({ connectionId }: Props) {
   if (event === null) {
     return (
       <Panel title="Payload">
-        <p className="app-state">Selecciona un evento del catálogo.</p>
+        <p className="p-3 text-muted">Selecciona un evento del catálogo.</p>
       </Panel>
     );
   }
@@ -95,18 +95,18 @@ export function ComposerPanel({ connectionId }: Props) {
   // Not a `Panel`: this one is headed by a breadcrumb and a tab strip rather
   // than by a title, which is the whole point of the change.
   return (
-    <section className="panel">
+    <section className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-panel">
       <ComposerBreadcrumb collection={collection} event={event.name} />
-      <div className="composer-tabbar">
+      <div className="flex items-center gap-2 p-2">
         <ComposerTabs tab={tab} dirty={draft.dirty} onChange={setTab} />
         <SendButton connected={connected} empty={draft.empty} onSend={send} />
       </div>
-      <div className="panel-body">
+      <div className="min-h-0 flex-1 overflow-auto" data-part="panel-body">
         {tab === 'docs' && <DocsView description={event.description} />}
         {/* Hidden rather than unmounted: Monaco keeps one instance for the life
             of the panel, and `automaticLayout` measures it again when it comes
             back. Remounting per tab would rebuild the editor on every switch. */}
-        <div className={clsx('composer', tab !== 'message' && 'composer--hidden')}>
+        <div className={clsx('flex h-full min-h-0 flex-col', tab !== 'message' && 'hidden')}>
           <PayloadEditor
             eventId={draft.eventId}
             text={draft.text}

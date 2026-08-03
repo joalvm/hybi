@@ -19,18 +19,31 @@ type Props = {
  */
 export function AppLayout({ titleBar, tabs, catalog, connectionBar, composer, activity }: Props) {
   return (
-    <div className="app">
-      <div className="app__title-bar">{titleBar}</div>
-      <div className="app__body">
+    <div className="flex h-full min-h-0 flex-col bg-app">
+      <div
+        className="app-drag-region platform-titlebar flex h-titlebar shrink-0 items-center gap-2 border-b border-border bg-chrome pl-2"
+        data-part="title-bar"
+      >
+        {titleBar}
+      </div>
+      <div className="min-h-0 flex-1">
         <SplitPane direction="row" initial={22} min={12}>
-          <aside className="app__catalog-rail">{catalog}</aside>
-          <main className="app__connection-surface">
-            <div className="app__tabs">{tabs}</div>
+          <aside
+            className="h-full min-h-0 min-w-0 overflow-hidden bg-chrome"
+            data-part="catalog-rail"
+          >
+            {catalog}
+          </aside>
+          <main
+            className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-panel"
+            data-part="connection-surface"
+          >
+            <div className="bg-panel">{tabs}</div>
             {connectionBar}
-            <div className="app__connection-workspace">
+            <div className="min-h-0 flex-1">
               <SplitPane direction="row" initial={45} min={20}>
-                <div className="app__region">{composer}</div>
-                <div className="app__region">{activity}</div>
+                <div className="h-full min-h-0">{composer}</div>
+                <div className="h-full min-h-0">{activity}</div>
               </SplitPane>
             </div>
           </main>

@@ -21,13 +21,35 @@ test('connect, send an event and read it in the detail pane', async () => {
     await window.waitForLoadState('domcontentloaded');
     await expect(window.getByRole('button', { name: 'Workspace' })).toContainText('Prueba E2E');
     await expect(window.getByRole('combobox', { name: 'Entorno' })).toContainText('Sin entorno');
+    expect((await window.locator('[data-part="title-bar"]').boundingBox())?.height).toBe(48);
+    const closeWindow = window.getByRole('button', { name: 'Cerrar' });
+    expect((await closeWindow.boundingBox())?.width).toBe(48);
+    expect((await closeWindow.boundingBox())?.height).toBe(47);
+    await closeWindow.hover();
+    await expect(closeWindow).toHaveCSS('background-color', 'rgb(196, 43, 28)');
+    await expect(closeWindow).toHaveCSS('border-radius', '0px');
+    await window.mouse.move(0, 0);
+
+    // The temporary QA switch changes both the semantic palette and Monaco.
+    // In dark mode, an active tab uses the same selected surface as an event;
+    // no extra border or accent bar introduces a second selection language.
+    await window.getByRole('button', { name: 'Probar tema oscuro' }).click();
+    await expect(window.locator('html')).toHaveAttribute('data-theme', 'dark');
+    const activeConnectionTab = window.locator('[data-active="true"]');
+    await expect(activeConnectionTab).toHaveCSS('background-color', 'rgb(17, 59, 57)');
+    await expect(activeConnectionTab).toHaveCSS('box-shadow', 'none');
+    await expect(window.getByRole('button', { name: 'Conectar' })).toHaveCSS(
+      'color',
+      'rgb(6, 17, 16)',
+    );
+    await window.getByRole('button', { name: 'Probar tema claro' }).click();
 
     await window.getByLabel('URL').fill(server.url);
 
     // The field's text is transparent and the mirror underneath is what the user
     // reads, so a background on the field would hide the URL completely.
-    await expect(window.locator('.url-input-mirror')).toContainText(server.url);
-    await expect(window.locator('.url-input-field')).toHaveCSS(
+    await expect(window.locator('[data-part="url-input-mirror"]')).toContainText(server.url);
+    await expect(window.locator('[data-part="url-input-field"]')).toHaveCSS(
       'background-color',
       'rgba(0, 0, 0, 0)',
     );
@@ -69,9 +91,13 @@ test('connect, send an event and read it in the detail pane', async () => {
 
     // The panel title became a breadcrumb in phase 2: collection, then event.
     await expect(window.getByLabel('Ubicación del evento')).toContainText('Ping');
+    await expect(window.getByRole('tab', { selected: true })).toHaveCSS(
+      'background-color',
+      'rgb(233, 233, 237)',
+    );
 
     // The new event opens on an empty payload, so the text is written here.
-    const editor = window.locator('.payload-editor');
+    const editor = window.locator('[data-part="payload-editor"]');
     await editor.locator('.view-lines').click();
     await window.keyboard.type('{"event":"ping","host":"{{host}}"}');
 

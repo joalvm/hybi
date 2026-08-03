@@ -1,6 +1,7 @@
 import type { WebSocketTransportSettings } from '@shared/domain/connections/websocket.js';
 import { ShieldAlertIcon } from '@/shared/ui/icons.js';
 import { NumberField } from '../../settings/NumberField.js';
+import { SettingsSection } from '../../settings/SettingsSection.js';
 import { ProtocolsField } from './ProtocolsField.js';
 import { ToggleField } from '../../settings/ToggleField.js';
 
@@ -19,15 +20,14 @@ const KIB = 1024;
  */
 export function AdvancedFields({ settings, onChange }: Props) {
   return (
-    <section className="settings-section">
-      <h3 className="settings-section__title">Avanzado</h3>
+    <SettingsSection title="Avanzado">
       <ProtocolsField
         protocols={settings.protocols}
         onChange={(protocols) => {
           onChange({ protocols });
         }}
       />
-      <div className="settings-grid">
+      <div className="flex flex-col gap-0">
         <NumberField
           label="Tamaño máximo de mensaje (KiB)"
           value={Math.round(settings.maxMessageBytes / KIB)}
@@ -49,7 +49,10 @@ export function AdvancedFields({ settings, onChange }: Props) {
       {/* Permanent and in the panel, not a tooltip: this is the one setting here
           that removes a defence, and it has to be readable while it is off. */}
       {!settings.verifyCertificate && (
-        <p className="settings-warning" role="alert">
+        <p
+          className="flex items-start gap-2 rounded-ui border border-error bg-chrome px-3 py-2 text-label text-error"
+          role="alert"
+        >
           <ShieldAlertIcon />
           <span>
             Sin verificación se acepta cualquier certificado, incluido el de un tercero que
@@ -58,6 +61,6 @@ export function AdvancedFields({ settings, onChange }: Props) {
           </span>
         </p>
       )}
-    </section>
+    </SettingsSection>
   );
 }

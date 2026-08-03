@@ -97,8 +97,8 @@ export function CatalogPanel({ connectionId }: Props) {
   );
 
   return (
-    <Panel>
-      <div className="catalog">
+    <Panel surface="chrome">
+      <div className="flex h-full min-h-0 flex-col bg-chrome">
         {/* No "new event" here: an event needs a collection to live in, so the
             action belongs to a collection's own menu and nowhere else. */}
         <CatalogToolbar
@@ -113,12 +113,14 @@ export function CatalogPanel({ connectionId }: Props) {
         {/* A big document takes seconds to parse in the main process, and until
             this line existed the app simply stopped answering. */}
         {asyncapi.importing && (
-          <p className="catalog-busy" role="status">
+          <p className="flex items-center gap-2 border-b border-border px-3 py-2 text-label text-muted" role="status">
             <SpinnerIcon className="icon-spin" />
             Leyendo el documento AsyncAPI…
           </p>
         )}
-        <h3 className="catalog-section">Colecciones</h3>
+        <h3 className="px-2 pt-2 pb-1 text-label font-semibold tracking-section text-muted uppercase">
+          Colecciones
+        </h3>
         <CatalogTree
           groups={groups}
           selectedId={selectedId}

@@ -1,7 +1,7 @@
 import { memo, type ReactNode } from 'react';
-import clsx from 'clsx';
 import type { ActivityRecord } from '@shared/ipc/activity.js';
 import { ErrorIcon, IncomingIcon, OutgoingIcon, StatusIcon } from '@/shared/ui/icons.js';
+import { cn } from '@/shared/utils/cn.js';
 import { formatOffset } from './useActivityFilter.js';
 
 const GLYPH: Record<ActivityRecord['kind'], { icon: ReactNode; label: string }> = {
@@ -46,20 +46,38 @@ type Props = {
 export const ActivityRow = memo(function ActivityRow({ record, origin, selected, onSelect }: Props) {
   const glyph = GLYPH[record.kind];
   const body = preview(record.body, record.label);
+  const tones: Record<ActivityRecord['kind'], string> = {
+    outgoing: 'text-accent-text',
+    incoming: 'text-blue',
+    status: 'text-ok',
+    error: 'text-error',
+  };
   return (
     <button
       type="button"
-      className={clsx('activity-row', `activity-row--${record.kind}`, selected && 'is-selected')}
+      className={cn(
+        'flex h-full w-full cursor-pointer items-center gap-2 border-0 bg-transparent px-2 text-left font-ui text-ui text-foreground hover:bg-hover',
+        selected && 'bg-selected',
+      )}
+      data-selected={selected}
       onClick={() => {
         onSelect(record.id);
       }}
     >
-      <span className="activity-row__icon" aria-label={glyph.label}>
+      <span className={cn('inline-flex shrink-0 items-center', tones[record.kind])} aria-label={glyph.label}>
         {glyph.icon}
       </span>
-      <span className="activity-row__label">{record.label}</span>
-      {body !== '' && <span className="activity-row__preview">{body}</span>}
-      <span className="activity-row__time">{formatOffset(record.at, origin)}</span>
+      <span className="max-w-activity-label min-w-24 shrink overflow-hidden font-semibold text-ellipsis whitespace-nowrap">
+        {record.label}
+      </span>
+      {body !== '' && (
+        <span className="flex-1 overflow-hidden font-mono text-label text-ellipsis whitespace-nowrap text-muted">
+          {body}
+        </span>
+      )}
+      <span className="ml-auto shrink-0 font-mono text-label whitespace-nowrap text-muted tabular-nums">
+        {formatOffset(record.at, origin)}
+      </span>
     </button>
   );
 });

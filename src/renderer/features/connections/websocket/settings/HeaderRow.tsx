@@ -1,5 +1,6 @@
 import type { ConnectionHeader } from '@shared/domain/connections/websocket.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
+import { Input } from '@/shared/ui/Input.js';
 import { TrashIcon } from '@/shared/ui/icons.js';
 
 type Props = {
@@ -20,7 +21,7 @@ function nameOf(header: ConnectionHeader): string {
  */
 export function HeaderRow({ header, onChange, onRemove }: Props) {
   return (
-    <li className="header-row">
+    <li className="header-row-grid grid items-center gap-2">
       <input
         type="checkbox"
         checked={header.enabled}
@@ -29,8 +30,8 @@ export function HeaderRow({ header, onChange, onRemove }: Props) {
           onChange({ ...header, enabled: event.target.checked });
         }}
       />
-      <input
-        className="input header-row__name"
+      <Input
+        className="font-mono"
         value={header.name}
         placeholder="Authorization"
         aria-label="Nombre de la cabecera"
@@ -38,8 +39,8 @@ export function HeaderRow({ header, onChange, onRemove }: Props) {
           onChange({ ...header, name: event.target.value });
         }}
       />
-      <input
-        className="input header-row__value"
+      <Input
+        className="font-mono"
         value={header.value}
         placeholder="Bearer {{token}}"
         aria-label="Valor de la cabecera"

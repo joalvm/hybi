@@ -1,5 +1,6 @@
-/** Dense white workspace; Hybi teal owns focus, selection and main actions. */
+/** Neutral selection separates context; Hybi teal owns focus and primary actions. */
 :root {
+  color-scheme: light;
   --bg-app: #ffffff;
   --bg-panel: #ffffff;
   --bg-chrome: #f9f9f9;
@@ -7,7 +8,7 @@
   --bg-tab-active: #f1f1f3;
   --bg-elevated: #fafafb;
   --bg-hover: #f0f0f3;
-  --bg-selected: #e0f8f8;
+  --bg-selected: #e9e9ed;
   --backdrop-dialog: rgb(0 0 0 / 52%);
   --border: #dedee2;
   --border-subtle: #e9e9ed;
@@ -31,7 +32,10 @@
   --ok: #16a34a;
   --warn: #b45309;
   --error: #dc2626;
+  --window-close-hover: #c42b1c;
   --switch-off: #a9aaad;
+  --scrollbar-thumb: rgb(28 28 30 / 20%);
+  --scrollbar-thumb-hover: rgb(28 28 30 / 36%);
   --shadow-dialog: 0 16px 40px rgb(0 0 0 / 20%);
   --shadow-switch: 0 1px 2px rgb(0 0 0 / 18%);
   --var-resolved: #0f7a3d;
@@ -48,8 +52,10 @@
   --row-h: 26px;
   --control-h: 26px;
   --header-h: 28px;
-  --titlebar-h: 36px;
+  --titlebar-h: 48px;
   --traffic-lights-w: 78px;
-  --font-ui: system-ui, 'Segoe UI', sans-serif;
-  --font-mono: 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+  --text-family-default: 'Inter', 'OpenSans', Helvetica, Arial, sans-serif;
+  --text-family-code: 'IBMPlexMono', 'Cousine', monospace;
+  --font-ui: var(--text-family-default);
+  --font-mono: var(--text-family-code);
 }

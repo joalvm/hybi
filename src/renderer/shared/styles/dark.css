@@ -1,0 +1,72 @@
+/** Hybi dark theme keeps teal luminous while work surfaces remain quiet and dense. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg-app: #0e1315;
+  --bg-panel: #12181a;
+  --bg-chrome: #0a0f11;
+  --bg-control: #222a2d;
+  --bg-tab-active: #20282b;
+  --bg-elevated: #171d20;
+  --bg-hover: #263033;
+  --bg-selected: #113b39;
+  --backdrop-dialog: rgb(0 0 0 / 68%);
+  --border: #303a3d;
+  --border-subtle: #252d30;
+  --text: #eaf3f1;
+  --text-dim: #9baaa7;
+  --brand-primary: #10d1c5;
+  --text-on-brand: #061110;
+  --accent-strong: #49e3da;
+  --accent-soft: #173d3a;
+  --accent-text: #68e5dc;
+  --blue: #71c8d5;
+  --blue-strong: #8adae5;
+  --bg-quiet-hover: #2a3437;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --error: #fb7185;
+  --switch-off: #5b6669;
+  --scrollbar-thumb: rgb(234 243 241 / 18%);
+  --scrollbar-thumb-hover: rgb(234 243 241 / 30%);
+  --shadow-dialog: 0 20px 52px rgb(0 0 0 / 55%);
+  --shadow-switch: 0 1px 2px rgb(0 0 0 / 55%);
+  --var-resolved: #6ee7a2;
+  --var-missing: #fb7185;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg-app: #0e1315;
+    --bg-panel: #12181a;
+    --bg-chrome: #0a0f11;
+    --bg-control: #222a2d;
+    --bg-tab-active: #20282b;
+    --bg-elevated: #171d20;
+    --bg-hover: #263033;
+    --bg-selected: #113b39;
+    --backdrop-dialog: rgb(0 0 0 / 68%);
+    --border: #303a3d;
+    --border-subtle: #252d30;
+    --text: #eaf3f1;
+    --text-dim: #9baaa7;
+    --brand-primary: #10d1c5;
+    --text-on-brand: #061110;
+    --accent-strong: #49e3da;
+    --accent-soft: #173d3a;
+    --accent-text: #68e5dc;
+    --blue: #71c8d5;
+    --blue-strong: #8adae5;
+    --bg-quiet-hover: #2a3437;
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --error: #fb7185;
+    --switch-off: #5b6669;
+    --scrollbar-thumb: rgb(234 243 241 / 18%);
+    --scrollbar-thumb-hover: rgb(234 243 241 / 30%);
+    --shadow-dialog: 0 20px 52px rgb(0 0 0 / 55%);
+    --shadow-switch: 0 1px 2px rgb(0 0 0 / 55%);
+    --var-resolved: #6ee7a2;
+    --var-missing: #fb7185;
+  }
+}

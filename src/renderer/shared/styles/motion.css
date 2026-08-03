@@ -1,0 +1,75 @@
+@keyframes icon-spin {
+  to { transform: rotate(360deg); }
+}
+
+.icon-spin {
+  animation: icon-spin 900ms linear infinite;
+}
+
+@keyframes dialog-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dialog-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.dialog-motion[data-state='open'] {
+  animation: dialog-in 120ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dialog-motion[data-state='closed'] {
+  animation: dialog-out 90ms ease-in;
+}
+
+.welcome-layout {
+  --welcome-animation-time: 0ms;
+  grid-template: 'content' minmax(0, 1fr) / minmax(0, 1fr);
+}
+
+.welcome-content-runtime {
+  grid-area: content;
+}
+
+.welcome-flight {
+  display: none;
+  grid-area: flight;
+}
+
+.welcome-flight-scene {
+  animation: welcome-flight-enter var(--welcome-animation-time) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes welcome-flight-enter {
+  from { opacity: 0; transform: translate(12%, 8%); }
+  to { opacity: 1; transform: translate(0, 0); }
+}
+
+@media (min-width: 1200px) and (min-height: 800px) {
+  .welcome-layout {
+    --welcome-animation-time: 700ms;
+    grid-template: 'gutter content flight' minmax(0, 1fr) / minmax(var(--space-6), 1fr)
+      minmax(0, 40ch) minmax(0, 5fr);
+    gap: calc(var(--space-5) * 2);
+    padding-right: 0;
+    padding-bottom: 0;
+  }
+
+  .welcome-content-runtime {
+    justify-self: stretch;
+  }
+
+  .welcome-flight {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon-spin,
+  .dialog-motion,
+  .welcome-flight-scene {
+    animation: none;
+  }
+}

@@ -1,10 +1,10 @@
-import clsx from 'clsx';
 import { memo } from 'react';
 import type { Connection } from '@shared/domain/types.js';
 import type { ConnectionState } from '@shared/ipc/activity.js';
 import { DuplicateIcon, RenameIcon, SettingsIcon, TrashIcon } from '@/shared/ui/icons.js';
 import { InlineNameInput } from '@/shared/ui/InlineNameInput.js';
 import { RowMenu } from '@/shared/ui/RowMenu.js';
+import { cn } from '@/shared/utils/cn.js';
 import { stateLabel } from './state-label.js';
 
 type Props = {
@@ -51,14 +51,29 @@ export const ConnectionTab = memo(function ConnectionTab({
   onRequestClose,
 }: Props) {
   const label = stateLabel(state);
+  const tones: Record<typeof label.tone, string> = {
+    neutral: 'text-muted',
+    ok: 'text-ok',
+    warn: 'text-warn',
+    error: 'text-error',
+  };
   const dot = (
-    <span aria-hidden="true" className={clsx('connection-dot', `connection-dot--${label.tone}`)} />
+    <span
+      aria-hidden="true"
+      className={cn('h-2 w-2 shrink-0 rounded-full bg-current', tones[label.tone])}
+    />
   );
 
   return (
-    <div className={clsx('connection-tab', active && 'connection-tab--active')}>
+    <div
+      className={cn(
+        'tab-actions-runtime flex h-control shrink-0 items-center rounded-worktab pr-1 hover:bg-elevated',
+        active && 'bg-selected hover:bg-selected',
+      )}
+      data-active={active}
+    >
       {renaming ? (
-        <div className="connection-tab-select">
+        <div className="flex h-full max-w-56 items-center gap-2 rounded-worktab py-0 pr-1 pl-2 text-muted">
           {dot}
           <InlineNameInput
             value={connection.name}
@@ -72,7 +87,10 @@ export const ConnectionTab = memo(function ConnectionTab({
       ) : (
         <button
           type="button"
-          className="connection-tab-select"
+          className={cn(
+            'flex h-full max-w-56 cursor-pointer items-center gap-2 rounded-worktab border-0 bg-transparent py-0 pr-1 pl-2 text-muted',
+            active && 'text-foreground',
+          )}
           aria-current={active ? 'true' : undefined}
           title={`${connection.name} — ${label.text} (doble clic para renombrar)`}
           onClick={() => {
@@ -83,7 +101,7 @@ export const ConnectionTab = memo(function ConnectionTab({
           }}
         >
           {dot}
-          <span className="connection-tab-name">{connection.name}</span>
+          <span className="overflow-hidden text-ellipsis whitespace-nowrap">{connection.name}</span>
         </button>
       )}
       <RowMenu

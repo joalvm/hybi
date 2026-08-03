@@ -54,14 +54,21 @@ export function UrlInput({ value, missing, onChange, onVariablePoint }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="url-input">
-      <div aria-hidden="true" className="url-input-mirror">
+    <div className="relative h-7.5 min-w-0 flex-1 rounded-ui border border-border bg-panel focus-within:border-accent focus-within:outline focus-within:outline-1 focus-within:outline-accent">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-1 h-full w-full overflow-hidden border-0 bg-transparent px-2 font-mono leading-url whitespace-pre text-foreground"
+        data-part="url-input-mirror"
+      >
         {segments.map((segment, index) => (
           // Segments are regenerated whole on every keystroke, so the index is
           // the only stable identity a token has.
           <span
             key={index}
-            className={clsx(TONE_CLASS[segment.tone], segment.name !== undefined && 'url-input-var')}
+            className={clsx(
+              TONE_CLASS[segment.tone],
+              segment.name !== undefined && 'pointer-events-auto cursor-pointer',
+            )}
             onPointerEnter={(event) => {
               if (segment.name === undefined) return;
               onVariablePoint(segment.name, event.currentTarget.getBoundingClientRect());
@@ -88,7 +95,8 @@ export function UrlInput({ value, missing, onChange, onVariablePoint }: Props) {
       </div>
       <input
         ref={inputRef}
-        className="url-input-field"
+        className="url-input-field-runtime relative h-full w-full border-0 bg-transparent px-2 font-mono leading-url whitespace-pre text-transparent caret-foreground focus-visible:outline-none"
+        data-part="url-input-field"
         aria-label="URL"
         spellCheck={false}
         autoComplete="off"

@@ -24,11 +24,19 @@ import 'monaco-editor/languages/definitions/xml/register.js';
 import 'monaco-editor/languages/definitions/html/register.js';
 import type { VariableScope } from '@shared/variables/resolve.js';
 import { installWorkers } from './workers.js';
-import { WORKBENCH_THEME } from './theme.js';
+import { WORKBENCH_THEME_DARK, WORKBENCH_THEME_LIGHT } from './theme.js';
 import { registerVariablesCompletion } from './variablesCompletion.js';
 
 let ready = false;
 let providersReady = false;
+
+export type VisualTheme = 'light' | 'dark';
+
+function activeTheme(): VisualTheme {
+  const explicit = document.documentElement.dataset.theme;
+  if (explicit === 'light' || explicit === 'dark') return explicit;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
 
 /**
  * Features are imported one by one rather than through `features/register.all.js`.
@@ -41,8 +49,9 @@ let providersReady = false;
 export function setupMonaco(): typeof monaco {
   if (ready) return monaco;
   installWorkers();
-  monaco.editor.defineTheme('workbench', WORKBENCH_THEME);
-  monaco.editor.setTheme('workbench');
+  monaco.editor.defineTheme('workbench-light', WORKBENCH_THEME_LIGHT);
+  monaco.editor.defineTheme('workbench-dark', WORKBENCH_THEME_DARK);
+  monaco.editor.setTheme(`workbench-${activeTheme()}`);
   jsonDefaults.setDiagnosticsOptions({
     validate: true,
     allowComments: false,
@@ -52,6 +61,12 @@ export function setupMonaco(): typeof monaco {
   });
   ready = true;
   return monaco;
+}
+
+/** Keeps Monaco aligned with the temporary renderer theme switch. */
+export function setMonacoTheme(theme: VisualTheme): void {
+  setupMonaco();
+  monaco.editor.setTheme(`workbench-${theme}`);
 }
 
 /** Registered once for the whole app, not once per editor instance. */

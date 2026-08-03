@@ -1,6 +1,6 @@
-import clsx from 'clsx';
 import { DropdownMenu } from 'radix-ui';
 import type { ReactNode } from 'react';
+import { cn } from '../utils/cn.js';
 
 export type MenuItem = {
   label: string;
@@ -64,11 +64,14 @@ export function Menu({
   const entry = (item: MenuItem, key: string) => (
     <DropdownMenu.Item
       key={key}
-      className={clsx('menu-item', item.tone === 'danger' && 'menu-item--danger')}
+      className={cn(
+        'menu-item-runtime flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-ui px-2 py-1 text-left select-none outline-none',
+        item.tone === 'danger' && 'text-error',
+      )}
       disabled={item.disabled ?? false}
       onSelect={item.onSelect}
     >
-      <span className="menu-icon">{item.icon}</span>
+      <span className="inline-flex basis-3.5 items-center justify-center text-muted">{item.icon}</span>
       {item.label}
     </DropdownMenu.Item>
   );
@@ -83,7 +86,7 @@ export function Menu({
       <DropdownMenu.Trigger asChild>{trigger}</DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content
-          className="menu-panel"
+          className="z-20 flex flex-col rounded-lg border border-border bg-panel p-1 shadow-overlay"
           aria-label={label}
           align={align}
           sideOffset={4}
@@ -96,9 +99,14 @@ export function Menu({
         >
           {items.map((item, index) => entry(item, `item-${String(index)}`))}
           {groups.map((group, groupIndex) => (
-            <DropdownMenu.Group key={`group-${String(groupIndex)}`} className="menu-group">
+            <DropdownMenu.Group
+              key={`group-${String(groupIndex)}`}
+              className="menu-group-runtime flex flex-col"
+            >
               {group.label !== undefined && (
-                <DropdownMenu.Label className="menu-group-label">{group.label}</DropdownMenu.Label>
+                <DropdownMenu.Label className="px-2 text-label text-muted">
+                  {group.label}
+                </DropdownMenu.Label>
               )}
               {group.items.map((item, index) =>
                 entry(item, `group-${String(groupIndex)}-item-${String(index)}`),

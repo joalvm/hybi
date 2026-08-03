@@ -8,6 +8,7 @@ import {
   RenameIcon,
   TrashIcon,
 } from '@/shared/ui/icons.js';
+import { Button } from '@/shared/ui/Button.js';
 import { Menu, type MenuGroup, type MenuItem } from '@/shared/ui/Menu.js';
 import { InlineNameInput } from '@/shared/ui/InlineNameInput.js';
 import { useStore } from '@/store/index.js';
@@ -74,7 +75,7 @@ export function WorkspaceMenu() {
   };
 
   return (
-    <div className="workspace-menu">
+    <div className="relative flex">
       {renaming ? (
         <InlineNameInput
           value={name}
@@ -99,10 +100,10 @@ export function WorkspaceMenu() {
             if (open) list.refresh();
           }}
           trigger={
-            <button type="button" className="workspace-pill" aria-label="Workspace">
-              <span className="workspace-pill__name">{name}</span>
+            <Button className="max-w-72 gap-2 bg-control px-2" aria-label="Workspace">
+              <span className="overflow-hidden text-ellipsis whitespace-nowrap">{name}</span>
               <CaretDownIcon />
-            </button>
+            </Button>
           }
         />
       )}

@@ -1,5 +1,6 @@
 import type { RetryPolicy } from '@shared/domain/connections/websocket.js';
 import { NumberField } from '../../settings/NumberField.js';
+import { SettingsSection } from '../../settings/SettingsSection.js';
 import { ToggleField } from '../../settings/ToggleField.js';
 
 type Props = {
@@ -14,8 +15,7 @@ type Props = {
  */
 export function RetryFields({ retry, onChange }: Props) {
   return (
-    <section className="settings-section">
-      <h3 className="settings-section__title">Reintentos</h3>
+    <SettingsSection title="Reintentos">
       <ToggleField
         label="Reconectar cuando el servidor corta"
         hint="No afecta a un primer intento fallido ni a una desconexión manual."
@@ -24,7 +24,7 @@ export function RetryFields({ retry, onChange }: Props) {
           onChange({ ...retry, enabled });
         }}
       />
-      <div className="settings-grid">
+      <div className="flex flex-col gap-0">
         <NumberField
           label="Intentos"
           value={retry.attempts}
@@ -56,6 +56,6 @@ export function RetryFields({ retry, onChange }: Props) {
           }}
         />
       </div>
-    </section>
+    </SettingsSection>
   );
 }

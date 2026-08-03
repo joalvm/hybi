@@ -6,7 +6,7 @@ import { WindowControls } from './WindowControls.js';
  */
 export function WindowChrome({ resizable = false }: { resizable?: boolean }) {
   return (
-    <div className="window-chrome">
+    <div className="app-drag-region platform-titlebar fixed top-0 right-0 left-0 z-20 flex h-titlebar justify-end">
       <WindowControls resizable={resizable} />
     </div>
   );
