@@ -1,5 +1,5 @@
-import type { StateCreator } from 'zustand';
 import type { ActivityRecord, ConnectionState } from '@shared/ipc/activity.js';
+import type { SliceCreator } from './types.js';
 
 /** How many records a single connection keeps before the oldest fall off. */
 export const ACTIVITY_LIMIT = 2000;
@@ -20,7 +20,7 @@ export type RuntimeSlice = {
 export const draftKey = (connectionId: string, eventId: string): string =>
   `${connectionId}:${eventId}`;
 
-export const createRuntimeSlice: StateCreator<RuntimeSlice, [], [], RuntimeSlice> = (set) => ({
+export const createRuntimeSlice: SliceCreator<RuntimeSlice> = (set) => ({
   states: {},
   activity: {},
   drafts: {},

@@ -9,9 +9,9 @@ export type { DialogName } from './ui.slice.js';
 export type StoreState = WorkspaceSlice & RuntimeSlice & UiSlice & { reset(): void };
 
 export const useStore = create<StoreState>()((set, get, store) => ({
-  ...createWorkspaceSlice(set, get, store),
-  ...createRuntimeSlice(set, get, store),
-  ...createUiSlice(set, get, store),
+  ...createWorkspaceSlice(set),
+  ...createRuntimeSlice(set),
+  ...createUiSlice(set),
 
   // `true` replaces the state instead of merging it, so stale connection ids
   // cannot survive a workspace switch inside the record-shaped slices.
