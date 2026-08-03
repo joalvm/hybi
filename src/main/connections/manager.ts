@@ -1,79 +1,79 @@
-import { DEFAULT_CONNECTION_SETTINGS } from '@shared/domain/defaults.js';
 import type { ActivityRecord, ConnectionStateEvent } from '@shared/ipc/activity.js';
-import type { OpenRequest, SocketOptions } from '@shared/ipc/contract.js';
-import { WsSession, type RetryOptions } from './session.js';
+import type {
+  OpenConnectionRequest,
+  TransportMessage,
+} from '@shared/transport/contract.js';
+import {
+  createTransportSession,
+  type TransportSession,
+  type TransportSessionFactory,
+} from './transport.js';
 
 export type ConnectionSink = {
   state(event: ConnectionStateEvent): void;
   activity(record: ActivityRecord): void;
 };
 
-const { attempts, baseMs, maxMs } = DEFAULT_CONNECTION_SETTINGS.retry;
-const DEFAULT_RETRY: RetryOptions = { baseMs, maxMs, attempts };
+type OwnedSession = { owner: symbol; session: TransportSession };
 
-/** Owns one `WsSession` per connection id and fans their events into one sink. */
+/** Orchestrates transport sessions without knowing their concrete resources. */
 export class ConnectionManager {
-  private readonly sessions = new Map<string, WsSession>();
+  private readonly sessions = new Map<string, OwnedSession>();
 
   constructor(
     private readonly sink: ConnectionSink,
-    private readonly retry: RetryOptions = DEFAULT_RETRY,
+    private readonly createSession: TransportSessionFactory = createTransportSession,
   ) {}
 
-  async open(request: OpenRequest): Promise<void> {
-    const session = this.sessionFor(request.connectionId);
-    await session.open(request.url, request.options ?? this.fallbackOptions());
+  async open(request: OpenConnectionRequest): Promise<void> {
+    const session = this.sessionFor(request.connectionId, request.transport.kind);
+    await session.open(request.transport);
   }
 
-  send(connectionId: string, text: string): number {
-    const session = this.sessions.get(connectionId);
-    if (session === undefined) {
+  async send(connectionId: string, message: TransportMessage): Promise<number> {
+    const owned = this.sessions.get(connectionId);
+    if (owned === undefined) {
       throw new Error(`Connection ${connectionId} is not open`);
     }
-    return session.send(text);
+    return owned.session.send(message);
   }
 
   close(connectionId: string): void {
-    this.sessions.get(connectionId)?.close();
+    this.sessions.get(connectionId)?.session.close();
   }
 
   disposeAll(): void {
-    for (const session of this.sessions.values()) session.close();
+    const owned = [...this.sessions.values()];
     this.sessions.clear();
+    for (const { session } of owned) session.dispose();
   }
 
-  /**
-   * What a request with no options opens with. The retry half comes from this
-   * manager's own policy so a caller that tuned it — the tests do — still gets
-   * what it asked for; everything else is the domain default.
-   */
-  private fallbackOptions(): SocketOptions {
-    return {
-      headers: {},
-      protocols: [],
-      retry: { enabled: true, ...this.retry },
-      keepalive: { ...DEFAULT_CONNECTION_SETTINGS.keepalive },
-      verifyCertificate: DEFAULT_CONNECTION_SETTINGS.verifyCertificate,
-      maxMessageBytes: DEFAULT_CONNECTION_SETTINGS.maxMessageBytes,
-    };
-  }
-
-  private sessionFor(connectionId: string): WsSession {
+  private sessionFor(connectionId: string, kind: TransportSession['kind']): TransportSession {
     const existing = this.sessions.get(connectionId);
-    if (existing !== undefined) return existing;
+    if (existing?.session.kind === kind) return existing.session;
+    if (existing !== undefined) {
+      this.sessions.delete(connectionId);
+      existing.session.dispose();
+    }
 
-    const session = new WsSession(connectionId, {
+    const owner = Symbol(connectionId);
+    const session = this.createSession(kind, connectionId, {
       state: (state, detail) => {
+        if (!this.owns(connectionId, owner)) return;
         this.sink.state(
           detail === undefined ? { connectionId, state } : { connectionId, state, detail },
         );
       },
       activity: (record) => {
-        this.sink.activity(record);
+        if (this.owns(connectionId, owner)) this.sink.activity(record);
       },
     });
 
-    this.sessions.set(connectionId, session);
+    this.sessions.set(connectionId, { owner, session });
     return session;
+  }
+
+  private owns(connectionId: string, owner: symbol): boolean {
+    return this.sessions.get(connectionId)?.owner === owner;
   }
 }

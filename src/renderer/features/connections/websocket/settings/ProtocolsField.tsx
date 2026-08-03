@@ -7,7 +7,8 @@ type Props = {
 };
 
 /**
- * `Sec-WebSocket-Protocol`, written as a comma-separated line because that is
+ * `Sec-WebSocket-Protocol`, kept with the WebSocket adapter and written as a
+ * comma-separated line because that is
  * how it goes on the wire.
  *
  * The text is kept as typed until the field is left: splitting on every

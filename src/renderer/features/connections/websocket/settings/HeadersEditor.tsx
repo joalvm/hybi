@@ -1,4 +1,4 @@
-import type { ConnectionHeader } from '@shared/domain/types.js';
+import type { ConnectionHeader } from '@shared/domain/connections/websocket.js';
 import { HeaderRow } from './HeaderRow.js';
 
 type Props = {
@@ -7,7 +7,7 @@ type Props = {
 };
 
 /**
- * The headers the handshake carries, in the order they are listed.
+ * WebSocket handshake headers, in the order they are listed.
  *
  * Rows are keyed by position because a header has no id of its own: the list is
  * short, every field is controlled, and the alternative is an identifier stored

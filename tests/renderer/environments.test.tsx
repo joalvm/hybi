@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { cloneConnectionSettings } from '@shared/domain/defaults.js';
+import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
 import { createWorkspace } from '@shared/domain/factory.js';
 import type { Environment } from '@shared/domain/types.js';
 import { ActiveEnvironmentPicker } from '@/features/workspace/ActiveEnvironmentPicker.js';
@@ -24,9 +24,12 @@ function loadWorkspace(): void {
   workspace.connections.push({
     id: 'c1',
     name: 'Conexión A',
-    url: 'ws://{{host}}',
     environmentId: null,
-    settings: cloneConnectionSettings(),
+    transport: {
+      kind: 'websocket',
+      url: 'ws://{{host}}',
+      settings: cloneWebSocketSettings(),
+    },
   });
   useStore.getState().setWorkspace(workspace);
   useStore.getState().setActiveConnection('c1');
@@ -123,9 +126,12 @@ describe('VariablesDialog', () => {
     useStore.getState().upsertConnection({
       id: 'c1',
       name: 'Conexión A',
-      url: 'ws://{{host}}',
       environmentId: 'env1',
-      settings: cloneConnectionSettings(),
+      transport: {
+        kind: 'websocket',
+        url: 'ws://{{host}}',
+        settings: cloneWebSocketSettings(),
+      },
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Eliminar' }));
@@ -148,7 +154,7 @@ describe('VariablePopover', () => {
     useStore.setState({
       workspace: {
         id: 'w1',
-        version: 3,
+        version: 4,
         name: 'local',
         environments: [
           { id: 'env-1', name: 'local', variables: [{ name: 'host', value: 'ws://a', secret: false }] },

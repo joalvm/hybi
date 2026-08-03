@@ -1,10 +1,6 @@
 const PREVIEW_LENGTH = 48;
 
-/**
- * A display hint only. When the payload happens to be a `{event, data}`
- * envelope the event name reads better in the list than the raw JSON, but
- * nothing is unwrapped: `ActivityRecord.body` keeps the exact bytes.
- */
+/** Derives a display hint without changing the exact body sent or received. */
 export function labelOf(body: string): string {
   try {
     const parsed: unknown = JSON.parse(body);

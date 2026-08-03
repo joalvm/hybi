@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { cloneConnectionSettings } from '@shared/domain/defaults.js';
+import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
 import { createWorkspace } from '@shared/domain/factory.js';
 import type { EventItem, Workspace } from '@shared/domain/types.js';
 import { ACTIVITY_LIMIT, useStore } from '@/store/index.js';
@@ -35,6 +35,7 @@ describe('runtime slice', () => {
     const records = Array.from({ length: ACTIVITY_LIMIT + 50 }, (_unused, index) => ({
       id: `c1:${String(index)}`,
       connectionId: 'c1',
+      transportKind: 'websocket' as const,
       sequence: index,
       kind: 'incoming' as const,
       at: index,
@@ -101,9 +102,12 @@ describe('workspace slice', () => {
     workspace.connections.push({
       id: 'c1',
       name: 'local',
-      url: 'ws://x',
       environmentId: 'env1',
-      settings: cloneConnectionSettings(),
+      transport: {
+        kind: 'websocket',
+        url: 'ws://x',
+        settings: cloneWebSocketSettings(),
+      },
     });
     useStore.getState().setWorkspace(workspace);
 
@@ -146,9 +150,12 @@ describe('selectors', () => {
     workspace.connections.push({
       id: 'c1',
       name: 'local',
-      url: 'ws://{{host}}',
       environmentId: 'env1',
-      settings: cloneConnectionSettings(),
+      transport: {
+        kind: 'websocket',
+        url: 'ws://{{host}}',
+        settings: cloneWebSocketSettings(),
+      },
     });
     workspace.catalog.items.push({
       id: 'e1',

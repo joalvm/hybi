@@ -1,8 +1,12 @@
-import { cloneConnectionSettings } from './defaults.js';
+import { cloneConnectionTransport } from './connections/defaults.js';
+import { createConnection } from './connections/factory.js';
+export {
+  createConnection,
+  createWebSocketTransport,
+  duplicateConnection,
+} from './connections/factory.js';
 import type {
   Collection,
-  Connection,
-  ConnectionSettings,
   Environment,
   EventItem,
   Workspace,
@@ -18,7 +22,7 @@ function newId(): string {
 export function createWorkspace(name: string): Workspace {
   return {
     id: newId(),
-    version: 3,
+    version: 4,
     name,
     environments: [],
     connections: [],
@@ -32,40 +36,12 @@ export function createEnvironment(name: string): Environment {
   return { id: newId(), name, variables: [] };
 }
 
-export function createConnection(input: {
-  name: string;
-  url?: string;
-  environmentId?: string | null;
-  settings?: ConnectionSettings;
-}): Connection {
-  return {
-    id: newId(),
-    name: input.name,
-    url: input.url ?? 'ws://127.0.0.1:3000',
-    environmentId: input.environmentId ?? null,
-    // Cloned even when the caller passed its own: a connection that shared a
-    // settings object with the one it was copied from is not a separate
-    // connection at all.
-    settings: cloneConnectionSettings(input.settings),
-  };
-}
-
 /** The editor always needs one active surface, while environments stay optional. */
 export function ensureStarterConnection(workspace: Workspace): Workspace {
   if (workspace.connections.length > 0) return workspace;
   return {
     ...workspace,
     connections: [createConnection({ name: 'Nueva conexión' })],
-  };
-}
-
-/** A copy under a new id and name. Everything about *how* it opens comes along. */
-export function duplicateConnection(source: Connection, name: string): Connection {
-  return {
-    ...source,
-    id: newId(),
-    name,
-    settings: cloneConnectionSettings(source.settings),
   };
 }
 
@@ -113,7 +89,7 @@ export function duplicateWorkspace(source: Workspace, name: string): Workspace {
 
   return {
     id: newId(),
-    version: 3,
+    version: 4,
     name,
     environments: environments.list.map((entry) => ({
       ...entry,
@@ -124,8 +100,8 @@ export function duplicateWorkspace(source: Workspace, name: string): Workspace {
       environmentId:
         entry.environmentId === null ? null : environments.ids.get(entry.environmentId) ?? null,
       // `reissue` spreads one level deep, which would leave both workspaces
-      // pointing at the same header list.
-      settings: cloneConnectionSettings(entry.settings),
+      // pointing at the same transport settings.
+      transport: cloneConnectionTransport(entry.transport),
     })),
     catalog: {
       collections: collections.list,

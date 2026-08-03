@@ -2,9 +2,9 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  cloneConnectionSettings,
-  DEFAULT_CONNECTION_SETTINGS,
-} from '@shared/domain/defaults.js';
+  cloneWebSocketSettings,
+  DEFAULT_WEBSOCKET_SETTINGS,
+} from '@shared/domain/connections/defaults.js';
 import { createWorkspace } from '@shared/domain/factory.js';
 import type { Result } from '@shared/ipc/contract.js';
 import { ConnectButton } from '@/features/connections/ConnectButton.js';
@@ -14,7 +14,7 @@ import { stateLabel } from '@/features/connections/state-label.js';
 import { useStore } from '@/store/index.js';
 
 /** Hoisted so the module factory below can close over the same spies. */
-const ws = vi.hoisted(() => ({
+const connectionBridge = vi.hoisted(() => ({
   open: vi.fn<() => Promise<Result<Record<never, never>>>>(() => Promise.resolve({ ok: true })),
   close: vi.fn<() => Promise<Result<Record<never, never>>>>(() => Promise.resolve({ ok: true })),
   send: vi.fn(),
@@ -22,7 +22,7 @@ const ws = vi.hoisted(() => ({
   onActivity: vi.fn(() => () => undefined),
 }));
 
-vi.mock('@/ipc/bridge.js', () => ({ bridge: { ws } }));
+vi.mock('@/ipc/bridge.js', () => ({ bridge: { connection: connectionBridge } }));
 
 function loadWorkspace(url: string, environmentId: string | null = null): void {
   const workspace = createWorkspace('Demo');
@@ -32,13 +32,21 @@ function loadWorkspace(url: string, environmentId: string | null = null): void {
     variables: [{ name: 'host', value: '127.0.0.1:9001', secret: false }],
   });
   workspace.connections.push(
-    { id: 'c1', name: 'Conexión A', url, environmentId, settings: cloneConnectionSettings() },
+    {
+      id: 'c1',
+      name: 'Conexión A',
+      environmentId,
+      transport: { kind: 'websocket', url, settings: cloneWebSocketSettings() },
+    },
     {
       id: 'c2',
       name: 'Conexión B',
-      url: 'ws://127.0.0.1:3000',
       environmentId: null,
-      settings: cloneConnectionSettings(),
+      transport: {
+        kind: 'websocket',
+        url: 'ws://127.0.0.1:3000',
+        settings: cloneWebSocketSettings(),
+      },
     },
   );
   useStore.getState().setWorkspace(workspace);
@@ -47,9 +55,9 @@ function loadWorkspace(url: string, environmentId: string | null = null): void {
 
 beforeEach(() => {
   useStore.getState().reset();
-  ws.open.mockClear();
-  ws.close.mockClear();
-  ws.open.mockImplementation(() => Promise.resolve({ ok: true }));
+  connectionBridge.open.mockClear();
+  connectionBridge.close.mockClear();
+  connectionBridge.open.mockImplementation(() => Promise.resolve({ ok: true }));
 });
 
 describe('stateLabel', () => {
@@ -108,18 +116,17 @@ describe('ConnectionBar', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Conectar' }));
 
-    expect(ws.open).toHaveBeenCalledWith({
+    expect(connectionBridge.open).toHaveBeenCalledWith({
       connectionId: 'c1',
-      url: 'ws://127.0.0.1:9001/socket',
-      // A connection nobody has configured opens on the defaults, spelled out
-      // here so a change to any of them has to be a deliberate one.
-      options: {
+      transport: {
+        kind: 'websocket',
+        url: 'ws://127.0.0.1:9001/socket',
         headers: {},
         protocols: [],
-        retry: DEFAULT_CONNECTION_SETTINGS.retry,
-        keepalive: DEFAULT_CONNECTION_SETTINGS.keepalive,
+        retry: DEFAULT_WEBSOCKET_SETTINGS.retry,
+        keepalive: DEFAULT_WEBSOCKET_SETTINGS.keepalive,
         verifyCertificate: true,
-        maxMessageBytes: DEFAULT_CONNECTION_SETTINGS.maxMessageBytes,
+        maxMessageBytes: DEFAULT_WEBSOCKET_SETTINGS.maxMessageBytes,
       },
     });
   });
@@ -129,12 +136,14 @@ describe('ConnectionBar', () => {
     render(<ConnectionBar connectionId="c1" />);
 
     expect(screen.getByRole('button', { name: 'Conectar' })).toHaveProperty('disabled', true);
-    expect(ws.open).not.toHaveBeenCalled();
+    expect(connectionBridge.open).not.toHaveBeenCalled();
   });
 
   /** The main process wrote the reason to the activity log; the bar stays quiet. */
   it('shows no failure text of its own when the main process rejects the URL', async () => {
-    ws.open.mockImplementation(() => Promise.resolve({ ok: false, error: 'unsupported protocol' }));
+    connectionBridge.open.mockImplementation(() =>
+      Promise.resolve({ ok: false, error: 'unsupported protocol' }),
+    );
     loadWorkspace('ws://127.0.0.1:3000', null);
     render(<ConnectionBar connectionId="c1" />);
 
@@ -148,7 +157,7 @@ describe('ConnectionBar', () => {
 
   /** A rejected bridge call never reached the main process, so it logs itself. */
   it('reports a bridge failure in the activity log', async () => {
-    ws.open.mockImplementation(() => Promise.reject(new Error('bridge caído')));
+    connectionBridge.open.mockImplementation(() => Promise.reject(new Error('bridge caído')));
     loadWorkspace('ws://127.0.0.1:3000', null);
     render(<ConnectionBar connectionId="c1" />);
 
@@ -179,7 +188,7 @@ describe('ConnectionBar', () => {
     fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'ws://{{host}}' } });
 
     const connection = useStore.getState().workspace?.connections.find((entry) => entry.id === 'c1');
-    expect(connection?.url).toBe('ws://{{host}}');
+    expect(connection?.transport.url).toBe('ws://{{host}}');
   });
 
   /** The picker moved to the app chrome, where it applies across connections. */
@@ -197,8 +206,8 @@ describe('ConnectionBar', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Desconectar' }));
 
-    expect(ws.close).toHaveBeenCalledWith({ connectionId: 'c1' });
-    expect(ws.open).not.toHaveBeenCalled();
+    expect(connectionBridge.close).toHaveBeenCalledWith({ connectionId: 'c1' });
+    expect(connectionBridge.open).not.toHaveBeenCalled();
   });
 });
 
@@ -259,7 +268,7 @@ describe('ConnectionTabs', () => {
     // and this query resolves to the dialog's own action, uniquely.
     await user.click(screen.getByRole('button', { name: 'Eliminar' }));
 
-    expect(ws.close).toHaveBeenCalledWith({ connectionId: 'c1' });
+    expect(connectionBridge.close).toHaveBeenCalledWith({ connectionId: 'c1' });
     expect(useStore.getState().workspace?.connections.map((entry) => entry.id)).toEqual(['c2']);
     expect(useStore.getState().activeConnectionId).toBe('c2');
   });
@@ -272,16 +281,19 @@ describe('connection tab menu', () => {
     useStore.setState({
       workspace: {
         id: 'w1',
-        version: 3,
+        version: 4,
         name: 'local',
         environments: [],
         connections: [
           {
             id: 'k1',
             name: 'echo',
-            url: 'ws://a',
             environmentId: null,
-            settings: cloneConnectionSettings(),
+            transport: {
+              kind: 'websocket',
+              url: 'ws://a',
+              settings: cloneWebSocketSettings(),
+            },
           },
         ],
         catalog: { collections: [], items: [] },

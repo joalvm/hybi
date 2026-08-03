@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cloneConnectionSettings } from '@shared/domain/defaults.js';
+import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
 import { createConnection, createWorkspace } from '@shared/domain/factory.js';
 import { parseWorkspace, WorkspaceFormatError } from '@shared/domain/schema.js';
 
@@ -19,9 +19,12 @@ describe('parseWorkspace', () => {
     workspace.connections.push({
       id: 'c1',
       name: 'local',
-      url: 'ws://127.0.0.1:3000',
       environmentId: 'does-not-exist',
-      settings: cloneConnectionSettings(),
+      transport: {
+        kind: 'websocket',
+        url: 'ws://127.0.0.1:3000',
+        settings: cloneWebSocketSettings(),
+      },
     });
     expect(() => parseWorkspace(workspace)).toThrow(/environmentId/);
   });
@@ -51,7 +54,7 @@ describe('parseWorkspace', () => {
   it('rejects a header value carrying a line break', () => {
     const workspace = createWorkspace('Demo');
     const connection = createConnection({ name: 'local' });
-    connection.settings.headers.push({
+    connection.transport.settings.headers.push({
       name: 'X-Trace',
       value: 'a\r\nX-Admin: true',
       enabled: true,
@@ -63,7 +66,7 @@ describe('parseWorkspace', () => {
   it('rejects a header name the handshake could not send', () => {
     const workspace = createWorkspace('Demo');
     const connection = createConnection({ name: 'local' });
-    connection.settings.headers.push({ name: 'X Trace', value: 'ok', enabled: true });
+    connection.transport.settings.headers.push({ name: 'X Trace', value: 'ok', enabled: true });
     workspace.connections.push(connection);
     expect(() => parseWorkspace(workspace)).toThrow(WorkspaceFormatError);
   });
@@ -71,13 +74,25 @@ describe('parseWorkspace', () => {
   it('rejects a retry policy outside its bounds', () => {
     const workspace = createWorkspace('Demo');
     const connection = createConnection({ name: 'local' });
-    connection.settings.retry.attempts = -1;
+    connection.transport.settings.retry.attempts = -1;
     workspace.connections.push(connection);
     expect(() => parseWorkspace(workspace)).toThrow(/attempts/);
   });
 
   it('starts a connection with certificate verification on', () => {
-    expect(createConnection({ name: 'local' }).settings.verifyCertificate).toBe(true);
+    expect(createConnection({ name: 'local' }).transport.settings.verifyCertificate).toBe(true);
+  });
+
+  it('rejects an unsupported transport kind at the persistence boundary', () => {
+    const workspace = createWorkspace('Demo');
+    workspace.connections.push({
+      id: 'c1',
+      name: 'invalid',
+      environmentId: null,
+      transport: { kind: 'sse', url: 'https://example.test' },
+    } as never);
+
+    expect(() => parseWorkspace(workspace)).toThrow(/transport/);
   });
 
   it('rejects a variable name that {{}} interpolation could not reference', () => {

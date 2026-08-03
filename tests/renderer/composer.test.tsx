@@ -1,7 +1,7 @@
-import { act, fireEvent, render, renderHook, screen } from '@testing-library/react';
+import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { cloneConnectionSettings } from '@shared/domain/defaults.js';
+import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
 import { createWorkspace } from '@shared/domain/factory.js';
 import { useStore } from '@/store/index.js';
 import { ComposerBreadcrumb } from '@/features/composer/ComposerBreadcrumb.js';
@@ -20,8 +20,15 @@ const clipboard = vi.hoisted(() => ({
   readText: vi.fn<() => Promise<string>>(() => Promise.resolve('')),
   writeText: vi.fn(),
 }));
+const connectionBridge = vi.hoisted(() => ({
+  send: vi.fn<
+    () => Promise<{ ok: true; sequence: number } | { ok: false; error: string }>
+  >(() => Promise.resolve({ ok: true, sequence: 1 })),
+}));
 
-vi.mock('@/ipc/bridge.js', () => ({ bridge: { ws: { send: vi.fn() }, clipboard } }));
+vi.mock('@/ipc/bridge.js', () => ({
+  bridge: { connection: connectionBridge, clipboard },
+}));
 
 // jsdom has no layout for Monaco to measure, and the real `setup.js` drags the
 // whole editor bundle in. The panel only has to render around them here.
@@ -45,9 +52,12 @@ function seed(): void {
   workspace.connections.push({
     id: 'c1',
     name: 'local',
-    url: 'ws://127.0.0.1:3000',
     environmentId: 'env1',
-    settings: cloneConnectionSettings(),
+    transport: {
+      kind: 'websocket',
+      url: 'ws://127.0.0.1:3000',
+      settings: cloneWebSocketSettings(),
+    },
   });
   workspace.catalog.items.push({
     // The seeded `General` collection, so the breadcrumb has a first crumb.
@@ -62,6 +72,8 @@ function seed(): void {
 }
 
 beforeEach(() => {
+  connectionBridge.send.mockReset();
+  connectionBridge.send.mockResolvedValue({ ok: true, sequence: 1 });
   useStore.getState().reset();
   seed();
 });
@@ -309,6 +321,18 @@ describe('ComposerFooter', () => {
 });
 
 describe('payload editor context menu', () => {
+  it('records a main-process send failure in the connection activity', async () => {
+    connectionBridge.send.mockResolvedValueOnce({ ok: false, error: 'payload too large' });
+    useStore.getState().setConnectionState('c1', 'open');
+    render(<ComposerPanel connectionId="c1" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    await waitFor(() => {
+      expect(useStore.getState().activity.c1?.at(-1)?.body).toBe('payload too large');
+    });
+  });
+
   it('offers exactly copy and paste, and pastes through the bridge', async () => {
     const user = userEvent.setup();
     clipboard.readText.mockResolvedValue('{"a":1}');

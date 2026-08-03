@@ -2,24 +2,29 @@ import type { IncomingMessage } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WebSocketServer, type WebSocket } from 'ws';
-import { DEFAULT_CONNECTION_SETTINGS } from '@shared/domain/defaults.js';
+import { DEFAULT_WEBSOCKET_SETTINGS } from '@shared/domain/connections/defaults.js';
 import type { ActivityRecord, ConnectionStateEvent } from '@shared/ipc/activity.js';
-import type { SocketOptions } from '@shared/ipc/contract.js';
+import type { ResolvedWebSocketTransport } from '@shared/transport/contract.js';
 import { ActivityBuffer } from '../../src/main/connections/activity-buffer.js';
-import { nextDelay } from '../../src/main/connections/backoff.js';
-import { startKeepalive } from '../../src/main/connections/keepalive.js';
 import { ConnectionManager } from '../../src/main/connections/manager.js';
-import { assertWsUrl } from '../../src/main/connections/url.js';
+import { nextDelay } from '../../src/main/connections/websocket/backoff.js';
+import { startKeepalive } from '../../src/main/connections/websocket/keepalive.js';
+import { assertWsUrl } from '../../src/main/connections/websocket/url.js';
 
 /** The defaults, with retry off unless a test is about retry. */
-function options(overrides: Partial<SocketOptions> = {}): SocketOptions {
+function transport(
+  url: string,
+  overrides: Partial<ResolvedWebSocketTransport> = {},
+): ResolvedWebSocketTransport {
   return {
+    kind: 'websocket',
+    url,
     headers: {},
     protocols: [],
-    retry: { ...DEFAULT_CONNECTION_SETTINGS.retry, enabled: false },
-    keepalive: { ...DEFAULT_CONNECTION_SETTINGS.keepalive },
-    verifyCertificate: DEFAULT_CONNECTION_SETTINGS.verifyCertificate,
-    maxMessageBytes: DEFAULT_CONNECTION_SETTINGS.maxMessageBytes,
+    retry: { ...DEFAULT_WEBSOCKET_SETTINGS.retry, enabled: false },
+    keepalive: { ...DEFAULT_WEBSOCKET_SETTINGS.keepalive },
+    verifyCertificate: DEFAULT_WEBSOCKET_SETTINGS.verifyCertificate,
+    maxMessageBytes: DEFAULT_WEBSOCKET_SETTINGS.maxMessageBytes,
     ...overrides,
   };
 }
@@ -56,6 +61,7 @@ describe('ActivityBuffer', () => {
   const record = (sequence: number): ActivityRecord => ({
     id: `c1:${String(sequence)}`,
     connectionId: 'c1',
+    transportKind: 'websocket',
     sequence,
     kind: 'incoming',
     at: 0,
@@ -108,13 +114,10 @@ describe('ConnectionManager', () => {
     states = ownStates;
     activity = ownActivity;
 
-    manager = new ConnectionManager(
-      {
-        state: (event) => ownStates.push(event),
-        activity: (record) => ownActivity.push(record),
-      },
-      { baseMs: 5, maxMs: 20, attempts: 3 },
-    );
+    manager = new ConnectionManager({
+      state: (event) => ownStates.push(event),
+      activity: (record) => ownActivity.push(record),
+    });
   });
 
   afterEach(async () => {
@@ -130,10 +133,10 @@ describe('ConnectionManager', () => {
       });
     });
 
-    await manager.open({ connectionId: 'c1', url });
+    await manager.open({ connectionId: 'c1', transport: transport(url) });
     expect(states.map((event) => event.state)).toEqual(['connecting', 'open']);
 
-    manager.send('c1', '{"event":"ping"}');
+    await manager.send('c1', { kind: 'websocket', text: '{"event":"ping"}' });
     await vi.waitFor(() => {
       expect(activity.filter((item) => item.kind === 'incoming')).toHaveLength(1);
     });
@@ -150,21 +153,44 @@ describe('ConnectionManager', () => {
    * rejected before any socket exists still has to leave a line behind.
    */
   it('rejects a URL that is not ws or wss and records why', async () => {
-    await expect(manager.open({ connectionId: 'c1', url: 'http://127.0.0.1' })).rejects.toThrow(
-      /ws:/,
-    );
+    await expect(
+      manager.open({
+        connectionId: 'c1',
+        transport: transport('http://127.0.0.1'),
+      }),
+    ).rejects.toThrow(/ws:/);
 
     expect(activity).toHaveLength(1);
     expect(activity[0]?.kind).toBe('error');
     expect(activity[0]?.body).toMatch(/ws:/);
   });
 
-  it('refuses to send on a connection that is not open', () => {
-    expect(() => manager.send('missing', 'x')).toThrow(/not open/);
+  it('refuses to send on a connection that is not open', async () => {
+    await expect(
+      manager.send('missing', { kind: 'websocket', text: 'x' }),
+    ).rejects.toThrow(/not open/);
+  });
+
+  it('rejects an oversized outgoing message before it reaches the socket or activity', async () => {
+    const received: string[] = [];
+    server.on('connection', (socket) => {
+      socket.on('message', (data: Buffer) => received.push(data.toString()));
+    });
+    await manager.open({
+      connectionId: 'c1',
+      transport: transport(url, { maxMessageBytes: 4 }),
+    });
+
+    await expect(
+      manager.send('c1', { kind: 'websocket', text: '12345' }),
+    ).rejects.toThrow(/4 byte limit/);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(received).toEqual([]);
+    expect(activity.filter((item) => item.kind === 'outgoing')).toEqual([]);
   });
 
   it('closes idempotently and does not reconnect after a manual close', async () => {
-    await manager.open({ connectionId: 'c1', url });
+    await manager.open({ connectionId: 'c1', transport: transport(url) });
     manager.close('c1');
     manager.close('c1');
 
@@ -183,7 +209,12 @@ describe('ConnectionManager', () => {
       if (seen === 1) setTimeout(() => { socket.terminate(); }, 5);
     });
 
-    await manager.open({ connectionId: 'c1', url });
+    await manager.open({
+      connectionId: 'c1',
+      transport: transport(url, {
+        retry: { enabled: true, baseMs: 5, maxMs: 20, attempts: 3 },
+      }),
+    });
 
     await vi.waitFor(
       () => {
@@ -207,7 +238,7 @@ describe('ConnectionManager', () => {
       }, 5);
     });
 
-    await manager.open({ connectionId: 'c1', url, options: options() });
+    await manager.open({ connectionId: 'c1', transport: transport(url) });
 
     await vi.waitFor(() => {
       expect(states.at(-1)?.state).toBe('dropped');
@@ -225,8 +256,9 @@ describe('ConnectionManager', () => {
 
     await manager.open({
       connectionId: 'c1',
-      url,
-      options: options({ headers: { Authorization: 'Bearer abc', 'X-Trace': '1' } }),
+      transport: transport(url, {
+        headers: { Authorization: 'Bearer abc', 'X-Trace': '1' },
+      }),
     });
 
     const request = await handshake;
@@ -243,8 +275,7 @@ describe('ConnectionManager', () => {
 
     await manager.open({
       connectionId: 'c1',
-      url,
-      options: options({ protocols: ['graphql-ws'] }),
+      transport: transport(url, { protocols: ['graphql-ws'] }),
     });
 
     expect(await negotiated).toBe('graphql-ws');
@@ -260,7 +291,10 @@ describe('ConnectionManager', () => {
       socket.send('x'.repeat(4096));
     });
 
-    await manager.open({ connectionId: 'c1', url, options: options({ maxMessageBytes: 1024 }) });
+    await manager.open({
+      connectionId: 'c1',
+      transport: transport(url, { maxMessageBytes: 1024 }),
+    });
 
     await vi.waitFor(() => {
       expect(activity.some((item) => item.body.includes('Max payload size exceeded'))).toBe(true);
@@ -273,11 +307,53 @@ describe('ConnectionManager', () => {
       socket.send('x'.repeat(512));
     });
 
-    await manager.open({ connectionId: 'c1', url, options: options({ maxMessageBytes: 1024 }) });
+    await manager.open({
+      connectionId: 'c1',
+      transport: transport(url, { maxMessageBytes: 1024 }),
+    });
 
     await vi.waitFor(() => {
       expect(activity.filter((item) => item.kind === 'incoming')).toHaveLength(1);
     });
+  });
+
+  it('reopens without letting the old socket overwrite the new lifecycle', async () => {
+    let connections = 0;
+    server.on('connection', () => {
+      connections += 1;
+    });
+
+    await manager.open({ connectionId: 'c1', transport: transport(url) });
+    await manager.open({ connectionId: 'c1', transport: transport(url) });
+
+    await vi.waitFor(() => {
+      expect(connections).toBe(2);
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(states.at(-1)?.state).toBe('open');
+  });
+
+  it('settles as closed when the user cancels a pending retry', async () => {
+    server.once('connection', (socket) => {
+      setTimeout(() => {
+        socket.terminate();
+      }, 5);
+    });
+    await manager.open({
+      connectionId: 'c1',
+      transport: transport(url, {
+        retry: { enabled: true, baseMs: 100, maxMs: 100, attempts: 3 },
+      }),
+    });
+    await vi.waitFor(() => {
+      expect(states.at(-1)?.state).toBe('dropped');
+    });
+
+    manager.close('c1');
+
+    expect(states.at(-1)?.state).toBe('closed');
+    await new Promise((resolve) => setTimeout(resolve, 130));
+    expect(states.at(-1)?.state).toBe('closed');
   });
 });
 
@@ -294,6 +370,9 @@ describe('startKeepalive', () => {
       },
       on: (event: string, listener: () => void) => {
         listeners.set(event, listener);
+      },
+      off: (event: string) => {
+        listeners.delete(event);
       },
     };
     return {

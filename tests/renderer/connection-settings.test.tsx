@@ -1,20 +1,24 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { cloneConnectionSettings } from '@shared/domain/defaults.js';
+import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
 import { createWorkspace } from '@shared/domain/factory.js';
-import type { ConnectionSettings } from '@shared/domain/types.js';
-import type { OpenRequest, Result } from '@shared/ipc/contract.js';
+import type {
+  WebSocketTransport,
+  WebSocketTransportSettings,
+} from '@shared/domain/connections/websocket.js';
+import type { Result } from '@shared/ipc/contract.js';
+import type { OpenConnectionRequest } from '@shared/transport/contract.js';
 import { buildScope } from '@shared/variables/resolve.js';
 import { ConnectionBar } from '@/features/connections/ConnectionBar.js';
 import { ConnectionTabs } from '@/features/connections/ConnectionTabs.js';
 import { ConnectionSettingsDialog } from '@/features/connections/settings/ConnectionSettingsDialog.js';
-import { resolveSocketOptions } from '@/features/connections/socket-options.js';
+import { resolveWebSocketTransport } from '@/features/connections/websocket/resolve.js';
 import { useStore } from '@/store/index.js';
 
-const ws = vi.hoisted(() => ({
+const connectionBridge = vi.hoisted(() => ({
   // Typed with the request so the assertions can read what was actually sent.
-  open: vi.fn<(request: OpenRequest) => Promise<Result<Record<never, never>>>>(() =>
+  open: vi.fn<(request: OpenConnectionRequest) => Promise<Result<Record<never, never>>>>(() =>
     Promise.resolve({ ok: true }),
   ),
   close: vi.fn(() => Promise.resolve({ ok: true })),
@@ -23,13 +27,19 @@ const ws = vi.hoisted(() => ({
   onActivity: vi.fn(() => () => undefined),
 }));
 
-vi.mock('@/ipc/bridge.js', () => ({ bridge: { ws } }));
+vi.mock('@/ipc/bridge.js', () => ({ bridge: { connection: connectionBridge } }));
 
-function settings(overrides: Partial<ConnectionSettings> = {}): ConnectionSettings {
-  return { ...cloneConnectionSettings(), ...overrides };
+function settings(
+  overrides: Partial<WebSocketTransportSettings> = {},
+): WebSocketTransportSettings {
+  return { ...cloneWebSocketSettings(), ...overrides };
 }
 
-function loadWorkspace(connectionSettings: ConnectionSettings = settings()): void {
+function websocket(connectionSettings: WebSocketTransportSettings): WebSocketTransport {
+  return { kind: 'websocket', url: 'ws://127.0.0.1:3000', settings: connectionSettings };
+}
+
+function loadWorkspace(connectionSettings: WebSocketTransportSettings = settings()): void {
   const workspace = createWorkspace('Demo');
   workspace.environments.push({
     id: 'env1',
@@ -39,39 +49,40 @@ function loadWorkspace(connectionSettings: ConnectionSettings = settings()): voi
   workspace.connections.push({
     id: 'c1',
     name: 'echo',
-    url: 'ws://127.0.0.1:3000',
     environmentId: 'env1',
-    settings: connectionSettings,
+    transport: websocket(connectionSettings),
   });
   useStore.getState().setWorkspace(workspace);
   useStore.getState().setActiveConnection('c1');
 }
 
-function storedSettings(): ConnectionSettings | undefined {
-  return useStore.getState().workspace?.connections[0]?.settings;
+function storedSettings(): WebSocketTransportSettings | undefined {
+  return useStore.getState().workspace?.connections[0]?.transport.settings;
 }
 
 beforeEach(() => {
   useStore.getState().reset();
-  ws.open.mockClear();
+  connectionBridge.open.mockClear();
 });
 
-describe('resolveSocketOptions', () => {
+describe('resolveWebSocketTransport', () => {
   const scope = buildScope([{ name: 'token', value: 'abc', secret: true }]);
 
   it('substitutes a variable in a header value', () => {
-    const resolved = resolveSocketOptions(
-      settings({ headers: [{ name: 'Authorization', value: 'Bearer {{token}}', enabled: true }] }),
+    const resolved = resolveWebSocketTransport(
+      websocket(
+        settings({ headers: [{ name: 'Authorization', value: 'Bearer {{token}}', enabled: true }] }),
+      ),
       scope,
     );
 
-    expect(resolved.options.headers).toEqual({ Authorization: 'Bearer abc' });
+    expect(resolved.transport.headers).toEqual({ Authorization: 'Bearer abc' });
     expect(resolved.missing).toEqual([]);
   });
 
   it('reports a variable no environment defines', () => {
-    const resolved = resolveSocketOptions(
-      settings({ headers: [{ name: 'X-Key', value: '{{nope}}', enabled: true }] }),
+    const resolved = resolveWebSocketTransport(
+      websocket(settings({ headers: [{ name: 'X-Key', value: '{{nope}}', enabled: true }] })),
       scope,
     );
 
@@ -79,18 +90,18 @@ describe('resolveSocketOptions', () => {
   });
 
   it('leaves out a header that is switched off, and one with no name', () => {
-    const resolved = resolveSocketOptions(
-      settings({
+    const resolved = resolveWebSocketTransport(
+      websocket(settings({
         headers: [
           { name: 'X-Off', value: '1', enabled: false },
           { name: '', value: 'orphan', enabled: true },
           { name: 'X-On', value: '1', enabled: true },
         ],
-      }),
+      })),
       scope,
     );
 
-    expect(resolved.options.headers).toEqual({ 'X-On': '1' });
+    expect(resolved.transport.headers).toEqual({ 'X-On': '1' });
   });
 
   /**
@@ -100,12 +111,12 @@ describe('resolveSocketOptions', () => {
    */
   it('strips a line break a variable smuggled into the value', () => {
     const injected = buildScope([{ name: 'evil', value: 'a\r\nX-Admin: true', secret: false }]);
-    const resolved = resolveSocketOptions(
-      settings({ headers: [{ name: 'X-Trace', value: '{{evil}}', enabled: true }] }),
+    const resolved = resolveWebSocketTransport(
+      websocket(settings({ headers: [{ name: 'X-Trace', value: '{{evil}}', enabled: true }] })),
       injected,
     );
 
-    expect(resolved.options.headers['X-Trace']).toBe('aX-Admin: true');
+    expect(resolved.transport.headers['X-Trace']).toBe('aX-Admin: true');
   });
 });
 
@@ -118,7 +129,9 @@ describe('ConnectionBar with settings', () => {
 
     screen.getByRole('button', { name: 'Conectar' }).click();
 
-    expect(ws.open.mock.calls[0]?.[0].options?.headers).toEqual({ Authorization: 'Bearer abc' });
+    expect(connectionBridge.open.mock.calls[0]?.[0].transport.headers).toEqual({
+      Authorization: 'Bearer abc',
+    });
   });
 
   it('refuses to connect while a header points at a variable nobody defined', () => {
@@ -270,7 +283,11 @@ describe('connection tab menu', () => {
 
     const connections = useStore.getState().workspace?.connections ?? [];
     expect(connections).toHaveLength(2);
-    connections[1]?.settings.headers.push({ name: 'X-Other', value: '2', enabled: true });
-    expect(connections[0]?.settings.headers).toHaveLength(1);
+    connections[1]?.transport.settings.headers.push({
+      name: 'X-Other',
+      value: '2',
+      enabled: true,
+    });
+    expect(connections[0]?.transport.settings.headers).toHaveLength(1);
   });
 });
