@@ -1,11 +1,18 @@
 import { dialog, ipcMain, type BrowserWindow } from 'electron';
-import { CHANNELS, type ImportOutcome } from '@shared/ipc/contract.js';
+import type { Workspace } from '@shared/domain/types.js';
+import {
+  CHANNELS,
+  type ExportOutcome,
+  type ImportOutcome,
+} from '@shared/ipc/contract.js';
+import { asyncApiDefaultFileName, writeAsyncApiExport } from '../asyncapi/export-file.js';
 import { importAsyncApi } from '../asyncapi/importer.js';
 
+const ASYNCAPI_CHANNELS = [CHANNELS.asyncapiImport, CHANNELS.asyncapiExport];
+
 /**
- * The renderer never sees a path: it asks for an import, the main process runs
- * the native picker and answers with catalog entries. Any AsyncAPI 2.x or 3.x
- * document works — the importer knows nothing about a particular server.
+ * Native dialogs and filesystem access stay in main. Import accepts AsyncAPI
+ * 2.x/3.x; export emits AsyncAPI 3.0 JSON with Hybi extensions.
  */
 export function registerAsyncApiHandlers(window: BrowserWindow): () => void {
   ipcMain.handle(CHANNELS.asyncapiImport, async (): Promise<ImportOutcome> => {
@@ -27,7 +34,27 @@ export function registerAsyncApiHandlers(window: BrowserWindow): () => void {
     }
   });
 
+  ipcMain.handle(
+    CHANNELS.asyncapiExport,
+    async (_event, workspace: Workspace): Promise<ExportOutcome> => {
+      try {
+        const picked = await dialog.showSaveDialog(window, {
+          title: 'Exportar workspace como AsyncAPI',
+          defaultPath: asyncApiDefaultFileName(workspace.name),
+          filters: [{ name: 'AsyncAPI JSON', extensions: ['json'] }],
+        });
+        if (picked.canceled || picked.filePath === '') {
+          return { ok: false, cancelled: true, error: 'cancelled' };
+        }
+        await writeAsyncApiExport(workspace, picked.filePath);
+        return { ok: true };
+      } catch (error) {
+        return { ok: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    },
+  );
+
   return () => {
-    ipcMain.removeHandler(CHANNELS.asyncapiImport);
+    for (const channel of ASYNCAPI_CHANNELS) ipcMain.removeHandler(channel);
   };
 }

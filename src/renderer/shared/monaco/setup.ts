@@ -17,11 +17,9 @@ import 'monaco-editor/features/wordOperations/register.js';
 import 'monaco-editor/features/multicursor/register.js';
 import 'monaco-editor/features/readOnlyMessage/register.js';
 import { jsonDefaults } from 'monaco-editor/languages/features/json/register.js';
-// Colouring only. Both are Monarch grammars behind a lazy loader, so they cost a
-// chunk each and no worker — the format picker offers them, nothing validates
-// them. `plaintext` needs no registration, which covers Text and Binary.
-import 'monaco-editor/languages/definitions/xml/register.js';
-import 'monaco-editor/languages/definitions/html/register.js';
+// Basic languages register lazy tokenizers, not workers. Markdown code fences
+// can therefore color any Monaco language without eagerly loading every grammar.
+import 'monaco-editor/languages/definitions/register.all.js';
 import type { VariableScope } from '@shared/variables/resolve.js';
 import { installWorkers } from './workers.js';
 import { WORKBENCH_THEME_DARK, WORKBENCH_THEME_LIGHT } from './theme.js';

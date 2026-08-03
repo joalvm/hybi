@@ -16,7 +16,7 @@ const handlers = new Map<string, unknown>();
 
 vi.mock('electron', () => ({
   app: { getPath: () => 'ignored-in-this-test' },
-  dialog: { showOpenDialog: vi.fn() },
+  dialog: { showOpenDialog: vi.fn(), showSaveDialog: vi.fn() },
   clipboard: { readText: vi.fn(() => ''), writeText: vi.fn() },
   Menu: { buildFromTemplate: vi.fn() },
   BrowserWindow: { fromWebContents: vi.fn(() => null) },
@@ -95,6 +95,7 @@ describe('IPC registration', () => {
 
     expect(handlers.has(CHANNELS.connectionOpen)).toBe(false);
     expect(handlers.has(CHANNELS.asyncapiImport)).toBe(false);
+    expect(handlers.has(CHANNELS.asyncapiExport)).toBe(false);
     expect(handlers.has(CHANNELS.workspaceList)).toBe(true);
   });
 

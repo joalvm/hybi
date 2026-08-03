@@ -11,6 +11,7 @@ import {
   CircleCheck,
   CircleX,
   Copy,
+  Download,
   Eye,
   EyeOff,
   Folder,
@@ -27,6 +28,7 @@ import {
   SendHorizontal,
   Settings,
   ShieldAlert,
+  Scissors,
   Square,
   Sun,
   Trash2,
@@ -85,6 +87,8 @@ export const PlusIcon = hairline(Plus);
 export const NewCollectionIcon = hairline(FolderPlus);
 /** Reads an AsyncAPI document into the catalog. */
 export const ImportIcon = hairline(Import);
+/** Writes the complete workspace as an AsyncAPI JSON document. */
+export const ExportIcon = hairline(Download);
 /** Work already running: an import parsing a document, and nothing else so far. */
 export const SpinnerIcon = hairline(LoaderCircle);
 /** The `…` a row shows instead of a strip of buttons. */
@@ -105,6 +109,8 @@ export const HideIcon = hairline(EyeOff);
 export const RenameIcon = hairline(Pencil);
 /** Copies an event, or the editor's selection. */
 export const DuplicateIcon = hairline(Copy);
+/** Cuts the editor's selection. */
+export const CutIcon = hairline(Scissors);
 /** Pastes over the editor's selection. */
 export const PasteIcon = hairline(ClipboardPaste);
 /** A move target in a row menu. */

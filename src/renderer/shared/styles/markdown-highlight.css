@@ -1,0 +1,93 @@
+/* GitHub themes from highlight.js 11.11.1. Variables only select the official
+   light/dark palettes when Hybi's explicit theme overrides the OS preference. */
+.markdown .hljs {
+  --hljs-text: #24292e;
+  --hljs-surface: #ffffff;
+  --hljs-keyword: #d73a49;
+  --hljs-entity: #6f42c1;
+  --hljs-constant: #005cc5;
+  --hljs-string: #032f62;
+  --hljs-variable: #e36209;
+  --hljs-comment: #6a737d;
+  --hljs-tag: #22863a;
+  --hljs-bullet: #735c0f;
+  color: var(--hljs-text);
+  background: var(--hljs-surface);
+}
+
+:root[data-theme='dark'] .markdown .hljs {
+  --hljs-text: #c9d1d9;
+  --hljs-surface: #0d1117;
+  --hljs-keyword: #ff7b72;
+  --hljs-entity: #d2a8ff;
+  --hljs-constant: #79c0ff;
+  --hljs-string: #a5d6ff;
+  --hljs-variable: #ffa657;
+  --hljs-comment: #8b949e;
+  --hljs-tag: #7ee787;
+  --hljs-bullet: #f2cc60;
+}
+
+.markdown :is(.hljs-doctag, .hljs-keyword, .hljs-template-tag, .hljs-type) {
+  color: var(--hljs-keyword);
+}
+
+.markdown :is(.hljs-title, .hljs-section) {
+  color: var(--hljs-entity);
+}
+
+.markdown
+  :is(
+    .hljs-attr,
+    .hljs-attribute,
+    .hljs-literal,
+    .hljs-meta,
+    .hljs-number,
+    .hljs-operator,
+    .hljs-variable
+  ) {
+  color: var(--hljs-constant);
+}
+
+.markdown :is(.hljs-regexp, .hljs-string) {
+  color: var(--hljs-string);
+}
+
+.markdown :is(.hljs-built_in, .hljs-symbol) {
+  color: var(--hljs-variable);
+}
+
+.markdown :is(.hljs-comment, .hljs-code, .hljs-formula) {
+  color: var(--hljs-comment);
+}
+
+.markdown :is(.hljs-name, .hljs-quote, .hljs-selector-tag, .hljs-selector-pseudo) {
+  color: var(--hljs-tag);
+}
+
+.markdown .hljs-bullet {
+  color: var(--hljs-bullet);
+}
+
+.markdown :is(.hljs-section, .hljs-strong) {
+  font-weight: 600;
+}
+
+.markdown .hljs-emphasis {
+  font-style: italic;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .markdown .hljs {
+    --hljs-text: #c9d1d9;
+    --hljs-surface: #0d1117;
+    --hljs-keyword: #ff7b72;
+    --hljs-entity: #d2a8ff;
+    --hljs-constant: #79c0ff;
+    --hljs-string: #a5d6ff;
+    --hljs-variable: #ffa657;
+    --hljs-comment: #8b949e;
+    --hljs-tag: #7ee787;
+    --hljs-bullet: #f2cc60;
+  }
+}

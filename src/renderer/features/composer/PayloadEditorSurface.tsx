@@ -1,14 +1,14 @@
 import type { RefObject } from 'react';
 import type { VariableHover } from '@/shared/monaco/useVariableHover.js';
-import { ContextMenu } from '@/shared/ui/ContextMenu.js';
-import { DuplicateIcon, PasteIcon } from '@/shared/ui/icons.js';
 import { VariablePopover } from '@/features/workspace/VariablePopover.js';
+import { EditorContextMenu } from './EditorContextMenu.js';
 
 type Props = {
   containerRef: RefObject<HTMLDivElement | null>;
   hasSelection: boolean;
   hover: VariableHover | null;
   environmentId: string | null;
+  onCut: () => void;
   onCopy: () => void;
   onPaste: () => void;
   onCloseHover: () => void;
@@ -22,6 +22,7 @@ export function PayloadEditorSurface({
   hasSelection,
   hover,
   environmentId,
+  onCut,
   onCopy,
   onPaste,
   onCloseHover,
@@ -30,17 +31,11 @@ export function PayloadEditorSurface({
 }: Props) {
   return (
     <>
-      <ContextMenu
-        label="Acciones del editor"
-        items={[
-          {
-            label: 'Copiar',
-            icon: <DuplicateIcon />,
-            disabled: !hasSelection,
-            onSelect: onCopy,
-          },
-          { label: 'Pegar', icon: <PasteIcon />, onSelect: onPaste },
-        ]}
+      <EditorContextMenu
+        hasSelection={hasSelection}
+        onCut={onCut}
+        onCopy={onCopy}
+        onPaste={onPaste}
       >
         <div
           className="payload-editor-runtime ml-3 min-h-0 flex-1"
@@ -48,7 +43,7 @@ export function PayloadEditorSurface({
           data-testid="payload-editor"
           data-part="payload-editor"
         />
-      </ContextMenu>
+      </EditorContextMenu>
       {hover !== null && (
         <VariablePopover
           key={hover.name}

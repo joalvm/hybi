@@ -4,6 +4,7 @@ import {
   CaretDownIcon,
   CheckIcon,
   DuplicateIcon,
+  ExportIcon,
   PlusIcon,
   RenameIcon,
   TrashIcon,
@@ -13,6 +14,7 @@ import { Menu, type MenuGroup, type MenuItem } from '@/shared/ui/Menu.js';
 import { InlineNameInput } from '@/shared/ui/InlineNameInput.js';
 import { useStore } from '@/store/index.js';
 import { WorkspaceDialogs, type WorkspaceDialog } from './WorkspaceDialogs.js';
+import { useAsyncApiExport } from './useAsyncApiExport.js';
 import { useWorkspaceList } from './useWorkspaceList.js';
 
 /** The pill top-left: which workspace is open, and everything you can do to it. */
@@ -25,6 +27,7 @@ export function WorkspaceMenu() {
   );
   const setWorkspaceName = useStore((state) => state.setWorkspaceName);
   const list = useWorkspaceList();
+  const exportAsyncApi = useAsyncApiExport();
 
   const [dialog, setDialog] = useState<WorkspaceDialog>(null);
   const [renaming, setRenaming] = useState(false);
@@ -50,6 +53,11 @@ export function WorkspaceMenu() {
       onSelect: () => {
         setDialog('duplicate');
       },
+    },
+    {
+      label: 'Export',
+      icon: <ExportIcon />,
+      onSelect: exportAsyncApi,
     },
     {
       label: 'Eliminar',

@@ -9,6 +9,7 @@
 @import './runtime.css' layer(components);
 @import './motion.css' layer(components);
 @import './markdown.css' layer(components);
+@import './markdown-highlight.css' layer(components);
 
 @source '../../';
 
