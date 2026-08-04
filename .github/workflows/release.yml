@@ -229,11 +229,13 @@ jobs:
           GH_REPO: ${{ github.repository }}
           TAG: ${{ github.ref_name }}
         run: |
-          generated_notes="$(gh api \"repos/$GH_REPO/releases/generate-notes\" -f tag_name=\"$TAG\" --jq .body \
-            | sed -e \"s/^## What's Changed$/## Cambios/\" \
-                  -e \"s/^## New Contributors$/## Contributors/\" \
-                  -e 's/ made their first contribution in / aporta por primera vez en /' \
-                  -e 's/^\*\*Full Changelog\*\*/**Historial completo**/')"
+          generated_notes="$(
+            gh api "repos/$GH_REPO/releases/generate-notes" -f tag_name="$TAG" --jq .body \
+              | sed -e "s/^## What's Changed$/## Cambios/" \
+                    -e "s/^## New Contributors$/## Contributors/" \
+                    -e 's/ made their first contribution in / aporta por primera vez en /' \
+                    -e 's/^\*\*Full Changelog\*\*/**Historial completo**/'
+          )"
           {
             cat .github/release-notes/intro.md
             printf '\n'
