@@ -98,7 +98,7 @@ export function UrlInput({ value, missing, scope, onChange, onVariablePoint }: P
     <div className="relative h-7.5 min-w-0 flex-1 rounded-ui border border-border bg-panel focus-within:border-accent focus-within:outline focus-within:outline-1 focus-within:outline-accent">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-1 h-full w-full overflow-hidden border-0 bg-transparent px-2 font-ui text-ui font-normal leading-url whitespace-pre text-foreground"
+        className="pointer-events-none absolute inset-0 z-0 h-full w-full overflow-hidden border-0 bg-transparent px-2 font-ui text-ui font-normal leading-url whitespace-pre text-foreground"
         data-part="url-input-mirror"
       >
         {segments.map((segment, index) => (
