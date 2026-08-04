@@ -52,7 +52,7 @@ describe('Hybi packaging', () => {
 
   it('ships under the Hybi identity', () => {
     expect(config.name).toBe('hybi');
-    expect(config.version).toBe('0.3.0-alpha.3');
+    expect(config.version).toBe('0.3.0-alpha.4');
     expect(config.desktopName).toBe('hybi');
     expect(config.build?.appId).toBe('com.hybi.desktop');
     expect(config.build?.productName).toBe('Hybi');
@@ -131,6 +131,8 @@ describe('Hybi packaging', () => {
     expect(workflow).toContain("cat .github/release-notes/security.md");
     expect(workflow).toContain("s/^## What's Changed$/## Cambios/");
     expect(workflow).toContain("s/^## New Contributors$/## Contributors/");
+    expect(workflow).toContain('gh api "repos/$GH_REPO/releases/generate-notes"');
+    expect(workflow).not.toContain('gh api \\"repos/$GH_REPO/releases/generate-notes\\"');
     expect(workflow).not.toContain('## Descargas');
     expect(workflow).not.toContain('release-notes/install.md');
     expect(existsSync('.github/release-notes/security.md')).toBe(true);
