@@ -82,6 +82,11 @@
   color: var(--error);
 }
 
+/* The mirror owns text colour; keep the native selection background without revealing the input layer. */
+.url-input-field-runtime::selection {
+  color: transparent;
+}
+
 .select-panel-runtime {
   min-width: var(--radix-select-trigger-width);
 }
