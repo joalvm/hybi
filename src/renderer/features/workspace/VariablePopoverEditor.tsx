@@ -30,7 +30,7 @@ export function VariablePopoverEditor({
         // A secret is never printed by default, here or in the log.
         type={variable.secret && !revealed ? 'password' : 'text'}
         aria-label={`Valor de ${name}`}
-        className="h-variable-input rounded-ui bg-panel px-3 font-ui text-ui"
+        className="h-variable-input rounded-ui bg-panel px-3 font-ui text-ui font-normal"
         value={draft}
         onChange={(event) => {
           onDraftChange(event.target.value);

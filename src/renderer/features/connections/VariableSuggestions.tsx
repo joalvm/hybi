@@ -1,29 +1,47 @@
+import clsx from 'clsx';
 import type { Variable } from '@shared/domain/types.js';
 import { Button } from '@/shared/ui/Button.js';
 
 type Props = {
+  id: string;
   variables: readonly Variable[];
+  activeIndex: number;
+  onActiveIndexChange: (index: number) => void;
   onSelect: (name: string) => void;
 };
 
 /** Environment suggestions stay presentational so URL editing owns the draft. */
-export function VariableSuggestions({ variables, onSelect }: Props) {
+export function VariableSuggestions({
+  id,
+  variables,
+  activeIndex,
+  onActiveIndexChange,
+  onSelect,
+}: Props) {
   if (variables.length === 0) return null;
 
   return (
     <div
+      id={id}
       aria-label="Variables de entorno"
       className="absolute top-full left-0 z-30 mt-1 max-h-58 w-64 overflow-y-auto rounded-ui border border-border bg-panel p-1 shadow-overlay"
       role="listbox"
     >
-      {variables.map((variable) => (
+      {variables.map((variable, index) => (
         <Button
           key={variable.name}
+          id={`${id}-${String(index)}`}
           role="option"
-          aria-selected="false"
-          className="min-h-7 w-full justify-start border-0 bg-transparent px-1.5 text-left enabled:hover:bg-hover"
+          aria-selected={index === activeIndex}
+          className={clsx(
+            'min-h-7 w-full justify-start border-0 bg-transparent px-1.5 text-left font-ui text-ui font-normal enabled:hover:bg-hover',
+            index === activeIndex && 'bg-hover',
+          )}
           onMouseDown={(event) => {
             event.preventDefault();
+          }}
+          onMouseEnter={() => {
+            onActiveIndexChange(index);
           }}
           onClick={() => {
             onSelect(variable.name);

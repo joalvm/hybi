@@ -53,16 +53,29 @@
 
 /* URL tokens keep the field readable while making the editable target explicit. */
 .wsw-url-var {
-  display: inline-block;
-  margin: 0 1px;
-  padding: 0 2px 1px;
-  border: 1px solid var(--bg-control);
+  position: relative;
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
   border-radius: 6px;
-  background: var(--bg-chrome);
   color: var(--var-token);
   font-family: 'Inter', sans-serif;
   font-size: 12px;
+  font-weight: 400;
   line-height: 16px;
+  z-index: 0;
+}
+
+.wsw-url-var::before {
+  position: absolute;
+  inset: -1px -3px;
+  border: 1px solid var(--bg-control);
+  border-radius: 6px;
+  background: var(--bg-chrome);
+  content: '';
+  pointer-events: none;
+  z-index: -1;
 }
 
 .wsw-url-var.wsw-var-missing {
@@ -86,11 +99,6 @@
   margin-top: var(--space-1);
   padding-top: var(--space-1);
   border-top: 1px solid var(--border);
-}
-
-.url-input-field-runtime::selection {
-  color: var(--text-on-brand);
-  background: var(--accent);
 }
 
 /* These controls depend on sibling and pseudo-element state. */

@@ -229,6 +229,8 @@ describe('ConnectionBar', () => {
       expect(document.querySelector('.tippy-box')).toBeNull();
       expect(field.classList.contains('h-variable-input')).toBe(true);
       expect(field.classList.contains('text-ui')).toBe(true);
+      expect(field.classList.contains('font-ui')).toBe(true);
+      expect(field.classList.contains('font-normal')).toBe(true);
       fireEvent.pointerLeave(token);
       fireEvent.pointerEnter(field);
       act(() => {
@@ -267,6 +269,32 @@ describe('ConnectionBar', () => {
     fireEvent.click(screen.getByRole('option', { name: /host/ }));
 
     expect(screen.getByLabelText('URL')).toHaveProperty('value', 'ws://{{host}}');
+  });
+
+  it('selects filtered suggestions with the keyboard', () => {
+    loadWorkspace('ws://{{', 'env1');
+    useStore.getState().setEnvironmentVariables('env1', [
+      { name: 'host', value: '127.0.0.1:9001', secret: false },
+      { name: 'token', value: 'abc', secret: false },
+    ]);
+    render(<ConnectionBar connectionId="c1" />);
+
+    const field = screen.getByLabelText('URL');
+    const options = () => screen.getAllByRole('option');
+    const optionAt = (index: number): HTMLElement => {
+      const option = options()[index];
+      if (option === undefined) throw new Error(`Missing suggestion at index ${String(index)}`);
+      return option;
+    };
+
+    expect(optionAt(0).getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(field, { key: 'ArrowDown' });
+    expect(optionAt(1).getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(field, { key: 'ArrowUp' });
+    expect(optionAt(0).getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(field, { key: 'Enter' });
+
+    expect(field).toHaveProperty('value', 'ws://{{host}}');
   });
 
   it('marks unresolved URL variables with the destructive tone', () => {

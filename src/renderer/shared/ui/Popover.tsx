@@ -1,5 +1,5 @@
 import Tippy from '@tippyjs/react/headless';
-import { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 /**
  * Anything that can report a screen box. A `{{var}}` inside Monaco is not an
@@ -37,7 +37,7 @@ export function Popover({
       render={(attributes) => (
         <div
           {...attributes}
-          className="z-20 flex w-90 flex-col gap-3 rounded-lg border border-border bg-panel p-4 shadow-overlay"
+          className="z-20 flex w-90 flex-col gap-2 rounded-lg border border-border bg-panel p-2 shadow-overlay"
           onPointerEnter={onPointerEnter}
           onPointerLeave={onPointerLeave}
         >
@@ -45,22 +45,18 @@ export function Popover({
         </div>
       )}
       getReferenceClientRect={() => anchor.getBoundingClientRect()}
-      trigger="manual"
       interactive
       interactiveBorder={8}
       interactiveDebounce={100}
       placement="bottom-start"
       offset={[0, 6]}
       appendTo={() => document.body}
-      hideOnClick={false}
       arrow={false}
       duration={0}
       aria={{ content: null }}
       onClickOutside={() => {
         onOpenChange(false);
       }}
-    >
-      <span aria-hidden="true" className="pointer-events-none absolute h-px w-px opacity-0" />
-    </Tippy>
+    />
   );
 }
