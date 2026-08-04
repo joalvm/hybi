@@ -9,7 +9,12 @@ import { ComposerPanel } from '@/features/composer/ComposerPanel.js';
 import { ComposerFooter } from '@/features/composer/ComposerFooter.js';
 import { ComposerTabs } from '@/features/composer/ComposerTabs.js';
 import { DocsView } from '@/features/composer/DocsView.js';
-import { beautify, languageOf } from '@/features/composer/formats.js';
+import {
+  beautify,
+  canBeautify,
+  languageOf,
+  type PayloadFormat,
+} from '@/features/composer/formats.js';
 import { SendButton } from '@/features/composer/SendButton.js';
 import { useComposerDraft } from '@/features/composer/useComposerDraft.js';
 import { useSaveShortcut } from '@/features/composer/useSaveShortcut.js';
@@ -329,6 +334,26 @@ describe('beautify', () => {
     expect(beautify('   ', 'json')).toBeNull();
   });
 
+  /**
+   * The disabled state is recomputed on every keystroke, so it has to answer
+   * without re-indenting the payload — but it has to answer the same thing.
+   */
+  it('agrees with beautify on whether there is anything to do', () => {
+    const cases: [string, PayloadFormat][] = [
+      ['{"event":"Ping"}', 'json'],
+      ['{"broken":', 'json'],
+      ['   ', 'json'],
+      ['<a><b>hola</b></a>', 'xml'],
+      ['<p><br></p>', 'html'],
+      ['hola servidor', 'xml'],
+      ['hola servidor', 'text'],
+      ['deadbeef', 'binary'],
+    ];
+    for (const [text, format] of cases) {
+      expect(canBeautify(text, format)).toBe(beautify(text, format) !== null);
+    }
+  });
+
   it('maps every format to a language the editor knows', () => {
     expect(languageOf('json')).toBe('json');
     expect(languageOf('xml')).toBe('xml');
@@ -344,7 +369,7 @@ describe('ComposerFooter', () => {
     render(
       <ComposerFooter
         format="json"
-        beautified="{}"
+        formattable
         onFormatChange={vi.fn()}
         onBeautify={onBeautify}
       />,
@@ -357,7 +382,7 @@ describe('ComposerFooter', () => {
     render(
       <ComposerFooter
         format="text"
-        beautified={null}
+        formattable={false}
         onFormatChange={vi.fn()}
         onBeautify={vi.fn()}
       />,
@@ -371,7 +396,7 @@ describe('ComposerFooter', () => {
     render(
       <ComposerFooter
         format="json"
-        beautified={null}
+        formattable={false}
         onFormatChange={onFormatChange}
         onBeautify={vi.fn()}
       />,

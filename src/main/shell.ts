@@ -46,20 +46,28 @@ export function openWelcome(): void {
  * on a channel that is still taken.
  */
 export function openWorkspace(workspaceId: string, from: BrowserWindow | null): void {
-  if (alive(workbench)) workbench.destroy();
+  // The outgoing window stops being the owner before it is told to go, so its
+  // own `closed` handler knows it no longer holds the channels.
+  const previous = workbench;
+  workbench = null;
   disposeWorkbenchIpc?.();
+  disposeWorkbenchIpc = null;
+  if (alive(previous)) previous.destroy();
 
   const window = createWorkbenchWindow(workspaceId);
   const dispose = registerWorkbenchIpc(window);
   workbench = window;
   disposeWorkbenchIpc = dispose;
 
+  // Guarded on ownership: `destroy` above may deliver `closed` after the next
+  // window has already claimed the channels, and an unconditional `dispose()`
+  // would then remove the live handlers instead of the dead ones — leaving the
+  // new workbench with no socket IPC at all.
   window.on('closed', () => {
+    if (workbench !== window) return;
     dispose();
-    if (workbench === window) {
-      workbench = null;
-      disposeWorkbenchIpc = null;
-    }
+    workbench = null;
+    disposeWorkbenchIpc = null;
   });
 
   // The caller stays up until the editor is painted, so the app never blinks

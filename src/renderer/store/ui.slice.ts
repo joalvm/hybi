@@ -1,3 +1,4 @@
+import { without } from './records.js';
 import type { SliceCreator } from './types.js';
 
 export type DialogName = 'variables' | null;
@@ -65,17 +66,12 @@ export const createUiSlice: SliceCreator<UiSlice> = (set) => ({
   // exists only while a line is marked, so "nothing selected" has to be a state
   // the map can express.
   setSelectedActivity: (connectionId, activityId) => {
-    set((current) => {
-      const rest = Object.fromEntries(
-        Object.entries(current.selectedActivityByConnection).filter(
-          ([entry]) => entry !== connectionId,
-        ),
-      );
-      return {
-        selectedActivityByConnection:
-          activityId === null ? rest : { ...rest, [connectionId]: activityId },
-      };
-    });
+    set((current) => ({
+      selectedActivityByConnection:
+        activityId === null
+          ? without(current.selectedActivityByConnection, connectionId)
+          : { ...current.selectedActivityByConnection, [connectionId]: activityId },
+    }));
   },
 
   setCatalogQuery: (query) => {
@@ -99,17 +95,12 @@ export const createUiSlice: SliceCreator<UiSlice> = (set) => ({
   },
 
   toggleCollection: (collectionId) => {
-    set((current) => {
-      const rest = Object.fromEntries(
-        Object.entries(current.collapsedCollections).filter(([entry]) => entry !== collectionId),
-      );
-      return {
-        collapsedCollections:
-          current.collapsedCollections[collectionId] === true
-            ? rest
-            : { ...rest, [collectionId]: true },
-      };
-    });
+    set((current) => ({
+      collapsedCollections:
+        current.collapsedCollections[collectionId] === true
+          ? without(current.collapsedCollections, collectionId)
+          : { ...current.collapsedCollections, [collectionId]: true },
+    }));
   },
 
   // The ids are passed in rather than read from the workspace: this slice knows

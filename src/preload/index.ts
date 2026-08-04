@@ -24,6 +24,7 @@ const bridge: WorkbenchBridge = {
   connection: {
     open: (request) => ipcRenderer.invoke(CHANNELS.connectionOpen, request),
     close: (request) => ipcRenderer.invoke(CHANNELS.connectionClose, request),
+    dispose: (request) => ipcRenderer.invoke(CHANNELS.connectionDispose, request),
     send: (request) => ipcRenderer.invoke(CHANNELS.connectionSend, request),
     onState: (listener) =>
       subscribe(CHANNELS.connectionState, (_event, payload: ConnectionStateEvent) => {

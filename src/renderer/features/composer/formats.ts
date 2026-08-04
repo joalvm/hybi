@@ -70,13 +70,43 @@ function beautifyMarkup(text: string, format: 'xml' | 'html'): string | null {
   return lines.join('\n');
 }
 
+/** True for whitespace only, without allocating a trimmed copy of the payload. */
+const BLANK = /^\s*$/;
+
+/** True when the first thing in the payload is a tag. */
+const OPENS_WITH_TAG = /^\s*</;
+
+/**
+ * Whether the Formatear button has anything to do, decided without producing the
+ * result. The button's disabled state is recomputed on every keystroke, and
+ * producing the result to answer a yes-or-no question meant re-indenting the
+ * whole payload — and, for JSON, allocating a second copy of it — per character
+ * typed. The work now happens on the click that asked for it.
+ */
+export function canBeautify(text: string, format: PayloadFormat): boolean {
+  if (BLANK.test(text)) return false;
+
+  if (format === 'json') {
+    try {
+      JSON.parse(text);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // `beautifyMarkup` refuses anything that does not open with a tag and re-indents
+  // everything else, so this is exactly its own precondition.
+  return (format === 'xml' || format === 'html') && OPENS_WITH_TAG.test(text);
+}
+
 /**
  * The re-indented text, or `null` when there is nothing this can do — a plain
- * text frame, a binary one, or JSON too broken to parse. The caller turns that
- * `null` into a disabled button rather than a click that does nothing.
+ * text frame, a binary one, or JSON too broken to parse. Callers ask
+ * `canBeautify` first; this is what runs when the user acts on the answer.
  */
 export function beautify(text: string, format: PayloadFormat): string | null {
-  if (text.trim() === '') return null;
+  if (BLANK.test(text)) return null;
 
   if (format === 'json') {
     try {

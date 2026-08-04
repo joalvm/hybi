@@ -1,4 +1,3 @@
-import type { TransportKind } from '../domain/connections/connection.js';
 import type {
   ResolvedWebSocketTransport,
   WebSocketTransportMessage,
@@ -23,5 +22,5 @@ export type CloseConnectionRequest = { connectionId: string };
 
 export type TransportSendResult = { sequence: number };
 
-/** Forces factory maps to cover every transport kind. */
-export type TransportFactoryMap<T> = Record<TransportKind, T>;
+/** Declared with `TransportKind` itself, and re-exported here for the adapters. */
+export type { TransportFactoryMap } from '../domain/connections/connection.js';

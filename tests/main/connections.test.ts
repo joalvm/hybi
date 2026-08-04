@@ -149,6 +149,37 @@ describe('ConnectionManager', () => {
   });
 
   /**
+   * A deleted tab is not a closed socket: nothing will ever observe that
+   * connection again, so the session has to go with it. Leaving it in the map
+   * kept its resolved target and its reporter alive for the life of the window.
+   */
+  it('forgets a disposed connection and refuses to send to it', async () => {
+    await manager.open({ connectionId: 'c1', transport: transport(url) });
+    await vi.waitFor(() => {
+      expect(states.at(-1)?.state).toBe('open');
+    });
+
+    manager.dispose('c1');
+
+    await expect(manager.send('c1', { kind: 'websocket', text: 'x' })).rejects.toThrow(
+      'Connection c1 is not open',
+    );
+    // The socket is gone too, not only the bookkeeping.
+    await vi.waitFor(() => {
+      expect(server.clients.size).toBe(0);
+    });
+  });
+
+  it('reopens a connection that was disposed', async () => {
+    await manager.open({ connectionId: 'c1', transport: transport(url) });
+    manager.dispose('c1');
+    await manager.open({ connectionId: 'c1', transport: transport(url) });
+    await vi.waitFor(() => {
+      expect(states.at(-1)?.state).toBe('open');
+    });
+  });
+
+  /**
    * The renderer shows failures in the activity log and nowhere else, so a URL
    * rejected before any socket exists still has to leave a line behind.
    */

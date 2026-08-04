@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
 import { createWorkspace } from '@shared/domain/factory.js';
 import type { EventItem, Workspace } from '@shared/domain/types.js';
-import { ACTIVITY_LIMIT, useStore } from '@/store/index.js';
+import type { ActivityRecord } from '@shared/ipc/activity.js';
+import { ACTIVITY_BYTE_LIMIT, ACTIVITY_LIMIT, useStore } from '@/store/index.js';
 import { selectEffectivePayload, selectIsDirty, selectScopeFor } from '@/store/selectors.js';
 
 beforeEach(() => {
@@ -15,6 +16,22 @@ function item(overrides: Partial<EventItem> & { id: string }): EventItem {
     name: overrides.id,
     payload: '{}',
     source: 'manual',
+    ...overrides,
+  };
+}
+
+function activityRecord(
+  overrides: Partial<ActivityRecord> & { id: string },
+): ActivityRecord {
+  return {
+    connectionId: 'c1',
+    transportKind: 'websocket',
+    sequence: 1,
+    kind: 'incoming',
+    at: 0,
+    label: 'x',
+    body: 'x',
+    bytes: 1,
     ...overrides,
   };
 }
@@ -32,17 +49,9 @@ function workspaceWithCatalog(): Workspace {
 
 describe('runtime slice', () => {
   it('caps the activity ring buffer per connection', () => {
-    const records = Array.from({ length: ACTIVITY_LIMIT + 50 }, (_unused, index) => ({
-      id: `c1:${String(index)}`,
-      connectionId: 'c1',
-      transportKind: 'websocket' as const,
-      sequence: index,
-      kind: 'incoming' as const,
-      at: index,
-      label: 'x',
-      body: 'x',
-      bytes: 1,
-    }));
+    const records = Array.from({ length: ACTIVITY_LIMIT + 50 }, (_unused, index) =>
+      activityRecord({ id: `c1:${String(index)}`, sequence: index, at: index }),
+    );
     useStore.getState().appendActivity(records);
     const stored = useStore.getState().activity.c1 ?? [];
     expect(stored).toHaveLength(ACTIVITY_LIMIT);
@@ -53,6 +62,82 @@ describe('runtime slice', () => {
     useStore.getState().setDraft('c1', 'e1', '{"a":1}');
     expect(useStore.getState().drafts['c1:e1']).toBe('{"a":1}');
     expect(useStore.getState().drafts['c2:e1']).toBeUndefined();
+  });
+
+  // A count alone cannot bound memory: `maxMessageBytes` allows frames far
+  // larger than the log, so the budget is what keeps a chatty peer from growing
+  // the renderer until it dies.
+  it('evicts by byte budget before reaching the record cap', () => {
+    const oneMegabyte = 1024 * 1024;
+    const records = Array.from({ length: 40 }, (_unused, index) =>
+      activityRecord({ id: `c1:${String(index)}`, sequence: index, bytes: oneMegabyte }),
+    );
+    useStore.getState().appendActivity(records);
+
+    const stored = useStore.getState().activity.c1 ?? [];
+    const retained = stored.reduce((total, record) => total + record.bytes, 0);
+    expect(stored.length).toBeLessThan(records.length);
+    expect(retained).toBeLessThanOrEqual(ACTIVITY_BYTE_LIMIT);
+    // Whatever is dropped, the frame that just arrived is never the one to go.
+    expect(stored.at(-1)?.sequence).toBe(39);
+  });
+
+  it('keeps one frame even when it alone exceeds the budget', () => {
+    useStore
+      .getState()
+      .appendActivity([activityRecord({ id: 'c1:1', bytes: ACTIVITY_BYTE_LIMIT * 2 })]);
+    expect(useStore.getState().activity.c1).toHaveLength(1);
+  });
+
+  it('splits a batch that carries more than one connection', () => {
+    useStore.getState().appendActivity([
+      activityRecord({ id: 'c1:1', connectionId: 'c1' }),
+      activityRecord({ id: 'c2:1', connectionId: 'c2' }),
+      activityRecord({ id: 'c1:2', connectionId: 'c1' }),
+    ]);
+
+    expect(useStore.getState().activity.c1?.map((record) => record.id)).toEqual(['c1:1', 'c1:2']);
+    expect(useStore.getState().activity.c2?.map((record) => record.id)).toEqual(['c2:1']);
+  });
+});
+
+describe('dropConnection', () => {
+  // A closed tab that keeps its log is the app growing for the rest of the
+  // session: nothing can ever read those records again.
+  it('forgets every key a deleted connection owned', () => {
+    const store = useStore.getState();
+    store.appendActivity([activityRecord({ id: 'c1:1' }), activityRecord({ id: 'c2:1', connectionId: 'c2' })]);
+    store.setConnectionState('c1', 'open');
+    store.setConnectionState('c2', 'open');
+    store.setDraft('c1', 'e1', '{"a":1}');
+    store.setDraft('c2', 'e1', '{"b":2}');
+    store.setSelectedEvent('c1', 'e1');
+    store.setSelectedEvent('c2', 'e1');
+    store.setSelectedActivity('c1', 'c1:1');
+    store.setActiveConnection('c1');
+    store.openConnectionSettings('c1');
+
+    useStore.getState().dropConnection('c1');
+
+    const next = useStore.getState();
+    expect(next.activity.c1).toBeUndefined();
+    expect(next.states.c1).toBeUndefined();
+    expect(next.drafts['c1:e1']).toBeUndefined();
+    expect(next.selectedEventByConnection.c1).toBeUndefined();
+    expect(next.selectedActivityByConnection.c1).toBeUndefined();
+    expect(next.settingsConnectionId).toBeNull();
+
+    // The neighbour is untouched: this drops one connection, not the runtime.
+    expect(next.activity.c2).toHaveLength(1);
+    expect(next.states.c2).toBe('open');
+    expect(next.drafts['c2:e1']).toBe('{"b":2}');
+    expect(next.selectedEventByConnection.c2).toBe('e1');
+  });
+
+  it('leaves an open settings dialog for another connection alone', () => {
+    useStore.getState().openConnectionSettings('c2');
+    useStore.getState().dropConnection('c1');
+    expect(useStore.getState().settingsConnectionId).toBe('c2');
   });
 });
 

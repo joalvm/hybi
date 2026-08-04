@@ -11,15 +11,18 @@ import {
 
 const connectionId = z.string().min(1).max(128).regex(/^[A-Za-z0-9-]+$/);
 
-const openConnectionRequest = z
-  .object({ connectionId, transport: resolvedWebSocketTransportSchema })
-  .strict();
-const sendConnectionRequest = z
-  .object({
-    connectionId,
-    message: webSocketTransportMessageSchema,
-  })
-  .strict();
+/**
+ * Discriminated on `kind`, so what crosses IPC is the union and not one member
+ * of it. This is the boundary that decides which adapter a request reaches:
+ * adding a transport is a new member here, and the factory map in
+ * `main/connections/transport.ts` then refuses to compile until it has an
+ * adapter to send it to.
+ */
+const resolvedTransport = z.discriminatedUnion('kind', [resolvedWebSocketTransportSchema]);
+const transportMessage = z.discriminatedUnion('kind', [webSocketTransportMessageSchema]);
+
+const openConnectionRequest = z.object({ connectionId, transport: resolvedTransport }).strict();
+const sendConnectionRequest = z.object({ connectionId, message: transportMessage }).strict();
 const closeConnectionRequest = z.object({ connectionId }).strict();
 
 export function parseOpenConnectionRequest(input: unknown): OpenConnectionRequest {

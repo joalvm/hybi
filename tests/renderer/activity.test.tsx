@@ -4,7 +4,7 @@ import type { ActivityRecord } from '@shared/ipc/activity.js';
 import { ActivityPanel } from '@/features/activity/ActivityPanel.js';
 import { ActivityRow } from '@/features/activity/ActivityRow.js';
 import { ActivityToolbar } from '@/features/activity/ActivityToolbar.js';
-import { filterActivity, formatOffset, newestFirst } from '@/features/activity/useActivityFilter.js';
+import { formatOffset, newestFirstMatching } from '@/features/activity/useActivityFilter.js';
 import { useStore } from '@/store/index.js';
 
 // The detail pane is a Monaco viewer, and jsdom has no layout for it to measure.
@@ -27,26 +27,32 @@ const record = (over: Partial<ActivityRecord>): ActivityRecord => ({
   ...over,
 });
 
-describe('filterActivity', () => {
-  it('matches the label or the body', () => {
+describe('newestFirstMatching', () => {
+  it('matches the label or the body, case insensitively', () => {
     const records = [
       record({ id: 'a', label: 'DeviceLogin', body: '{}' }),
       record({ id: 'b', label: 'PcStatus', body: '{"device":1}' }),
     ];
-    expect(filterActivity(records, 'device').map((item) => item.id)).toEqual(['a', 'b']);
-    expect(filterActivity(records, 'pcstatus').map((item) => item.id)).toEqual(['b']);
-    expect(filterActivity(records, '')).toHaveLength(2);
+    expect(newestFirstMatching(records, 'device').map((item) => item.id)).toEqual(['b', 'a']);
+    expect(newestFirstMatching(records, 'pcstatus').map((item) => item.id)).toEqual(['b']);
+    expect(newestFirstMatching(records, '')).toHaveLength(2);
   });
-});
 
-describe('newestFirst', () => {
   it('puts the last record at the top without touching the array it was given', () => {
     const records = [record({ id: 'a' }), record({ id: 'b' }), record({ id: 'c' })];
 
-    expect(newestFirst(records).map((item) => item.id)).toEqual(['c', 'b', 'a']);
+    expect(newestFirstMatching(records, '').map((item) => item.id)).toEqual(['c', 'b', 'a']);
     // The store hands out its own array: reversing it in place would reorder the
     // buffer every other reader shares.
     expect(records.map((item) => item.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  // The needle is compiled into a pattern, so anything a user types has to be
+  // taken literally rather than as syntax.
+  it('treats regular expression syntax in the query as text', () => {
+    const records = [record({ id: 'a', body: 'a+b' }), record({ id: 'b', body: 'aab' })];
+    expect(newestFirstMatching(records, 'a+b').map((item) => item.id)).toEqual(['a']);
+    expect(newestFirstMatching(records, '.*').map((item) => item.id)).toEqual([]);
   });
 });
 

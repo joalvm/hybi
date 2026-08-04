@@ -5,7 +5,11 @@ import { WebSocketConnectionBar } from './websocket/WebSocketConnectionBar.js';
 
 type Props = { connectionId: string };
 
-/** Store-aware root. Each transport owns its renderer and bridge translation. */
+/**
+ * Store-aware root. Each transport owns its endpoint controls and its own
+ * translation to the bridge; picking between them lands here once there is more
+ * than one, on the same terms as `TransportSettings`.
+ */
 export function ConnectionBar({ connectionId }: Props) {
   const connection = useStore(
     (state) => state.workspace?.connections.find((entry) => entry.id === connectionId) ?? null,

@@ -48,7 +48,10 @@ export function ActivityPanel({ connectionId }: Props) {
   // The origin is the first record of the connection, not of the filtered view,
   // so offsets stay comparable while the user types in the search box.
   const origin = records[0]?.at ?? 0;
-  const selected = records.find((record) => record.id === selectedId) ?? null;
+  // Guarded rather than searched unconditionally: with nothing marked there is
+  // nothing to find, and this runs again for every batch the socket delivers.
+  const selected =
+    selectedId === null ? null : records.find((record) => record.id === selectedId) ?? null;
 
   const list = (
     <ActivityList records={visible} origin={origin} selectedId={selectedId} onSelect={select} />

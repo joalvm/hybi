@@ -15,6 +15,8 @@ import type {
 export const CHANNELS = {
   connectionOpen: 'connection:open',
   connectionClose: 'connection:close',
+  /** The connection was deleted, not merely hung up. See `WorkbenchBridge`. */
+  connectionDispose: 'connection:dispose',
   connectionSend: 'connection:send',
   connectionState: 'connection:state',
   connectionActivity: 'connection:activity',
@@ -76,6 +78,13 @@ export type WorkbenchBridge = {
   connection: {
     open(request: OpenConnectionRequest): Promise<Result<Empty>>;
     close(request: CloseConnectionRequest): Promise<Result<Empty>>;
+    /**
+     * Hangs up and forgets the connection. `close` leaves the session in place
+     * so reconnecting the same tab continues its sequence; this is what the
+     * renderer calls when the tab itself is deleted and the main process has
+     * nothing left to keep.
+     */
+    dispose(request: CloseConnectionRequest): Promise<Result<Empty>>;
     send(request: SendConnectionRequest): Promise<Result<TransportSendResult>>;
     onState(listener: (event: ConnectionStateEvent) => void): () => void;
     onActivity(listener: (records: ActivityRecord[]) => void): () => void;

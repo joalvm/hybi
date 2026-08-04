@@ -5,8 +5,8 @@ import { PAYLOAD_FORMATS, type PayloadFormat } from './formats.js';
 
 type Props = {
   format: PayloadFormat;
-  /** Null when there is nothing to re-indent, which is what greys the button. */
-  beautified: string | null;
+  /** False when there is nothing to re-indent, which is what greys the button. */
+  formattable: boolean;
   onFormatChange: (format: PayloadFormat) => void;
   onBeautify: () => void;
 };
@@ -16,7 +16,7 @@ type Props = {
  * verdict on the payload lives here — a client may send whatever shape it likes,
  * so nothing in this app judges the structure of a frame.
  */
-export function ComposerFooter({ format, beautified, onFormatChange, onBeautify }: Props) {
+export function ComposerFooter({ format, formattable, onFormatChange, onBeautify }: Props) {
   return (
     <div className="flex min-h-9 items-center gap-1 bg-panel px-2">
       <Select
@@ -28,7 +28,7 @@ export function ComposerFooter({ format, beautified, onFormatChange, onBeautify 
           onFormatChange(next as PayloadFormat);
         }}
       />
-      <IconButton label="Formatear" disabled={beautified === null} onClick={onBeautify}>
+      <IconButton label="Formatear" disabled={!formattable} onClick={onBeautify}>
         <BeautifyIcon />
       </IconButton>
     </div>

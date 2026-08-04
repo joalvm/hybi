@@ -1,9 +1,44 @@
 import type { ActivityRecord, ConnectionState } from '@shared/ipc/activity.js';
 import type { TransportKind } from '@shared/domain/connections/connection.js';
+import { without } from './records.js';
 import type { SliceCreator } from './types.js';
 
 /** How many records a single connection keeps before the oldest fall off. */
 export const ACTIVITY_LIMIT = 2000;
+
+/**
+ * How many bytes of frame bodies a single connection keeps. The count above
+ * cannot bound memory on its own: `maxMessageBytes` allows a frame far larger
+ * than the whole log, so 2000 of them would be gigabytes the user never asked
+ * to hold. Whichever limit is reached first decides what falls off.
+ */
+export const ACTIVITY_BYTE_LIMIT = 8 * 1024 * 1024;
+
+/**
+ * The window the log keeps, counting back from the newest record. Returns the
+ * same array when nothing has to go, so an append that changes nothing does not
+ * hand zustand a new reference.
+ *
+ * The newest record always survives, even alone over budget: dropping the frame
+ * that just arrived would make the log lie about what the socket did.
+ */
+function withinBudget(records: ActivityRecord[]): ActivityRecord[] {
+  if (records.length === 0) return records;
+
+  const floor = Math.max(0, records.length - ACTIVITY_LIMIT);
+  let start = records.length - 1;
+  let bytes = records[start]?.bytes ?? 0;
+
+  // Walk backwards from the newest, taking one more record only while it fits.
+  while (start > floor) {
+    const older = records[start - 1];
+    if (older === undefined || bytes + older.bytes > ACTIVITY_BYTE_LIMIT) break;
+    bytes += older.bytes;
+    start -= 1;
+  }
+
+  return start === 0 ? records : records.slice(start);
+}
 
 /** Actions are function properties, not methods. See the note on `UiSlice`. */
 export type RuntimeSlice = {
@@ -30,16 +65,28 @@ export const createRuntimeSlice: SliceCreator<RuntimeSlice> = (set) => ({
     set((current) => ({ states: { ...current.states, [connectionId]: state } }));
   },
 
-  // The map is copied once per batch rather than once per record: the main
-  // process already coalesces activity into frames, so batches arrive large.
+  /**
+   * The batch is grouped by connection before anything is copied, so each log is
+   * rebuilt once per batch instead of once per record. Appending record by record
+   * cost one full copy of a 2000-entry array per frame — during a flood that was
+   * megabytes of garbage every sixteen milliseconds, all of it immediately dead.
+   */
   appendActivity: (records) => {
+    if (records.length === 0) return;
     set((current) => {
-      const activity = { ...current.activity };
+      const incoming = new Map<string, ActivityRecord[]>();
       for (const record of records) {
-        const existing = activity[record.connectionId] ?? [];
-        const next = existing.concat(record);
-        activity[record.connectionId] =
-          next.length > ACTIVITY_LIMIT ? next.slice(next.length - ACTIVITY_LIMIT) : next;
+        const batch = incoming.get(record.connectionId);
+        if (batch === undefined) incoming.set(record.connectionId, [record]);
+        else batch.push(record);
+      }
+
+      const activity = { ...current.activity };
+      for (const [connectionId, batch] of incoming) {
+        const existing = activity[connectionId];
+        activity[connectionId] = withinBudget(
+          existing === undefined ? batch : existing.concat(batch),
+        );
       }
       return { activity };
     });
@@ -63,19 +110,19 @@ export const createRuntimeSlice: SliceCreator<RuntimeSlice> = (set) => ({
         body: message,
         bytes: new TextEncoder().encode(message).length,
       };
-      const next = existing.concat(record);
       return {
         activity: {
           ...current.activity,
-          [connectionId]:
-            next.length > ACTIVITY_LIMIT ? next.slice(next.length - ACTIVITY_LIMIT) : next,
+          [connectionId]: withinBudget(existing.concat(record)),
         },
       };
     });
   },
 
+  // The key goes rather than being emptied: a live connection reads through a
+  // selector that already answers an absent key with a shared empty list.
   clearActivity: (connectionId) => {
-    set((current) => ({ activity: { ...current.activity, [connectionId]: [] } }));
+    set((current) => ({ activity: without(current.activity, connectionId) }));
   },
 
   setDraft: (connectionId, eventId, text) => {
@@ -86,10 +133,6 @@ export const createRuntimeSlice: SliceCreator<RuntimeSlice> = (set) => ({
 
   clearDraft: (connectionId, eventId) => {
     const key = draftKey(connectionId, eventId);
-    set((current) => ({
-      drafts: Object.fromEntries(
-        Object.entries(current.drafts).filter(([entry]) => entry !== key),
-      ),
-    }));
+    set((current) => ({ drafts: without(current.drafts, key) }));
   },
 });
