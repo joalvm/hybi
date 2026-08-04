@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <circle cx="512" cy="512" r="400" fill="#10D1C5"/>
-  <path fill="white" fill-rule="evenodd" d="
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="112 112 800 800">
+  <circle cx="512" cy="512" r="400" fill="#16CBCB"/>
+  <path fill="#080D0D" fill-rule="evenodd" d="
     M 458,749
     L 458,632
     L 493,529

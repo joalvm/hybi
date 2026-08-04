@@ -1,6 +1,6 @@
 {
   "name": "hybi",
-  "version": "0.3.0-alpha.2",
+  "version": "0.3.0-alpha.3",
   "private": true,
   "type": "module",
   "description": "A real-time API client focused on asynchronous communication, especially WebSockets.",
@@ -50,7 +50,7 @@
       "onlyLoadAppFromAsar": true
     },
     "win": {
-      "icon": "resources/images/icon.png",
+      "icon": "resources/images/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -77,6 +77,8 @@
       "menuCategory": "Hybi",
       "runAfterFinish": true,
       "deleteAppDataOnUninstall": false,
+      "installerIcon": "resources/images/icon.ico",
+      "uninstallerIcon": "resources/images/icon.ico",
       "installerLanguages": [
         "en_US",
         "es_ES"
