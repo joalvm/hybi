@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, type RefObject } from 'react';
 import type { editor } from 'monaco-editor/editor/editor.api.js';
 import { scanVariables, type VariableToken } from '@shared/variables/scan.js';
 import type { VirtualAnchor } from '@/shared/ui/Popover.js';
+import { useHoverIntent } from '@/shared/ui/useHoverIntent.js';
 
 /**
  * Pure, so the hit-testing rule is testable without laying out an editor.
@@ -13,9 +14,6 @@ export function variableAtOffset(text: string, offset: number): VariableToken | 
 }
 
 export type VariableHover = { name: string; anchor: VirtualAnchor };
-
-/** How long the pointer has to rest on a token before the panel appears. */
-const DELAY_MS = 250;
 
 /**
  * A hover panel Monaco does not own. The editor reports a position, the model
@@ -34,18 +32,11 @@ export function useVariableHover(
   release: () => void;
   close: () => void;
 } {
-  const [hover, setHover] = useState<VariableHover | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const inside = useRef(false);
+  const { value, point, keepOpen, release, close } = useHoverIntent<VariableHover>();
 
   useEffect(() => {
     const instance = editorRef.current;
     if (instance === null) return;
-
-    const clear = (): void => {
-      if (timer.current !== null) clearTimeout(timer.current);
-      timer.current = null;
-    };
 
     const move = instance.onMouseMove((event) => {
       const position = event.target.position;
@@ -53,21 +44,18 @@ export function useVariableHover(
       if (position === null || model === null) return;
 
       const token = variableAtOffset(text, model.getOffsetAt(position));
+      // The pointer may be crossing the gap between the token and the panel,
+      // so leaving a token asks for a close rather than performing one.
       if (token === null) {
-        // The pointer inside the panel is not the pointer leaving the token.
-        if (!inside.current) setHover(null);
-        clear();
+        release();
         return;
       }
 
-      clear();
-      timer.current = setTimeout(() => {
-        const start = model.getPositionAt(token.start);
-        const end = model.getPositionAt(token.end);
-        const from = instance.getScrolledVisiblePosition(start);
-        const to = instance.getScrolledVisiblePosition(end);
+      point(() => {
+        const from = instance.getScrolledVisiblePosition(model.getPositionAt(token.start));
+        const to = instance.getScrolledVisiblePosition(model.getPositionAt(token.end));
         const container = instance.getContainerDomNode().getBoundingClientRect();
-        if (from === null || to === null) return;
+        if (from === null || to === null) return null;
 
         const rect = new DOMRect(
           container.left + from.left,
@@ -75,48 +63,21 @@ export function useVariableHover(
           Math.max(to.left - from.left, 4),
           from.height,
         );
-        setHover({ name: token.name, anchor: { getBoundingClientRect: () => rect } });
-      }, DELAY_MS);
+        return { name: token.name, anchor: { getBoundingClientRect: () => rect } };
+      });
     });
 
-    const leave = instance.onMouseLeave(() => {
-      clear();
-      if (!inside.current) setHover(null);
-    });
-
-    const scroll = instance.onDidScrollChange(() => {
-      clear();
-      setHover(null);
-    });
-
-    const swap = instance.onDidChangeModel(() => {
-      clear();
-      setHover(null);
-    });
+    const leave = instance.onMouseLeave(release);
+    const scroll = instance.onDidScrollChange(close);
+    const swap = instance.onDidChangeModel(close);
 
     return () => {
-      clear();
       move.dispose();
       leave.dispose();
       scroll.dispose();
       swap.dispose();
     };
-  }, [editorRef, text]);
+  }, [close, editorRef, point, release, text]);
 
-  return {
-    hover,
-    keepOpen: () => {
-      inside.current = true;
-    },
-    // Leaving the panel does not close it on its own: the draft in the field
-    // would go with it. It hands the decision back to the editor, which closes
-    // on the next move that is not over a token.
-    release: () => {
-      inside.current = false;
-    },
-    close: () => {
-      inside.current = false;
-      setHover(null);
-    },
-  };
+  return { hover: value, keepOpen, release, close };
 }

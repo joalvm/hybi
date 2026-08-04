@@ -50,6 +50,7 @@
   --spacing: 4px;
   --spacing-row: var(--row-h);
   --spacing-control: var(--control-h);
+  --spacing-variable-input: var(--variable-input-h);
   --spacing-header: var(--header-h);
   --spacing-titlebar: var(--titlebar-h);
   --spacing-traffic-lights: var(--traffic-lights-w);

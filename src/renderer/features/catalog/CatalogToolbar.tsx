@@ -19,6 +19,9 @@ type Props = {
   onToggleAll: () => void;
 };
 
+/** These sit next to the filter field, so they take its height, not the row's. */
+const ACTION = 'h-6 min-h-6 min-w-6';
+
 /**
  * One row where the panel title used to be: the field, then the three things
  * that act on the whole tree. The collapse button is a single toggle — it folds
@@ -35,19 +38,23 @@ export function CatalogToolbar({
   onToggleAll,
 }: Props) {
   return (
-    <div className="flex items-center shrink-0 self-stretch gap-1.5 pt-1">
-      <div className="items-center min-w-0 flex flex-1">
+    <div className="flex shrink-0 items-center gap-1.5 self-stretch pt-1">
+      <div className="flex min-w-0 flex-1 items-center pl-1">
         <CatalogSearch value={query} onChange={onQueryChange} />
       </div>
-      <div className="gap-0.5 items-center justify-end min-w-0 flex">
-        <IconButton className='h-6 min-h-6 min-w-6' label={allCollapsed ? 'Expandir todo' : 'Contraer todo'} onClick={onToggleAll}>
+      <div className="flex min-w-0 items-center justify-end gap-0.5">
+        <IconButton
+          className={ACTION}
+          label={allCollapsed ? 'Expandir todo' : 'Contraer todo'}
+          onClick={onToggleAll}
+        >
           {allCollapsed ? <ExpandAllIcon /> : <CollapseAllIcon />}
         </IconButton>
-        <IconButton  className='h-6 min-h-6 min-w-6' label="Nueva colección" onClick={onCreateCollection}>
+        <IconButton className={ACTION} label="Nueva colección" onClick={onCreateCollection}>
           <NewCollectionIcon />
         </IconButton>
         <IconButton
-          className='h-6 min-h-6 min-w-6'
+          className={ACTION}
           label={importing ? 'Importando AsyncAPI…' : 'Importar AsyncAPI'}
           disabled={importing}
           onClick={onImport}

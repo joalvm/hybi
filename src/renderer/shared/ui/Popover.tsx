@@ -17,9 +17,14 @@ type Props = {
 };
 
 /**
- * A floating panel positioned against a rectangle. `openAutoFocus` is left to
- * Radix — the popover carries a field, and a hover that never lets you type in
- * it is a tooltip, not an editor.
+ * A floating panel positioned against a rectangle, opened by a pointer that
+ * rested on something. Two rules keep it usable as an editor rather than a
+ * tooltip, and both were learned by breaking them:
+ *
+ * - it does not take focus when it opens, because a panel raised by hovering
+ *   must not pull the caret out of the field the user is typing in;
+ * - it ignores the pointer leaving while it holds focus, because the pointer
+ *   is nowhere near a panel someone is typing into.
  */
 export function Popover({
   open,
@@ -44,13 +49,20 @@ export function Popover({
       <Primitive.Anchor virtualRef={anchorRef} />
       <Primitive.Portal>
         <Primitive.Content
-          className="z-20 flex w-65 flex-col gap-2 rounded-lg border border-border bg-panel p-3 shadow-overlay"
+          className="z-20 flex w-90 flex-col gap-2 rounded-lg border border-border bg-panel p-2 shadow-overlay"
+          data-part="variable-popover"
           side="bottom"
           align="start"
           sideOffset={6}
           collisionPadding={8}
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+          }}
           onPointerEnter={onPointerEnter}
-          onPointerLeave={onPointerLeave}
+          onPointerLeave={(event) => {
+            if (event.currentTarget.contains(document.activeElement)) return;
+            onPointerLeave?.();
+          }}
         >
           {children}
         </Primitive.Content>

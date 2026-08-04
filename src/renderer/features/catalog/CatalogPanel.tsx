@@ -98,7 +98,7 @@ export function CatalogPanel({ connectionId }: Props) {
 
   return (
     <Panel surface="chrome">
-      <div className="flex h-full min-h-0 flex-col overflow-hidden p-1 flex-1 gap-2 bg-chrome">
+      <div className="flex h-full min-h-0 flex-1 flex-col gap-2 overflow-hidden bg-chrome p-1">
         {/* No "new event" here: an event needs a collection to live in, so the
             action belongs to a collection's own menu and nowhere else. */}
         <CatalogToolbar

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -52,6 +52,21 @@ function loadWorkspace(url: string, environmentId: string | null = null): void {
   );
   useStore.getState().setWorkspace(workspace);
   useStore.getState().setActiveConnection('c1');
+}
+
+/** The URL field is a contenteditable, so an edit is text plus an input event. */
+function typeUrl(text: string): HTMLElement {
+  const field = screen.getByLabelText('URL');
+  field.textContent = text;
+  fireEvent.input(field);
+  return field;
+}
+
+function urlOf(connectionId: string): string | undefined {
+  const connection = useStore
+    .getState()
+    .workspace?.connections.find((entry) => entry.id === connectionId);
+  return connection?.transport.url;
 }
 
 beforeEach(() => {
@@ -187,10 +202,9 @@ describe('ConnectionBar', () => {
     loadWorkspace('ws://127.0.0.1:3000', null);
     render(<ConnectionBar connectionId="c1" />);
 
-    fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'ws://{{host}}' } });
+    typeUrl('ws://{{host}}');
 
-    const connection = useStore.getState().workspace?.connections.find((entry) => entry.id === 'c1');
-    expect(connection?.transport.url).toBe('ws://{{host}}');
+    expect(urlOf('c1')).toBe('ws://{{host}}');
   });
 
   /** The picker moved to the app chrome, where it applies across connections. */
@@ -210,6 +224,167 @@ describe('ConnectionBar', () => {
 
     expect(connectionBridge.close).toHaveBeenCalledWith({ connectionId: 'c1' });
     expect(connectionBridge.open).not.toHaveBeenCalled();
+  });
+
+  it('waits before opening the variable popover instead of flashing it', () => {
+    vi.useFakeTimers();
+    try {
+      loadWorkspace('ws://{{host}}/socket', 'env1');
+      render(<ConnectionBar connectionId="c1" />);
+
+      fireEvent.pointerOver(screen.getByText('{{host}}'));
+      expect(screen.queryByLabelText('Valor de host')).toBeNull();
+
+      act(() => {
+        vi.advanceTimersByTime(400);
+      });
+
+      expect(screen.getByLabelText('Valor de host')).toHaveProperty('value', '127.0.0.1:9001');
+      expect(screen.queryByRole('button', { name: 'Entorno local' })).not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  /** Both halves of the bug that made the panel impossible to type into. */
+  it('survives the pointer crossing into the popover and then leaving it', () => {
+    vi.useFakeTimers();
+    try {
+      loadWorkspace('ws://{{host}}/socket', 'env1');
+      render(<ConnectionBar connectionId="c1" />);
+
+      const token = screen.getByText('{{host}}');
+      fireEvent.pointerOver(token);
+      act(() => {
+        vi.advanceTimersByTime(400);
+      });
+      const panel = document.querySelector('[data-part="variable-popover"]');
+      if (panel === null) throw new Error('Popover never opened');
+
+      // Reaching the panel means leaving the token first: the gap between them
+      // must not be read as an instruction to close.
+      fireEvent.pointerOut(token);
+      fireEvent.pointerEnter(panel);
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(screen.queryByLabelText('Valor de host')).not.toBeNull();
+
+      // And once the caret is in the field, the pointer is free to wander off.
+      screen.getByLabelText('Valor de host').focus();
+      fireEvent.pointerLeave(panel);
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(screen.queryByLabelText('Valor de host')).not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('writes an edited variable value back to its environment', () => {
+    vi.useFakeTimers();
+    try {
+      loadWorkspace('ws://{{host}}/socket', 'env1');
+      render(<ConnectionBar connectionId="c1" />);
+
+      fireEvent.pointerOver(screen.getByText('{{host}}'));
+      act(() => {
+        vi.advanceTimersByTime(400);
+      });
+
+      const field = screen.getByLabelText('Valor de host');
+      fireEvent.change(field, { target: { value: '10.0.0.2:9001' } });
+      fireEvent.blur(field);
+
+      const environment = useStore
+        .getState()
+        .workspace?.environments.find((entry) => entry.id === 'env1');
+      expect(environment?.variables[0]?.value).toBe('10.0.0.2:9001');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('shows environment suggestions after the second opening brace', () => {
+    loadWorkspace('ws://', 'env1');
+    useStore.getState().setEnvironmentVariables('env1', [
+      { name: 'host', value: '127.0.0.1:9001', secret: false },
+      { name: 'token', value: 'abc', secret: false },
+    ]);
+    render(<ConnectionBar connectionId="c1" />);
+
+    typeUrl('ws://{{to');
+
+    expect(screen.queryByRole('listbox', { name: 'Variables de entorno' })).not.toBeNull();
+    expect(screen.queryByRole('option', { name: /token/ })).not.toBeNull();
+    expect(screen.queryByRole('option', { name: /host/ })).toBeNull();
+    expect(screen.queryByText('abc')).not.toBeNull();
+    expect(screen.getByText('{{to').classList.contains('wsw-var-pending')).toBe(true);
+  });
+
+  it('dismisses the suggestions with Escape without clearing the URL', () => {
+    loadWorkspace('ws://{{ho', 'env1');
+    render(<ConnectionBar connectionId="c1" />);
+
+    const field = screen.getByLabelText('URL');
+    expect(screen.queryByRole('option', { name: /host/ })).not.toBeNull();
+    fireEvent.keyDown(field, { key: 'Escape' });
+
+    expect(screen.queryByRole('listbox', { name: 'Variables de entorno' })).toBeNull();
+    expect(urlOf('c1')).toBe('ws://{{ho');
+  });
+
+  it('inserts the selected environment variable into the URL', () => {
+    loadWorkspace('ws://{{ho', 'env1');
+    render(<ConnectionBar connectionId="c1" />);
+
+    fireEvent.click(screen.getByRole('option', { name: /host/ }));
+
+    expect(urlOf('c1')).toBe('ws://{{host}}');
+  });
+
+  it('selects filtered suggestions with the keyboard', () => {
+    loadWorkspace('ws://{{', 'env1');
+    useStore.getState().setEnvironmentVariables('env1', [
+      { name: 'host', value: '127.0.0.1:9001', secret: false },
+      { name: 'token', value: 'abc', secret: false },
+    ]);
+    render(<ConnectionBar connectionId="c1" />);
+
+    const field = screen.getByLabelText('URL');
+    const optionAt = (index: number): HTMLElement => {
+      const option = screen.getAllByRole('option')[index];
+      if (option === undefined) throw new Error(`Missing suggestion at index ${String(index)}`);
+      return option;
+    };
+
+    expect(optionAt(0).getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(field, { key: 'ArrowDown' });
+    expect(optionAt(1).getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(field, { key: 'ArrowUp' });
+    expect(optionAt(0).getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(field, { key: 'Enter' });
+
+    expect(urlOf('c1')).toBe('ws://{{host}}');
+  });
+
+  it('pastes into the URL as one line of plain text', () => {
+    loadWorkspace('', null);
+    render(<ConnectionBar connectionId="c1" />);
+
+    fireEvent.paste(screen.getByLabelText('URL'), {
+      clipboardData: { getData: () => 'ws://127.0.0.1:3000\n' },
+    });
+
+    expect(urlOf('c1')).toBe('ws://127.0.0.1:3000');
+  });
+
+  it('marks unresolved URL variables with the destructive tone', () => {
+    loadWorkspace('ws://{{missing}}', 'env1');
+    render(<ConnectionBar connectionId="c1" />);
+
+    expect(screen.getByText('{{missing}}').classList.contains('wsw-var-missing')).toBe(true);
   });
 });
 
