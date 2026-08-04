@@ -24,7 +24,6 @@ import {
   Pencil,
   Plus,
   Save,
-  Search,
   SendHorizontal,
   Settings,
   ShieldAlert,
@@ -37,6 +36,7 @@ import {
   Moon,
   type LucideIcon,
   type LucideProps,
+  ListFilter,
 } from 'lucide-react';
 
 /**
@@ -50,7 +50,7 @@ import {
  */
 const HAIRLINE: LucideProps = {
   size: 14,
-  strokeWidth: 1.25,
+  strokeWidth: 1,
   absoluteStrokeWidth: true,
   'aria-hidden': true,
   focusable: false,
@@ -65,15 +65,13 @@ function hairline(Glyph: LucideIcon) {
 
 /** Closes a dialog, a pane or a tab. */
 export const CloseIcon = hairline(X);
-
 /** Opens the application menu from the chrome, where no menu bar is drawn. */
 export const MenuBarIcon = hairline(MenuGlyph);
-
 /** Window controls: the desktop convention of line, square and stacked squares. */
 export const WindowMinimizeIcon = hairline(Minus);
-
+/** Maximizes a window. */
 export const WindowMaximizeIcon = hairline(Square);
-
+/** Restores a window to its previous size. */
 export const WindowRestoreIcon = hairline(Copy);
 /** Discards a list. */
 export const TrashIcon = hairline(Trash2);
@@ -130,7 +128,7 @@ export const StatusIcon = hairline(CircleCheck);
 /** A failure, on the socket or in the app. */
 export const ErrorIcon = hairline(CircleX);
 /** Filters event names in the catalog. */
-export const SearchIcon = hairline(Search);
+export const SearchIcon = hairline(ListFilter);
 /** Opens how a connection is dialled: headers, subprotocols, retry, keepalive. */
 export const SettingsIcon = hairline(Settings);
 /** Marks a setting that weakens the connection's own defences. */

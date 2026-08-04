@@ -75,6 +75,7 @@ export function CatalogTree({
       role="tree"
       aria-label="Colecciones"
       onKeyDown={onKeyDown}
+      className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto"
     >
       {groups.map((group) => (
         <CatalogCollection
