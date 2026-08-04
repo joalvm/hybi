@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -210,6 +210,70 @@ describe('ConnectionBar', () => {
 
     expect(connectionBridge.close).toHaveBeenCalledWith({ connectionId: 'c1' });
     expect(connectionBridge.open).not.toHaveBeenCalled();
+  });
+
+  it('delays the variable popover and keeps it open while entering the editor', () => {
+    vi.useFakeTimers();
+    try {
+      loadWorkspace('ws://{{host}}/socket', 'env1');
+      render(<ConnectionBar connectionId="c1" />);
+
+      const token = screen.getByText('{{host}}');
+      fireEvent.pointerEnter(token);
+      expect(screen.queryByLabelText('Valor de host')).toBeNull();
+
+      act(() => {
+        vi.advanceTimersByTime(400);
+      });
+      const field = screen.getByLabelText('Valor de host');
+      expect(document.querySelector('.tippy-box')).toBeNull();
+      expect(field.classList.contains('h-variable-input')).toBe(true);
+      expect(field.classList.contains('text-ui')).toBe(true);
+      fireEvent.pointerLeave(token);
+      fireEvent.pointerEnter(field);
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+
+      expect(screen.getByLabelText('Valor de host')).toBe(field);
+      expect(screen.queryByRole('button', { name: 'Entorno local' })).not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('shows environment suggestions after the second opening brace', () => {
+    loadWorkspace('ws://', 'env1');
+    useStore.getState().setEnvironmentVariables('env1', [
+      { name: 'host', value: '127.0.0.1:9001', secret: false },
+      { name: 'token', value: 'abc', secret: false },
+    ]);
+    render(<ConnectionBar connectionId="c1" />);
+
+    const field = screen.getByLabelText('URL');
+    fireEvent.change(field, { target: { value: 'ws://{{to' } });
+
+    expect(screen.queryByRole('listbox', { name: 'Variables de entorno' })).not.toBeNull();
+    expect(screen.queryByRole('option', { name: /token/ })).not.toBeNull();
+    expect(screen.queryByRole('option', { name: /host/ })).toBeNull();
+    expect(screen.queryByText('abc')).not.toBeNull();
+    expect(screen.getByText('{{to').classList.contains('wsw-var-pending')).toBe(true);
+  });
+
+  it('inserts the selected environment variable into the URL', () => {
+    loadWorkspace('ws://{{ho', 'env1');
+    render(<ConnectionBar connectionId="c1" />);
+
+    fireEvent.click(screen.getByRole('option', { name: /host/ }));
+
+    expect(screen.getByLabelText('URL')).toHaveProperty('value', 'ws://{{host}}');
+  });
+
+  it('marks unresolved URL variables with the destructive tone', () => {
+    loadWorkspace('ws://{{missing}}', 'env1');
+    render(<ConnectionBar connectionId="c1" />);
+
+    expect(screen.getByText('{{missing}}').classList.contains('wsw-var-missing')).toBe(true);
   });
 });
 

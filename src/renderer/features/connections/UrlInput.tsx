@@ -1,14 +1,15 @@
 import clsx from 'clsx';
 import { useMemo, useRef } from 'react';
-import { scanVariables } from '@shared/variables/scan.js';
-
-type Tone = 'plain' | 'resolved' | 'missing';
-export type UrlSegment = { text: string; tone: Tone; name?: string };
+import type { Variable } from '@shared/domain/types.js';
+import type { VariableScope } from '@shared/variables/resolve.js';
+import { VariableSuggestions } from './VariableSuggestions.js';
+import { variableQuery, urlSegments, type UrlTone } from './urlSegments.js';
 
 type Props = {
   value: string;
   /** Names the current scope cannot resolve. Derived by the caller, not here. */
   missing: readonly string[];
+  scope: VariableScope;
   onChange: (value: string) => void;
   /**
    * A variable was pointed at. The rectangle is the token's own box, so the
@@ -17,41 +18,44 @@ type Props = {
   onVariablePoint: (name: string, rect: DOMRect | null) => void;
 };
 
-const TONE_CLASS: Record<Tone, string | false> = {
+const TONE_CLASS: Record<UrlTone, string | false> = {
   plain: false,
   resolved: 'wsw-var-resolved',
   missing: 'wsw-var-missing',
+  pending: 'wsw-url-var wsw-var-pending',
 };
-
-/** Splits a URL template so the mirror can colour `{{var}}` like the editor. */
-export function urlSegments(text: string, missing: readonly string[]): UrlSegment[] {
-  const segments: UrlSegment[] = [];
-  let cursor = 0;
-
-  for (const token of scanVariables(text)) {
-    if (token.start > cursor) {
-      segments.push({ text: text.slice(cursor, token.start), tone: 'plain' });
-    }
-    segments.push({
-      text: text.slice(token.start, token.end),
-      tone: missing.includes(token.name) ? 'missing' : 'resolved',
-      name: token.name,
-    });
-    cursor = token.end;
-  }
-
-  if (cursor < text.length) segments.push({ text: text.slice(cursor), tone: 'plain' });
-  return segments;
-}
 
 /**
  * A transparent input over a coloured mirror. Monaco would give the same
  * highlighting, but a second editor instance for one line of text costs a
  * worker and a model — the mirror costs a `<span>` per token.
  */
-export function UrlInput({ value, missing, onChange, onVariablePoint }: Props) {
+export function UrlInput({ value, missing, scope, onChange, onVariablePoint }: Props) {
   const segments = useMemo(() => urlSegments(value, missing), [value, missing]);
+  const suggestions = useMemo(
+    () => {
+      const query = variableQuery(value);
+      if (query === null) return [];
+      const normalizedQuery = query.toLocaleLowerCase();
+      return [...scope.values()].filter((variable): variable is Variable =>
+        variable.name.toLocaleLowerCase().startsWith(normalizedQuery),
+      );
+    },
+    [scope, value],
+  );
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const insertVariable = (name: string): void => {
+    const start = value.lastIndexOf('{{');
+    const query = variableQuery(value);
+    if (start < 0 || query === null) return;
+    const end = start + 2 + query.length;
+    const next = `${value.slice(0, start)}{{${name}}}${value.slice(end)}`;
+    onChange(next);
+    inputRef.current?.focus();
+    const cursor = start + name.length + 4;
+    inputRef.current?.setSelectionRange(cursor, cursor);
+  };
 
   return (
     <div className="relative h-7.5 min-w-0 flex-1 rounded-ui border border-border bg-panel focus-within:border-accent focus-within:outline focus-within:outline-1 focus-within:outline-accent">
@@ -67,7 +71,7 @@ export function UrlInput({ value, missing, onChange, onVariablePoint }: Props) {
             key={index}
             className={clsx(
               TONE_CLASS[segment.tone],
-              segment.name !== undefined && 'pointer-events-auto cursor-pointer',
+              segment.name !== undefined && 'wsw-url-var pointer-events-auto cursor-pointer',
             )}
             onPointerEnter={(event) => {
               if (segment.name === undefined) return;
@@ -93,6 +97,7 @@ export function UrlInput({ value, missing, onChange, onVariablePoint }: Props) {
           </span>
         ))}
       </div>
+      <VariableSuggestions variables={suggestions} onSelect={insertVariable} />
       <input
         ref={inputRef}
         className="url-input-field-runtime relative h-full w-full border-0 bg-transparent px-2 font-mono leading-url whitespace-pre text-transparent caret-foreground focus-visible:outline-none"

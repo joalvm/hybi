@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import type { Variable } from '@shared/domain/types.js';
 import { Button } from '@/shared/ui/Button.js';
-import { HideIcon, RevealIcon } from '@/shared/ui/icons.js';
-import { IconButton } from '@/shared/ui/IconButton.js';
-import { Input } from '@/shared/ui/Input.js';
 import { Popover, type VirtualAnchor } from '@/shared/ui/Popover.js';
 import { useStore } from '@/store/index.js';
+import { VariablePopoverEditor } from './VariablePopoverEditor.js';
 
 type Props = {
   /** The name inside the braces, without them. */
@@ -44,7 +42,6 @@ export function VariablePopover({
   // a second token remounts it rather than syncing the field from an effect —
   // the popover is the only editor of the value while it is open.
   const [draft, setDraft] = useState(variable?.value ?? '');
-  const [revealed, setRevealed] = useState(false);
 
   const write = (next: Variable[]): void => {
     if (environment === null) return;
@@ -66,6 +63,11 @@ export function VariablePopover({
     write([...environment.variables, { name, value: '', secret: false }]);
   };
 
+  const openVariables = (): void => {
+    onClose();
+    setDialog('variables');
+  };
+
   return (
     <Popover
       open={anchor !== null}
@@ -76,8 +78,6 @@ export function VariablePopover({
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
     >
-      <p className="font-mono text-ui text-variable-resolved">{`{{${name}}}`}</p>
-
       {environment === null ? (
         <p className="text-label text-muted">
           Esta conexión no tiene entorno. Elige uno para definir variables.
@@ -91,51 +91,38 @@ export function VariablePopover({
         </>
       ) : (
         <>
-          <p className="text-label text-muted">{`Entorno ${environment.name}`}</p>
-          <div className="flex items-center gap-1">
-            <Input
-              // A secret is never printed by default, here or in the log.
-              type={variable.secret && !revealed ? 'password' : 'text'}
-              aria-label={`Valor de ${name}`}
-              value={draft}
-              onChange={(event) => {
-                setDraft(event.target.value);
-              }}
-              onBlur={save}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  save();
-                  onClose();
-                }
-                if (event.key === 'Escape') {
-                  setDraft(variable.value);
-                }
-              }}
-            />
-            {variable.secret && (
-              <IconButton
-                label={revealed ? 'Ocultar valor' : 'Mostrar valor'}
-                onClick={() => {
-                  setRevealed((current) => !current);
-                }}
-              >
-                {revealed ? <HideIcon /> : <RevealIcon />}
-              </IconButton>
-            )}
-          </div>
+          <VariablePopoverEditor
+            name={name}
+            variable={variable}
+            draft={draft}
+            onDraftChange={setDraft}
+            onSave={save}
+            onClose={onClose}
+          />
+          <Button
+            aria-label={`Entorno ${environment.name}`}
+            className="min-h-0 self-start gap-2 border-0 bg-transparent p-0 text-ui text-muted enabled:hover:bg-transparent enabled:hover:text-foreground"
+            onClick={openVariables}
+          >
+            <span
+              aria-hidden="true"
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-ui bg-accent-soft font-semibold text-accent-text"
+            >
+              E
+            </span>
+            <span>{environment.name}</span>
+          </Button>
         </>
       )}
 
-      <Button
-        className="min-h-0 self-start border-0 bg-transparent p-0 text-label text-accent-text enabled:hover:bg-transparent enabled:hover:underline"
-        onClick={() => {
-          onClose();
-          setDialog('variables');
-        }}
-      >
-        Ver todas las variables
-      </Button>
+      {(environment === null || variable === null) && (
+        <Button
+          className="min-h-0 self-start border-0 bg-transparent p-0 text-label text-accent-text enabled:hover:bg-transparent enabled:hover:underline"
+          onClick={openVariables}
+        >
+          Ver todas las variables
+        </Button>
+      )}
     </Popover>
   );
 }

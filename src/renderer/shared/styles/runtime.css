@@ -51,6 +51,24 @@
   text-decoration: underline wavy;
 }
 
+/* URL tokens keep the field readable while making the editable target explicit. */
+.wsw-url-var {
+  display: inline-block;
+  margin: 0 1px;
+  padding: 0 2px 1px;
+  border: 1px solid var(--bg-control);
+  border-radius: 6px;
+  background: var(--bg-chrome);
+  color: var(--var-token);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.wsw-url-var.wsw-var-missing {
+  color: var(--error);
+}
+
 .select-panel-runtime {
   min-width: var(--radix-select-trigger-width);
 }

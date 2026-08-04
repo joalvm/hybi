@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import type { editor } from 'monaco-editor/editor/editor.api.js';
 import { scanVariables, type VariableToken } from '@shared/variables/scan.js';
 import type { VirtualAnchor } from '@/shared/ui/Popover.js';
@@ -15,7 +15,8 @@ export function variableAtOffset(text: string, offset: number): VariableToken | 
 export type VariableHover = { name: string; anchor: VirtualAnchor };
 
 /** How long the pointer has to rest on a token before the panel appears. */
-const DELAY_MS = 250;
+const OPEN_DELAY_MS = 350;
+const CLOSE_DELAY_MS = 250;
 
 /**
  * A hover panel Monaco does not own. The editor reports a position, the model
@@ -35,16 +36,31 @@ export function useVariableHover(
   close: () => void;
 } {
   const [hover, setHover] = useState<VariableHover | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const openTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inside = useRef(false);
+
+  const clearCloseTimer = useCallback((): void => {
+    if (closeTimer.current !== null) clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+  }, []);
+
+  const closeSoon = useCallback((): void => {
+    clearCloseTimer();
+    closeTimer.current = setTimeout(() => {
+      if (!inside.current) setHover(null);
+      closeTimer.current = null;
+    }, CLOSE_DELAY_MS);
+  }, [clearCloseTimer]);
 
   useEffect(() => {
     const instance = editorRef.current;
     if (instance === null) return;
 
     const clear = (): void => {
-      if (timer.current !== null) clearTimeout(timer.current);
-      timer.current = null;
+      if (openTimer.current !== null) clearTimeout(openTimer.current);
+      openTimer.current = null;
+      clearCloseTimer();
     };
 
     const move = instance.onMouseMove((event) => {
@@ -54,14 +70,17 @@ export function useVariableHover(
 
       const token = variableAtOffset(text, model.getOffsetAt(position));
       if (token === null) {
-        // The pointer inside the panel is not the pointer leaving the token.
-        if (!inside.current) setHover(null);
-        clear();
+        // The pointer may be crossing the gap between token and portal panel.
+        if (!inside.current) {
+          if (openTimer.current !== null) clearTimeout(openTimer.current);
+          openTimer.current = null;
+          closeSoon();
+        }
         return;
       }
 
       clear();
-      timer.current = setTimeout(() => {
+      openTimer.current = setTimeout(() => {
         const start = model.getPositionAt(token.start);
         const end = model.getPositionAt(token.end);
         const from = instance.getScrolledVisiblePosition(start);
@@ -76,12 +95,14 @@ export function useVariableHover(
           from.height,
         );
         setHover({ name: token.name, anchor: { getBoundingClientRect: () => rect } });
-      }, DELAY_MS);
+        openTimer.current = null;
+      }, OPEN_DELAY_MS);
     });
 
     const leave = instance.onMouseLeave(() => {
-      clear();
-      if (!inside.current) setHover(null);
+      if (openTimer.current !== null) clearTimeout(openTimer.current);
+      openTimer.current = null;
+      if (!inside.current) closeSoon();
     });
 
     const scroll = instance.onDidScrollChange(() => {
@@ -101,22 +122,26 @@ export function useVariableHover(
       scroll.dispose();
       swap.dispose();
     };
-  }, [editorRef, text]);
+  }, [clearCloseTimer, closeSoon, editorRef, text]);
 
   return {
     hover,
-    keepOpen: () => {
+    keepOpen: useCallback(() => {
       inside.current = true;
-    },
-    // Leaving the panel does not close it on its own: the draft in the field
-    // would go with it. It hands the decision back to the editor, which closes
-    // on the next move that is not over a token.
-    release: () => {
+      clearCloseTimer();
+    }, [clearCloseTimer]),
+    // Keep a short grace period so the pointer can cross from the portal panel
+    // back to the editor without dropping an in-progress draft.
+    release: useCallback(() => {
       inside.current = false;
-    },
-    close: () => {
+      closeSoon();
+    }, [closeSoon]),
+    close: useCallback(() => {
       inside.current = false;
+      if (openTimer.current !== null) clearTimeout(openTimer.current);
+      openTimer.current = null;
+      clearCloseTimer();
       setHover(null);
-    },
+    }, [clearCloseTimer]),
   };
 }

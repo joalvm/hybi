@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { WebSocketTransport } from '@shared/domain/connections/websocket.js';
 import type { ConnectionState } from '@shared/ipc/activity.js';
 import type { VariableScope } from '@shared/variables/resolve.js';
@@ -27,6 +27,46 @@ export function WebSocketConnectionBar(props: Props) {
   const { connectionId, environmentId, transport, scope, state } = props;
   const resolution = useMemo(() => resolveWebSocketTransport(transport, scope), [transport, scope]);
   const [pointed, setPointed] = useState<{ name: string; rect: DOMRect } | null>(null);
+  const openTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (openTimer.current !== null) clearTimeout(openTimer.current);
+      if (closeTimer.current !== null) clearTimeout(closeTimer.current);
+    };
+  }, []);
+
+  const clearCloseTimer = (): void => {
+    if (closeTimer.current !== null) clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+  };
+
+  const pointVariable = (name: string, rect: DOMRect): void => {
+    clearCloseTimer();
+    if (openTimer.current !== null) clearTimeout(openTimer.current);
+    openTimer.current = setTimeout(() => {
+      setPointed({ name, rect });
+      openTimer.current = null;
+    }, 350);
+  };
+
+  const closeVariable = (): void => {
+    if (openTimer.current !== null) clearTimeout(openTimer.current);
+    openTimer.current = null;
+    clearCloseTimer();
+    setPointed(null);
+  };
+
+  const releaseVariable = (): void => {
+    if (openTimer.current !== null) clearTimeout(openTimer.current);
+    openTimer.current = null;
+    clearCloseTimer();
+    closeTimer.current = setTimeout(() => {
+      setPointed(null);
+      closeTimer.current = null;
+    }, 250);
+  };
 
   const crash = (cause: unknown): void => {
     props.onLocalError(cause instanceof Error ? cause.message : String(cause));
@@ -53,11 +93,16 @@ export function WebSocketConnectionBar(props: Props) {
       <UrlInput
         value={transport.url}
         missing={resolution.missing}
+        scope={scope}
         onChange={(url) => {
           props.onTransportChange({ ...transport, url });
         }}
         onVariablePoint={(name, rect) => {
-          setPointed(rect === null ? null : { name, rect });
+          if (rect === null) {
+            releaseVariable();
+            return;
+          }
+          pointVariable(name, rect);
         }}
       />
       <IconButton label="Configuración de la conexión" onClick={props.onOpenSettings}>
@@ -75,9 +120,9 @@ export function WebSocketConnectionBar(props: Props) {
           name={pointed.name}
           environmentId={environmentId}
           anchor={{ getBoundingClientRect: () => pointed.rect }}
-          onClose={() => {
-            setPointed(null);
-          }}
+          onClose={closeVariable}
+          onPointerEnter={clearCloseTimer}
+          onPointerLeave={releaseVariable}
         />
       )}
     </div>
