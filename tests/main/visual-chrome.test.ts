@@ -5,6 +5,7 @@ const source = (path: string): string => readFileSync(path, 'utf8');
 
 type BuildConfig = {
   name?: string;
+  version?: string;
   desktopName?: string;
   build?: {
     appId?: string;
@@ -16,10 +17,25 @@ type BuildConfig = {
     win?: { icon?: string };
     mac?: { icon?: string; entitlements?: string; entitlementsInherit?: string };
     linux?: { icon?: string; syncDesktopName?: boolean };
-    nsis?: { oneClick?: boolean; allowToChangeInstallationDirectory?: boolean };
+    nsis?: {
+      oneClick?: boolean;
+      allowToChangeInstallationDirectory?: boolean;
+      installerIcon?: string;
+      uninstallerIcon?: string;
+    };
     extraResources?: unknown;
   };
 };
+
+function icoSizes(path: string): number[] {
+  const icon = readFileSync(path);
+  const count = icon.readUInt16LE(4);
+
+  return Array.from({ length: count }, (_, index) => {
+    const width = icon.readUInt8(6 + index * 16);
+    return width === 0 ? 256 : width;
+  });
+}
 
 /**
  * The packaging contract. Unlike a stylesheet, this genuinely is text — the
@@ -36,6 +52,7 @@ describe('Hybi packaging', () => {
 
   it('ships under the Hybi identity', () => {
     expect(config.name).toBe('hybi');
+    expect(config.version).toBe('0.3.0-alpha.3');
     expect(config.desktopName).toBe('hybi');
     expect(config.build?.appId).toBe('com.hybi.desktop');
     expect(config.build?.productName).toBe('Hybi');
@@ -49,8 +66,10 @@ describe('Hybi packaging', () => {
     expect(config.build?.extraResources).toBeUndefined();
   });
 
-  it('points every platform at the one icon that ships with the repository', () => {
-    expect(config.build?.win?.icon).toBe('resources/images/icon.png');
+  it('points every platform at its native icon asset', () => {
+    const windowsIcon = 'resources/images/icon.ico';
+
+    expect(config.build?.win?.icon).toBe(windowsIcon);
     expect(config.build?.mac).toMatchObject({
       icon: 'resources/images/icon.png',
       entitlements: 'resources/entitlements.mac.plist',
@@ -60,10 +79,12 @@ describe('Hybi packaging', () => {
       icon: 'resources/images/icon.png',
       syncDesktopName: true,
     });
-    // electron-builder rasterises every native format from the PNG; the SVG is
-    // the editable source the renderer and the future landing page share.
+    expect(icoSizes(windowsIcon)).toEqual([16, 24, 32, 48, 64, 128, 256]);
+    expect(existsSync(windowsIcon)).toBe(true);
     expect(existsSync('resources/images/icon.png')).toBe(true);
-    expect(existsSync('resources/images/icon.svg')).toBe(true);
+    expect(source('resources/images/icon.svg')).toContain('viewBox="112 112 800 800"');
+    expect(source('resources/images/icon.svg')).toContain('fill="#16CBCB"');
+    expect(source('resources/images/icon.svg')).toContain('fill="#080D0D"');
   });
 
   it('keeps the hardening fuses closed in the shipped binary', () => {
@@ -81,6 +102,8 @@ describe('Hybi packaging', () => {
     expect(config.build?.nsis).toMatchObject({
       oneClick: false,
       allowToChangeInstallationDirectory: true,
+      installerIcon: 'resources/images/icon.ico',
+      uninstallerIcon: 'resources/images/icon.ico',
     });
   });
 
@@ -99,5 +122,18 @@ describe('Hybi packaging', () => {
     expect(source('resources/entitlements.mac.inherit.plist')).toContain(
       'com.apple.security.cs.disable-library-validation',
     );
+  });
+
+  it('composes concise release notes around generated changes and contributors', () => {
+    const workflow = source('.github/workflows/release.yml');
+
+    expect(workflow).toContain("cat .github/release-notes/intro.md");
+    expect(workflow).toContain("cat .github/release-notes/security.md");
+    expect(workflow).toContain("s/^## What's Changed$/## Cambios/");
+    expect(workflow).toContain("s/^## New Contributors$/## Contributors/");
+    expect(workflow).not.toContain('## Descargas');
+    expect(workflow).not.toContain('release-notes/install.md');
+    expect(existsSync('.github/release-notes/security.md')).toBe(true);
+    expect(existsSync('.github/release-notes/install.md')).toBe(false);
   });
 });

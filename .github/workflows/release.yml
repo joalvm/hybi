@@ -221,42 +221,37 @@ jobs:
           cat SHA256SUMS-*.txt | tr -d '\r' | sort -k2 > SHA256SUMS.txt
           rm SHA256SUMS-*.txt
           cat SHA256SUMS.txt
-      # La nota se arma aquí porque solo en este punto se sabe qué artefactos
-      # salieron y con qué huella: aviso, tabla de descargas por sistema con su
-      # SHA-256, cómo instalar y, al final, el registro de cambios de GitHub.
+      # La nota conserva solo el aviso alpha, cambios y contributors generados
+      # por GitHub, más el estado de firma y las huellas de los assets.
       - name: Compose the release notes
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           TAG: ${{ github.ref_name }}
         run: |
-          base="https://github.com/$GH_REPO/releases/download/$TAG"
+          generated_notes="$(gh api \"repos/$GH_REPO/releases/generate-notes\" -f tag_name=\"$TAG\" --jq .body \
+            | sed -e \"s/^## What's Changed$/## Cambios/\" \
+                  -e \"s/^## New Contributors$/## Contributors/\" \
+                  -e 's/ made their first contribution in / aporta por primera vez en /' \
+                  -e 's/^\*\*Full Changelog\*\*/**Historial completo**/')"
           {
             cat .github/release-notes/intro.md
-            printf '\n## Descargas\n'
-            for platform in win mac linux; do
-              case "$platform" in
-                win) title='Windows' ;;
-                mac) title='macOS' ;;
-                linux) title='Linux' ;;
-              esac
-              rows="$(awk -v base="$base" -v needle="-$platform-" \
-                'index($2, needle) { printf "| [%s](%s/%s) | `%s` |\n", $2, base, $2, $1 }' \
-                dist-artifacts/SHA256SUMS.txt)"
-              if [ -z "$rows" ]; then
-                echo "::error::No hay artefactos de $platform en SHA256SUMS.txt."
-                exit 1
-              fi
-              printf '\n### %s\n\n| Archivo | SHA-256 |\n| --- | --- |\n%s\n' "$title" "$rows"
-            done
             printf '\n'
-            cat .github/release-notes/install.md
+            printf '%s\n' "$generated_notes" | awk '
+              /^## Cambios$/ { section = "changes" }
+              /^## Contributors$/ { section = "contributors" }
+              /^\*\*Historial completo\*\*/ { exit }
+              section == "changes" { print; next }
+              section == "contributors" { next }
+            '
             printf '\n'
-            gh api "repos/$GH_REPO/releases/generate-notes" -f tag_name="$TAG" --jq .body \
-              | sed -e "s/^## What's Changed$/## Cambios/" \
-                    -e 's/^## New Contributors$/## Gente que estrena/' \
-                    -e 's/ made their first contribution in / aporta por primera vez en /' \
-                    -e 's/^\*\*Full Changelog\*\*/**Historial completo**/'
+            cat .github/release-notes/security.md
+            printf '\n'
+            printf '%s\n' "$generated_notes" | awk '
+              /^## Contributors$/ { section = "contributors" }
+              /^\*\*Historial completo\*\*/ { exit }
+              section == "contributors" { print }
+            '
           } > release-notes.md
           cat release-notes.md
       # Una etiqueta con sufijo (v0.3.0-alpha.1) es una versión de prueba y se
