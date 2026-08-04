@@ -155,7 +155,7 @@ describe('CatalogToolbar', () => {
       />,
     );
 
-    expect(screen.getByLabelText('Buscar evento')).toBeTruthy();
+    expect(screen.getByLabelText('Filtrar')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Nueva colección' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Importar AsyncAPI' })).toBeTruthy();
 
