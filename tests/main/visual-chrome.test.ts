@@ -52,7 +52,7 @@ describe('Hybi packaging', () => {
 
   it('ships under the Hybi identity', () => {
     expect(config.name).toBe('hybi');
-    expect(config.version).toBe('0.3.0-alpha.4');
+    expect(config.version).toBe('0.3.0-alpha.5');
     expect(config.desktopName).toBe('hybi');
     expect(config.build?.appId).toBe('com.hybi.desktop');
     expect(config.build?.productName).toBe('Hybi');
