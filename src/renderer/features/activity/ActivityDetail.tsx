@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { ActivityRecord } from '@shared/ipc/activity.js';
 import { modelFor, useMonacoEditor } from '@/shared/monaco/useMonacoEditor.js';
 import { CloseIcon } from '@/shared/ui/icons.js';
@@ -32,7 +32,10 @@ export function ActivityDetail({ record, onClose }: Props) {
     lineNumbers: 'off',
   });
 
-  const body = pretty(record.body);
+  // Memoized on the body: the panel above re-renders on every batch the socket
+  // delivers, and re-parsing plus re-printing the marked frame sixty times a
+  // second is work whose result never changes.
+  const body = useMemo(() => pretty(record.body), [record.body]);
 
   useEffect(() => {
     const instance = editorRef.current;

@@ -42,6 +42,19 @@ export class ConnectionManager {
     this.sessions.get(connectionId)?.session.close();
   }
 
+  /**
+   * The connection itself is gone, not just its socket. `close` keeps the session
+   * because the same tab can dial again and wants the same sequence; this drops
+   * it, because nothing will ever observe that id again. Without it the map only
+   * ever grew, holding a resolved target per connection the user had closed.
+   */
+  dispose(connectionId: string): void {
+    const owned = this.sessions.get(connectionId);
+    if (owned === undefined) return;
+    this.sessions.delete(connectionId);
+    owned.session.dispose();
+  }
+
   disposeAll(): void {
     const owned = [...this.sessions.values()];
     this.sessions.clear();

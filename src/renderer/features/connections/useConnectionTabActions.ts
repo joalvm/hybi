@@ -72,9 +72,10 @@ export function useConnectionTabActions() {
 
   const remove = useCallback((connectionId: string) => {
     setClosingId(null);
-    // Dropping the tab without closing the socket would leave a live session in
-    // the main process with no UI left to observe it.
-    void bridge.connection.close({ connectionId }).catch((cause: unknown) => {
+    // `dispose`, not `close`: dropping the tab without hanging up would leave a
+    // live session in the main process with no UI left to observe it, and a
+    // hang-up alone would leave its bookkeeping behind for the whole session.
+    void bridge.connection.dispose({ connectionId }).catch((cause: unknown) => {
       console.error(cause);
     });
 
@@ -83,6 +84,10 @@ export function useConnectionTabActions() {
       (entry) => entry.id === connectionId,
     );
     store.removeConnection(connectionId);
+    // The document forgets the connection; this forgets everything the session
+    // built around it — log, socket state, drafts, selections. Without it a
+    // closed tab keeps its whole activity budget until the window closes.
+    store.dropConnection(connectionId);
 
     if (store.activeConnectionId !== connectionId) return;
     const remaining = useStore.getState().workspace?.connections ?? EMPTY_CONNECTIONS;

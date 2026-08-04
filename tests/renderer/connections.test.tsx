@@ -17,6 +17,7 @@ import { useStore } from '@/store/index.js';
 const connectionBridge = vi.hoisted(() => ({
   open: vi.fn<() => Promise<Result<Record<never, never>>>>(() => Promise.resolve({ ok: true })),
   close: vi.fn<() => Promise<Result<Record<never, never>>>>(() => Promise.resolve({ ok: true })),
+  dispose: vi.fn<() => Promise<Result<Record<never, never>>>>(() => Promise.resolve({ ok: true })),
   send: vi.fn(),
   onState: vi.fn(() => () => undefined),
   onActivity: vi.fn(() => () => undefined),
@@ -57,6 +58,7 @@ beforeEach(() => {
   useStore.getState().reset();
   connectionBridge.open.mockClear();
   connectionBridge.close.mockClear();
+  connectionBridge.dispose.mockClear();
   connectionBridge.open.mockImplementation(() => Promise.resolve({ ok: true }));
 });
 
@@ -257,9 +259,11 @@ describe('ConnectionTabs', () => {
     expect(useStore.getState().workspace?.connections.at(-1)?.name).toBe('Producción');
   });
 
-  it('closes the socket and falls back to a sibling when the active tab goes', async () => {
+  it('disposes the socket and falls back to a sibling when the active tab goes', async () => {
     const user = userEvent.setup();
     loadWorkspace('ws://127.0.0.1:3000', null);
+    useStore.getState().setConnectionState('c1', 'open');
+    useStore.getState().setDraft('c1', 'e1', '{"a":1}');
     render(<ConnectionTabs />);
 
     await user.click(screen.getByRole('button', { name: 'Opciones de Conexión A' }));
@@ -268,9 +272,14 @@ describe('ConnectionTabs', () => {
     // and this query resolves to the dialog's own action, uniquely.
     await user.click(screen.getByRole('button', { name: 'Eliminar' }));
 
-    expect(connectionBridge.close).toHaveBeenCalledWith({ connectionId: 'c1' });
+    // `dispose`, not `close`: the connection is gone, so the main process has no
+    // session left to keep either.
+    expect(connectionBridge.dispose).toHaveBeenCalledWith({ connectionId: 'c1' });
     expect(useStore.getState().workspace?.connections.map((entry) => entry.id)).toEqual(['c2']);
     expect(useStore.getState().activeConnectionId).toBe('c2');
+    // Nothing the session built around that tab outlives it.
+    expect(useStore.getState().states.c1).toBeUndefined();
+    expect(useStore.getState().drafts['c1:e1']).toBeUndefined();
   });
 });
 

@@ -18,13 +18,27 @@ const GLYPH: Record<ActivityRecord['kind'], { icon: ReactNode; label: string }> 
 const PREVIEW_LENGTH = 160;
 
 /**
+ * How much of the body the preview reads. A row shows 160 characters, so
+ * flattening a whole frame to find them allocated a second copy of a body that
+ * can be megabytes — per row, per render, while the log scrolls.
+ */
+const PREVIEW_WINDOW = PREVIEW_LENGTH * 8;
+
+const TONE: Record<ActivityRecord['kind'], string> = {
+  outgoing: 'text-accent-text',
+  incoming: 'text-blue',
+  status: 'text-ok',
+  error: 'text-error',
+};
+
+/**
  * One line of the raw frame, or nothing when the label is already made of it.
  * `labelOf` only lifts a name out of an `{event, data}` envelope; every other
  * frame gets a truncated copy of its own body as a label, and printing that
  * twice in one row is noise.
  */
 function preview(body: string, label: string): string {
-  const flat = body.replace(/\s+/g, ' ').trim();
+  const flat = body.slice(0, PREVIEW_WINDOW).replace(/\s+/g, ' ').trim();
   if (flat === '' || flat.startsWith(label.replace(/…$/, ''))) return '';
   return flat.length > PREVIEW_LENGTH ? `${flat.slice(0, PREVIEW_LENGTH)}…` : flat;
 }
@@ -46,12 +60,6 @@ type Props = {
 export const ActivityRow = memo(function ActivityRow({ record, origin, selected, onSelect }: Props) {
   const glyph = GLYPH[record.kind];
   const body = preview(record.body, record.label);
-  const tones: Record<ActivityRecord['kind'], string> = {
-    outgoing: 'text-accent-text',
-    incoming: 'text-blue',
-    status: 'text-ok',
-    error: 'text-error',
-  };
   return (
     <button
       type="button"
@@ -64,7 +72,7 @@ export const ActivityRow = memo(function ActivityRow({ record, origin, selected,
         onSelect(record.id);
       }}
     >
-      <span className={cn('inline-flex shrink-0 items-center', tones[record.kind])} aria-label={glyph.label}>
+      <span className={cn('inline-flex shrink-0 items-center', TONE[record.kind])} aria-label={glyph.label}>
         {glyph.icon}
       </span>
       <span className="max-w-activity-label min-w-24 shrink overflow-hidden font-semibold text-ellipsis whitespace-nowrap">

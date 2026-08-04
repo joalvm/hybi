@@ -51,6 +51,14 @@ export function registerConnectionHandlers(window: BrowserWindow): () => void {
       return failure(error);
     }
   });
+  ipcMain.handle(CHANNELS.connectionDispose, (_event, input: unknown): Result<Empty> => {
+    try {
+      manager.dispose(parseCloseConnectionRequest(input).connectionId);
+      return { ok: true };
+    } catch (error) {
+      return failure(error);
+    }
+  });
 
   return () => {
     manager.disposeAll();
@@ -58,6 +66,7 @@ export function registerConnectionHandlers(window: BrowserWindow): () => void {
     ipcMain.removeHandler(CHANNELS.connectionOpen);
     ipcMain.removeHandler(CHANNELS.connectionSend);
     ipcMain.removeHandler(CHANNELS.connectionClose);
+    ipcMain.removeHandler(CHANNELS.connectionDispose);
   };
 }
 

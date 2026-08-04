@@ -10,7 +10,7 @@ import { ComposerBreadcrumb } from './ComposerBreadcrumb.js';
 import { ComposerFooter } from './ComposerFooter.js';
 import { ComposerTabs, type ComposerTab } from './ComposerTabs.js';
 import { DocsView } from './DocsView.js';
-import { beautify, languageOf, type PayloadFormat } from './formats.js';
+import { beautify, canBeautify, languageOf, type PayloadFormat } from './formats.js';
 import { PayloadEditor } from './PayloadEditor.js';
 import { SendButton } from './SendButton.js';
 import { useComposerDraft } from './useComposerDraft.js';
@@ -75,9 +75,9 @@ export function ComposerPanel({ connectionId }: Props) {
   };
   useSaveShortcut(tab === 'docs' && editingDocs ? docs.dirty : draft.dirty, saveActiveDraft);
 
-  // Computed rather than attempted on click: the result is what says whether
-  // the button has anything to do, so it decides its own disabled state.
-  const beautified = useMemo(() => beautify(draft.text, format), [draft.text, format]);
+  // Only the answer, not the formatted text: this is recomputed on every
+  // keystroke, and the payload is re-indented once, on the click that wants it.
+  const formattable = useMemo(() => canBeautify(draft.text, format), [draft.text, format]);
 
   if (event === null) {
     return (
@@ -131,9 +131,10 @@ export function ComposerPanel({ connectionId }: Props) {
           />
           <ComposerFooter
             format={format}
-            beautified={beautified}
+            formattable={formattable}
             onFormatChange={setFormat}
             onBeautify={() => {
+              const beautified = beautify(draft.text, format);
               if (beautified !== null) draft.setText(beautified);
             }}
           />

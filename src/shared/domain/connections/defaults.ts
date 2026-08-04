@@ -1,5 +1,5 @@
-import type { ConnectionTransport } from './connection.js';
-import type { WebSocketTransportSettings } from './websocket.js';
+import type { ConnectionTransport, TransportFactoryMap } from './connection.js';
+import type { WebSocketTransport, WebSocketTransportSettings } from './websocket.js';
 
 /** Native WebSocket behavior used for new and migrated connections. */
 export const DEFAULT_WEBSOCKET_SETTINGS: WebSocketTransportSettings = {
@@ -25,11 +25,22 @@ export function cloneWebSocketSettings(
   };
 }
 
-/** A transport copy owns every nested object and array it can mutate. */
-export function cloneConnectionTransport(transport: ConnectionTransport): ConnectionTransport {
-  return {
+/**
+ * One cloner per transport kind. A map rather than a body that reads
+ * `transport.settings`: the old version wrote `kind: 'websocket'` into whatever
+ * it was handed, so the first transport to arrive beside WebSocket would have
+ * been silently relabelled every time a connection was duplicated. The compiler
+ * refuses this object until every kind in the union has an entry.
+ */
+const CLONERS: TransportFactoryMap<(transport: never) => ConnectionTransport> = {
+  websocket: (transport: WebSocketTransport) => ({
     kind: 'websocket',
     url: transport.url,
     settings: cloneWebSocketSettings(transport.settings),
-  };
+  }),
+};
+
+/** A transport copy owns every nested object and array it can mutate. */
+export function cloneConnectionTransport(transport: ConnectionTransport): ConnectionTransport {
+  return CLONERS[transport.kind](transport as never);
 }
