@@ -42,6 +42,8 @@ export function VariablePopoverEditor({
             onSave();
             onClose();
           }
+          // The panel closes itself on Escape; reverting here is what keeps a
+          // trailing blur from saving the draft that was just discarded.
           if (event.key === 'Escape') onDraftChange(variable.value);
         }}
       />

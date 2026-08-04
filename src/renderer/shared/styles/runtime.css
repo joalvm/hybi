@@ -51,40 +51,28 @@
   text-decoration: underline wavy;
 }
 
-/* URL tokens keep the field readable while making the editable target explicit. */
+/* A URL token is a pill inside editable text, so its box has to be its own:
+   padding on the inline box pushes the neighbours aside, where an absolute
+   decoration would paint on top of them. */
 .wsw-url-var {
-  position: relative;
-  display: inline;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 6px;
-  color: var(--var-token);
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 16px;
-  z-index: 0;
-}
-
-.wsw-url-var::before {
-  position: absolute;
-  inset: -1px -3px;
-  border: 1px solid var(--bg-control);
-  border-radius: 6px;
+  padding: 1px 4px;
+  border-radius: 4px;
   background: var(--bg-chrome);
-  content: '';
-  pointer-events: none;
-  z-index: -1;
+  box-shadow: inset 0 0 0 1px var(--bg-control);
+  color: var(--var-token);
+  cursor: pointer;
 }
 
+/* Both classes are one specificity step apart from `.wsw-url-var`, which is
+   declared after them and would otherwise repaint every token the same. */
 .wsw-url-var.wsw-var-missing {
-  color: var(--error);
+  color: var(--var-missing);
 }
 
-/* The mirror owns text colour; keep the native selection background without revealing the input layer. */
-.url-input-field-runtime::selection {
-  color: transparent;
+/* Braces still open: dimmed while the name is being typed, but no pill yet —
+   there is nothing to promise until the token closes. */
+.wsw-var-pending {
+  color: var(--text-dim);
 }
 
 .select-panel-runtime {

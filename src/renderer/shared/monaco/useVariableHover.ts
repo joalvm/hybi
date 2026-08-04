@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, type RefObject } from 'react';
 import type { editor } from 'monaco-editor/editor/editor.api.js';
 import { scanVariables, type VariableToken } from '@shared/variables/scan.js';
 import type { VirtualAnchor } from '@/shared/ui/Popover.js';
+import { useHoverIntent } from '@/shared/ui/useHoverIntent.js';
 
 /**
  * Pure, so the hit-testing rule is testable without laying out an editor.
@@ -13,10 +14,6 @@ export function variableAtOffset(text: string, offset: number): VariableToken | 
 }
 
 export type VariableHover = { name: string; anchor: VirtualAnchor };
-
-/** How long the pointer has to rest on a token before the panel appears. */
-const OPEN_DELAY_MS = 350;
-const CLOSE_DELAY_MS = 250;
 
 /**
  * A hover panel Monaco does not own. The editor reports a position, the model
@@ -35,33 +32,11 @@ export function useVariableHover(
   release: () => void;
   close: () => void;
 } {
-  const [hover, setHover] = useState<VariableHover | null>(null);
-  const openTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const inside = useRef(false);
-
-  const clearCloseTimer = useCallback((): void => {
-    if (closeTimer.current !== null) clearTimeout(closeTimer.current);
-    closeTimer.current = null;
-  }, []);
-
-  const closeSoon = useCallback((): void => {
-    clearCloseTimer();
-    closeTimer.current = setTimeout(() => {
-      if (!inside.current) setHover(null);
-      closeTimer.current = null;
-    }, CLOSE_DELAY_MS);
-  }, [clearCloseTimer]);
+  const { value, point, keepOpen, release, close } = useHoverIntent<VariableHover>();
 
   useEffect(() => {
     const instance = editorRef.current;
     if (instance === null) return;
-
-    const clear = (): void => {
-      if (openTimer.current !== null) clearTimeout(openTimer.current);
-      openTimer.current = null;
-      clearCloseTimer();
-    };
 
     const move = instance.onMouseMove((event) => {
       const position = event.target.position;
@@ -69,24 +44,18 @@ export function useVariableHover(
       if (position === null || model === null) return;
 
       const token = variableAtOffset(text, model.getOffsetAt(position));
+      // The pointer may be crossing the gap between the token and the panel,
+      // so leaving a token asks for a close rather than performing one.
       if (token === null) {
-        // The pointer may be crossing the gap between token and portal panel.
-        if (!inside.current) {
-          if (openTimer.current !== null) clearTimeout(openTimer.current);
-          openTimer.current = null;
-          closeSoon();
-        }
+        release();
         return;
       }
 
-      clear();
-      openTimer.current = setTimeout(() => {
-        const start = model.getPositionAt(token.start);
-        const end = model.getPositionAt(token.end);
-        const from = instance.getScrolledVisiblePosition(start);
-        const to = instance.getScrolledVisiblePosition(end);
+      point(() => {
+        const from = instance.getScrolledVisiblePosition(model.getPositionAt(token.start));
+        const to = instance.getScrolledVisiblePosition(model.getPositionAt(token.end));
         const container = instance.getContainerDomNode().getBoundingClientRect();
-        if (from === null || to === null) return;
+        if (from === null || to === null) return null;
 
         const rect = new DOMRect(
           container.left + from.left,
@@ -94,54 +63,21 @@ export function useVariableHover(
           Math.max(to.left - from.left, 4),
           from.height,
         );
-        setHover({ name: token.name, anchor: { getBoundingClientRect: () => rect } });
-        openTimer.current = null;
-      }, OPEN_DELAY_MS);
+        return { name: token.name, anchor: { getBoundingClientRect: () => rect } };
+      });
     });
 
-    const leave = instance.onMouseLeave(() => {
-      if (openTimer.current !== null) clearTimeout(openTimer.current);
-      openTimer.current = null;
-      if (!inside.current) closeSoon();
-    });
-
-    const scroll = instance.onDidScrollChange(() => {
-      clear();
-      setHover(null);
-    });
-
-    const swap = instance.onDidChangeModel(() => {
-      clear();
-      setHover(null);
-    });
+    const leave = instance.onMouseLeave(release);
+    const scroll = instance.onDidScrollChange(close);
+    const swap = instance.onDidChangeModel(close);
 
     return () => {
-      clear();
       move.dispose();
       leave.dispose();
       scroll.dispose();
       swap.dispose();
     };
-  }, [clearCloseTimer, closeSoon, editorRef, text]);
+  }, [close, editorRef, point, release, text]);
 
-  return {
-    hover,
-    keepOpen: useCallback(() => {
-      inside.current = true;
-      clearCloseTimer();
-    }, [clearCloseTimer]),
-    // Keep a short grace period so the pointer can cross from the portal panel
-    // back to the editor without dropping an in-progress draft.
-    release: useCallback(() => {
-      inside.current = false;
-      closeSoon();
-    }, [closeSoon]),
-    close: useCallback(() => {
-      inside.current = false;
-      if (openTimer.current !== null) clearTimeout(openTimer.current);
-      openTimer.current = null;
-      clearCloseTimer();
-      setHover(null);
-    }, [clearCloseTimer]),
-  };
+  return { hover: value, keepOpen, release, close };
 }

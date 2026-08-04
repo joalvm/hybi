@@ -46,13 +46,8 @@ test('connect, send an event and read it in the detail pane', async () => {
 
     await window.getByLabel('URL').fill(server.url);
 
-    // The field's text is transparent and the mirror underneath is what the user
-    // reads, so a background on the field would hide the URL completely.
-    await expect(window.locator('[data-part="url-input-mirror"]')).toContainText(server.url);
-    await expect(window.locator('[data-part="url-input-field"]')).toHaveCSS(
-      'background-color',
-      'rgba(0, 0, 0, 0)',
-    );
+    // The field renders its own text now, so what it holds is what is read.
+    await expect(window.locator('[data-part="url-input-field"]')).toHaveText(server.url);
 
     // The bar carries no state badge any more: the button turning into its own
     // opposite is what says the socket is up.

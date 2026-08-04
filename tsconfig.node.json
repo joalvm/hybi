@@ -27,11 +27,9 @@
     "src/shared/**/*",
     "tests/main/**/*",
     "tests/shared/**/*",
-    "tests/e2e/**/*",
     "electron.vite.config.ts",
     "postcss.config.js",
     "vitest.config.ts",
-    "playwright.config.ts",
     "eslint.config.js"
   ]
 }

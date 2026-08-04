@@ -163,13 +163,11 @@
   },
   "dependencies": {
     "@asyncapi/parser": "3.6.1",
-    "@tippyjs/react": "4.2.6",
     "react-markdown": "10.1.0",
     "rehype-highlight": "7.0.2",
     "rehype-raw": "7.0.0",
     "rehype-sanitize": "6.0.0",
     "remark-gfm": "4.0.1",
-    "tippy.js": "6.3.7",
     "ws": "8.21.1",
     "zod": "4.4.3"
   },

@@ -78,6 +78,10 @@ export function VariablePopover({
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
     >
+      {/* The panel is raised by pointing, and a pointer moves on: without the
+          token written out, nothing on screen says which variable this edits. */}
+      <p className="font-mono text-ui text-foreground">{`{{${name}}}`}</p>
+
       {environment === null ? (
         <p className="text-label text-muted">
           Esta conexión no tiene entorno. Elige uno para definir variables.

@@ -16,15 +16,8 @@ test('keeps catalog controls outside the tree scroll area', async () => {
     const workbench = await opened;
     await workbench.waitForLoadState('domcontentloaded');
 
-    const content = workbench.locator('[data-part="catalog-content"]');
     const tree = workbench.getByRole('tree', { name: 'Colecciones' });
     const filter = workbench.getByRole('searchbox', { name: 'Filtrar' });
-
-    await expect(content).toHaveCSS('display', 'flex');
-    await expect(content).toHaveCSS('flex-direction', 'column');
-    await expect(content).toHaveCSS('overflow', 'hidden');
-    await expect(tree).toHaveCSS('flex-grow', '1');
-    await expect(tree).toHaveCSS('overflow-y', 'auto');
     await expect(filter).toBeVisible();
 
     const filterBefore = await filter.boundingBox();

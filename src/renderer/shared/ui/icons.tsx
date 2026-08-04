@@ -17,6 +17,7 @@ import {
   Folder,
   FolderPlus,
   Import,
+  ListFilter,
   LoaderCircle,
   Menu as MenuGlyph,
   Minus,
@@ -36,14 +37,13 @@ import {
   Moon,
   type LucideIcon,
   type LucideProps,
-  ListFilter,
 } from 'lucide-react';
 
 /**
  * Every glyph in the app is named here, so weight and size are decided once
  * instead of per button. Lucide draws on a 24px grid at stroke 2, which turns
  * into a blob once scaled to a 26px control: `absoluteStrokeWidth` pins the line
- * to 1.25px on screen at any size, which is the hairline this UI is drawn in.
+ * to 1px on screen at any size, which is the hairline this UI is drawn in.
  *
  * Icons are decorative — every control that carries one also carries an
  * `aria-label` — so they stay out of the accessibility tree.
@@ -128,7 +128,7 @@ export const StatusIcon = hairline(CircleCheck);
 /** A failure, on the socket or in the app. */
 export const ErrorIcon = hairline(CircleX);
 /** Filters event names in the catalog. */
-export const SearchIcon = hairline(ListFilter);
+export const FilterIcon = hairline(ListFilter);
 /** Opens how a connection is dialled: headers, subprotocols, retry, keepalive. */
 export const SettingsIcon = hairline(Settings);
 /** Marks a setting that weakens the connection's own defences. */
