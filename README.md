@@ -125,16 +125,57 @@ Lo que eso implica mientras dure esta fase:
   conviene no confiarle todavía trabajo irrecuperable.
 - Los fallos son esperables. Reportarlos es la mejor forma de ayudar.
 
-Lo siguiente en la lista:
+## Lo que viene
 
-- **Configuración de la aplicación**: preferencias propias en lugar de valores
-  fijos.
-- **Más tipos de conexión**: hoy solo WebSocket puro; están pendientes las capas
-  que se montan encima, empezando por Socket.IO.
-- **Aviso de actualizaciones** desde la propia aplicación.
+Esta es la dirección del proyecto, contada por lo que vas a poder hacer. Sin
+fechas: el orden puede cambiar, y cambia sobre todo con lo que pida la gente que
+lo usa.
 
-Los fallos y las ideas se reportan en la
-[sección de issues](https://github.com/joalvm/hybi/issues).
+### Lo siguiente
+
+- **Ver los mensajes que no son texto.** Hoy, cuando llega algo que no son
+  letras, Hybi solo dice cuánto ocupa. Va a poder abrirse y mirarse por dentro.
+- **Llevarte la conversación fuera.** Copiar un mensaje suelto o guardar la
+  sesión entera en un archivo, para adjuntarla a un reporte o revisarla después.
+- **Ver solo lo que te interesa.** Filtrar la conversación por lo que enviaste,
+  lo que llegó o lo que falló, en vez de leerlo todo.
+- **Repetir un mensaje que te llegó**, sin copiarlo a mano.
+- **Que la aplicación recuerde cómo la dejaste**, empezando por el tema claro u
+  oscuro.
+- **Saber cuánto va moviendo cada conexión**: cuántos mensajes y cuánto pesan.
+
+### Camino a la primera versión estable
+
+- **Instaladores firmados.** Que Windows y macOS dejen de avisar de que el
+  programa viene de un origen desconocido. Es lo más importante de esta lista.
+- **Aviso de versión nueva** desde la propia aplicación, sin tener que pasar por
+  la web.
+- **Interfaz también en inglés**, manteniendo el español.
+- **Más tipos de conexión.** Hoy Hybi habla WebSocket a secas; falta lo que se
+  monta encima, empezando por Socket.IO, que es lo que usa mucha gente sin
+  saberlo.
+- **Pantalla de preferencias**, para ajustar la aplicación a tu gusto en lugar
+  de aceptar lo que viene puesto.
+- **Llevarte un espacio de trabajo a otro equipo**, o pasárselo a un compañero,
+  en un solo archivo.
+- **Ayuda con la autenticación**, para no tener que armar a mano la cabecera del
+  token cada vez.
+- **Envío repetido o programado**, para probar cómo aguanta un servidor.
+
+### Más adelante
+
+Ideas en el horizonte, todavía sin compromiso:
+
+- Otros tipos de conexión en tiempo real, más allá de los WebSockets.
+- Avisarte cuando un mensaje no cuadra con lo que el servidor dijo que iba a
+  mandar.
+- Comparar dos mensajes lado a lado para ver qué cambió.
+- Compartir catálogos con el equipo.
+- Un modo de prueba en el que Hybi haga de servidor.
+
+Si algo de esta lista te urge, o falta lo que de verdad necesitas, dilo en un
+[issue](https://github.com/joalvm/hybi/issues). Ese es el criterio para decidir
+qué se hace antes.
 
 ## Licencia
 
