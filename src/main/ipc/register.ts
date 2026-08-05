@@ -1,4 +1,5 @@
 import type { BrowserWindow, Menu } from 'electron';
+import { registerActivityHandlers } from './activity.handlers.js';
 import { registerAsyncApiHandlers } from './asyncapi.handlers.js';
 import { registerClipboardHandlers } from './clipboard.handlers.js';
 import { registerConnectionHandlers } from './connection.handlers.js';
@@ -35,7 +36,11 @@ export function registerAppIpc(actions: AppActions): () => void {
  * die with the workbench window rather than with the app.
  */
 export function registerWorkbenchIpc(window: BrowserWindow): () => void {
-  const disposers = [registerConnectionHandlers(window), registerAsyncApiHandlers(window)];
+  const disposers = [
+    registerConnectionHandlers(window),
+    registerAsyncApiHandlers(window),
+    registerActivityHandlers(window),
+  ];
 
   return () => {
     for (const dispose of disposers) dispose();

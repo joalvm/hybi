@@ -1,13 +1,5 @@
-import type { ActivityRecord } from '@shared/ipc/activity.js';
+import { ACTIVITY_KIND_LABEL, type ActivityRecord } from '@shared/ipc/activity.js';
 import { formatOffset } from './useActivityFilter.js';
-
-/** What the interface calls each kind, wherever a frame is named in words. */
-export const KIND_LABEL: Record<ActivityRecord['kind'], string> = {
-  outgoing: 'Saliente',
-  incoming: 'Entrante',
-  status: 'Estado',
-  error: 'Error',
-};
 
 /** What the clipboard receives: the frame itself, or the line as it is read. */
 export type CopyScope = 'body' | 'row';
@@ -20,7 +12,12 @@ export type CopyScope = 'body' | 'row';
  */
 export function rowText(record: ActivityRecord, origin: number): string {
   const body = record.body.replace(/\s+/g, ' ').trim();
-  return [formatOffset(record.at, origin), KIND_LABEL[record.kind], record.label, body].join('\t');
+  return [
+    formatOffset(record.at, origin),
+    ACTIVITY_KIND_LABEL[record.kind],
+    record.label,
+    body,
+  ].join('\t');
 }
 
 /** The text one scope puts on the clipboard. */

@@ -1,9 +1,8 @@
 import { useEffect, useMemo } from 'react';
-import type { ActivityRecord } from '@shared/ipc/activity.js';
+import { ACTIVITY_KIND_LABEL, type ActivityRecord } from '@shared/ipc/activity.js';
 import { modelFor, useMonacoEditor } from '@/shared/monaco/useMonacoEditor.js';
 import { CloseIcon, DuplicateIcon, SendIcon } from '@/shared/ui/icons.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
-import { KIND_LABEL } from './copy-text.js';
 
 /** One model for the whole pane: the detail is a viewer, not an editor. */
 const MODEL_KEY = 'activity:detail';
@@ -49,7 +48,7 @@ export function ActivityDetail({ record, onClose, onCopy, onResend, canResend }:
   return (
     <div className="flex h-full min-h-0 flex-col" data-testid="activity-detail">
       <header className="flex items-center gap-3 px-3 py-2 text-label">
-        <span>{KIND_LABEL[record.kind]}</span>
+        <span>{ACTIVITY_KIND_LABEL[record.kind]}</span>
         <span className="text-muted">{String(record.bytes)} B</span>
         <span className="text-muted">{new Date(record.at).toLocaleTimeString('es')}</span>
         <IconButton

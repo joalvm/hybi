@@ -2,6 +2,7 @@ import type { ComponentProps } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
 import { createWorkspace } from '@shared/domain/factory.js';
 import type { ActivityKind, ActivityRecord } from '@shared/ipc/activity.js';
 import { ActivityDetail } from '@/features/activity/ActivityDetail.js';
@@ -18,6 +19,13 @@ vi.mock('@/shared/monaco/useMonacoEditor.js', () => ({
   modelFor: () => ({ getValue: () => '', setValue: () => undefined }),
   useMonacoEditor: () => ({ containerRef: { current: null }, editorRef: { current: null } }),
 }));
+
+const bridgeMock = vi.hoisted(() => ({
+  activity: { export: vi.fn(() => Promise.resolve({ ok: true as const })) },
+  clipboard: { writeText: vi.fn(() => Promise.resolve()) },
+}));
+
+vi.mock('@/ipc/bridge.js', () => ({ bridge: bridgeMock }));
 
 const record = (over: Partial<ActivityRecord>): ActivityRecord => ({
   id: 'c1:1',
@@ -281,14 +289,62 @@ describe('resending a frame', () => {
   });
 });
 
+describe('exporting the session', () => {
+  beforeEach(() => {
+    useStore.getState().reset();
+    bridgeMock.activity.export.mockClear();
+  });
+
+  // The values were substituted into the frames before they went on the wire, so
+  // the log holds in plain text what the workspace file is never allowed to keep.
+  it('hands the log over with the secrets that have to be hidden', () => {
+    const workspace = createWorkspace('Demo');
+    workspace.environments.push({
+      id: 'env1',
+      name: 'local',
+      variables: [
+        { name: 'token', value: 's3cr3t', secret: true },
+        { name: 'host', value: '127.0.0.1', secret: false },
+      ],
+    });
+    workspace.connections.push({
+      id: 'c1',
+      name: 'echo',
+      environmentId: 'env1',
+      transport: { kind: 'websocket', url: 'ws://x', settings: cloneWebSocketSettings() },
+    });
+    useStore.getState().setWorkspace(workspace);
+    useStore.getState().appendActivity([record({ id: 'c1:1', body: 'auth=s3cr3t' })]);
+
+    render(<ActivityPanel connectionId="c1" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar la actividad' }));
+
+    expect(bridgeMock.activity.export).toHaveBeenCalledWith({
+      connectionName: 'echo',
+      records: useStore.getState().activity.c1,
+      secrets: [{ name: 'token', value: 's3cr3t' }],
+    });
+  });
+
+  it('offers nothing to export while the log is empty', () => {
+    render(<ActivityPanel connectionId="c1" />);
+
+    expect(
+      screen.getByRole('button', { name: 'Exportar la actividad' }).hasAttribute('disabled'),
+    ).toBe(true);
+  });
+});
+
 describe('ActivityToolbar', () => {
   const toolbar = (over: Partial<ComponentProps<typeof ActivityToolbar>> = {}) => (
     <ActivityToolbar
       query=""
       dropped={false}
       hidden={{}}
+      exportable
       onQueryChange={() => undefined}
       onToggleKind={() => undefined}
+      onExport={() => undefined}
       onClear={() => undefined}
       {...over}
     />

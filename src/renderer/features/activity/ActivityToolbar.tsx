@@ -1,7 +1,7 @@
 import type { ActivityKind } from '@shared/ipc/activity.js';
 import { Badge } from '@/shared/ui/Badge.js';
 import { Input } from '@/shared/ui/Input.js';
-import { TrashIcon } from '@/shared/ui/icons.js';
+import { ExportIcon, TrashIcon } from '@/shared/ui/icons.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import type { HiddenActivityKinds } from '@/store/ui.slice.js';
 import { ActivityKindFilter } from './ActivityKindFilter.js';
@@ -10,8 +10,11 @@ type Props = {
   query: string;
   dropped: boolean;
   hidden: HiddenActivityKinds;
+  /** False with an empty log: there would be nothing to write. */
+  exportable: boolean;
   onQueryChange: (query: string) => void;
   onToggleKind: (kind: ActivityKind) => void;
+  onExport: () => void;
   onClear: () => void;
 };
 
@@ -24,8 +27,10 @@ export function ActivityToolbar({
   query,
   dropped,
   hidden,
+  exportable,
   onQueryChange,
   onToggleKind,
+  onExport,
   onClear,
 }: Props) {
   return (
@@ -42,6 +47,9 @@ export function ActivityToolbar({
           onQueryChange(event.target.value);
         }}
       />
+      <IconButton label="Exportar la actividad" disabled={!exportable} onClick={onExport}>
+        <ExportIcon />
+      </IconButton>
       <IconButton label="Limpiar actividad" tone="danger" onClick={onClear}>
         <TrashIcon />
       </IconButton>

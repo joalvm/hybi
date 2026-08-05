@@ -4,7 +4,11 @@ import type {
   Workspace,
   WorkspaceSummary,
 } from '../domain/types.js';
-import type { ActivityRecord, ConnectionStateEvent } from './activity.js';
+import type {
+  ActivityExportRequest,
+  ActivityRecord,
+  ConnectionStateEvent,
+} from './activity.js';
 import type {
   CloseConnectionRequest,
   OpenConnectionRequest,
@@ -28,6 +32,7 @@ export const CHANNELS = {
   workspaceDelete: 'workspace:delete',
   asyncapiImport: 'asyncapi:import',
   asyncapiExport: 'asyncapi:export',
+  activityExport: 'activity:export',
   clipboardRead: 'clipboard:read',
   clipboardWrite: 'clipboard:write',
   windowMinimize: 'window:minimize',
@@ -102,6 +107,14 @@ export type WorkbenchBridge = {
   asyncapi: {
     import(): Promise<ImportOutcome>;
     export(workspace: Workspace): Promise<ExportOutcome>;
+  };
+  activity: {
+    /**
+     * Writes one connection's log where the user picks. The document is built in
+     * the main process: serialising thousands of frames is the kind of work that
+     * would be felt in the renderer, which is drawing the log at the same time.
+     */
+    export(request: ActivityExportRequest): Promise<ExportOutcome>;
   };
   /**
    * The renderer is denied every permission by the security policy, so

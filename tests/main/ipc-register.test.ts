@@ -96,6 +96,7 @@ describe('IPC registration', () => {
     expect(handlers.has(CHANNELS.connectionOpen)).toBe(false);
     expect(handlers.has(CHANNELS.asyncapiImport)).toBe(false);
     expect(handlers.has(CHANNELS.asyncapiExport)).toBe(false);
+    expect(handlers.has(CHANNELS.activityExport)).toBe(false);
     expect(handlers.has(CHANNELS.workspaceList)).toBe(true);
   });
 

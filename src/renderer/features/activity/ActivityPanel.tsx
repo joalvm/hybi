@@ -11,6 +11,7 @@ import { ActivityDetail } from './ActivityDetail.js';
 import { ActivityList } from './ActivityList.js';
 import { ActivityToolbar } from './ActivityToolbar.js';
 import { copyText, type CopyScope } from './copy-text.js';
+import { useActivityExport } from './useActivityExport.js';
 import { useActivityFilter } from './useActivityFilter.js';
 import { useActivityResend } from './useActivityResend.js';
 
@@ -32,6 +33,7 @@ export function ActivityPanel({ connectionId }: Props) {
   const setActivityQuery = useStore((state) => state.setActivityQuery);
   const toggleActivityKind = useStore((state) => state.toggleActivityKind);
   const replay = useActivityResend(connectionId);
+  const exportSession = useActivityExport(connectionId);
 
   // Read through `getState()` so the callback identity survives every batch and
   // the memoized rows are not repainted by an unrelated append. Clicking the
@@ -93,8 +95,10 @@ export function ActivityPanel({ connectionId }: Props) {
           query={query}
           dropped={dropped}
           hidden={hidden}
+          exportable={records.length > 0}
           onQueryChange={setActivityQuery}
           onToggleKind={toggleActivityKind}
+          onExport={exportSession}
           onClear={clear}
         />
       }
