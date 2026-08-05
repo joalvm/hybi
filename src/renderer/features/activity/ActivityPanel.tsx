@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import type { ActivityRecord } from '@shared/ipc/activity.js';
+import { bridge } from '@/ipc/bridge.js';
 import { Panel } from '@/shared/ui/Panel.js';
 import { SplitPane } from '@/shared/ui/SplitPane.js';
 import { useStore } from '@/store/index.js';
@@ -7,6 +9,7 @@ import { selectActivityFor } from '@/store/selectors.js';
 import { ActivityDetail } from './ActivityDetail.js';
 import { ActivityList } from './ActivityList.js';
 import { ActivityToolbar } from './ActivityToolbar.js';
+import { copyText, type CopyScope } from './copy-text.js';
 import { useActivityFilter } from './useActivityFilter.js';
 
 type Props = { connectionId: string };
@@ -57,8 +60,24 @@ export function ActivityPanel({ connectionId }: Props) {
   const selected =
     selectedId === null ? null : records.find((record) => record.id === selectedId) ?? null;
 
+  // The renderer has no clipboard of its own — the CSP denies the permission —
+  // so the text goes to the main process, which owns the system one. `origin` is
+  // the only dependency, and it already re-renders every row when it moves.
+  const copy = useCallback(
+    (record: ActivityRecord, scope: CopyScope) => {
+      void bridge.clipboard.writeText(copyText(record, scope, origin));
+    },
+    [origin],
+  );
+
   const list = (
-    <ActivityList records={visible} origin={origin} selectedId={selectedId} onSelect={select} />
+    <ActivityList
+      records={visible}
+      origin={origin}
+      selectedId={selectedId}
+      onSelect={select}
+      onCopy={copy}
+    />
   );
 
   return (
@@ -82,7 +101,13 @@ export function ActivityPanel({ connectionId }: Props) {
       ) : (
         <SplitPane direction="column" initial={40} min={15}>
           {list}
-          <ActivityDetail record={selected} onClose={closeDetail} />
+          <ActivityDetail
+            record={selected}
+            onClose={closeDetail}
+            onCopy={() => {
+              copy(selected, 'body');
+            }}
+          />
         </SplitPane>
       )}
     </Panel>

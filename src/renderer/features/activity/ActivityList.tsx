@@ -2,6 +2,7 @@ import { useEffect, useRef, type UIEvent } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type { ActivityRecord } from '@shared/ipc/activity.js';
 import { ActivityRow } from './ActivityRow.js';
+import type { CopyScope } from './copy-text.js';
 
 /** How close to the top still counts as "following the head", in pixels. */
 const PIN_THRESHOLD = 24;
@@ -11,9 +12,10 @@ type Props = {
   origin: number;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onCopy: (record: ActivityRecord, scope: CopyScope) => void;
 };
 
-export function ActivityList({ records, origin, selectedId, onSelect }: Props) {
+export function ActivityList({ records, origin, selectedId, onSelect, onCopy }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   // A ref, not state: this flips on every scroll frame and must never re-render.
   const pinned = useRef(true);
@@ -62,6 +64,7 @@ export function ActivityList({ records, origin, selectedId, onSelect }: Props) {
                 origin={origin}
                 selected={record.id === selectedId}
                 onSelect={onSelect}
+                onCopy={onCopy}
               />
             </div>
           );

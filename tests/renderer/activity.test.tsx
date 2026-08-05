@@ -1,9 +1,12 @@
 import type { ComponentProps } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ActivityKind, ActivityRecord } from '@shared/ipc/activity.js';
+import { ActivityDetail } from '@/features/activity/ActivityDetail.js';
 import { ActivityPanel } from '@/features/activity/ActivityPanel.js';
 import { ActivityRow } from '@/features/activity/ActivityRow.js';
+import { rowText } from '@/features/activity/copy-text.js';
 import { ActivityToolbar } from '@/features/activity/ActivityToolbar.js';
 import { formatOffset, newestFirstMatching } from '@/features/activity/useActivityFilter.js';
 import { useStore } from '@/store/index.js';
@@ -96,6 +99,7 @@ describe('ActivityRow', () => {
         origin={1000}
         selected={false}
         onSelect={() => undefined}
+        onCopy={() => undefined}
       />,
     );
     expect(screen.getByText('DeviceLogin')).toBeTruthy();
@@ -117,6 +121,7 @@ describe('ActivityRow', () => {
         origin={1000}
         selected={false}
         onSelect={() => undefined}
+        onCopy={() => undefined}
       />,
     );
     expect(screen.queryByText('echo:{ "ok": true }')).toBeNull();
@@ -130,10 +135,75 @@ describe('ActivityRow', () => {
         origin={1000}
         selected={false}
         onSelect={() => undefined}
+        onCopy={() => undefined}
       />,
     );
     expect(screen.getByText('Cerrado (1000)')).toBeTruthy();
     expect(screen.getByText('going away')).toBeTruthy();
+  });
+});
+
+describe('copying a frame', () => {
+  it('writes the row as one line, with the offset and the direction', () => {
+    expect(
+      rowText(record({ kind: 'outgoing', label: 'DeviceLogin', body: '{\n  "a": 1\n}', at: 3800 }), 1000),
+    ).toBe('00:02.8\tSaliente\tDeviceLogin\t{ "a": 1 }');
+  });
+
+  it('offers both scopes and reports which one was picked', async () => {
+    const user = userEvent.setup();
+    const copied: string[] = [];
+    const frame = record({ body: '{"ok":true}' });
+    render(
+      <ActivityRow
+        record={frame}
+        origin={1000}
+        selected={false}
+        onSelect={() => undefined}
+        onCopy={(_record, scope) => copied.push(scope)}
+      />,
+    );
+
+    await user.pointer({ keys: '[MouseRight]', target: screen.getByRole('button') });
+    expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+      'Copiar cuerpo',
+      'Copiar fila',
+    ]);
+
+    await user.click(screen.getByRole('menuitem', { name: 'Copiar cuerpo' }));
+    expect(copied).toEqual(['body']);
+  });
+
+  // The row is a button and the log is walked with the keyboard: the shortcut
+  // has to work where the focus already is, without opening the menu.
+  it('copies the body with the keyboard from the focused row', () => {
+    const copied: string[] = [];
+    render(
+      <ActivityRow
+        record={record({})}
+        origin={1000}
+        selected={false}
+        onSelect={() => undefined}
+        onCopy={(_record, scope) => copied.push(scope)}
+      />,
+    );
+
+    fireEvent.keyDown(screen.getByRole('button'), { key: 'c', ctrlKey: true });
+    expect(copied).toEqual(['body']);
+  });
+
+  it('copies the exact frame from the detail pane, not the pretty-printed one', () => {
+    const copied: string[] = [];
+    render(
+      <ActivityDetail
+        record={record({ body: '{"ok":true}' })}
+        onClose={() => undefined}
+        onCopy={() => copied.push('body')}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copiar el frame' }));
+    expect(copied).toEqual(['body']);
   });
 });
 
