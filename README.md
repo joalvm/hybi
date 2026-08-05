@@ -47,7 +47,13 @@ está viajando por una línea que normalmente es invisible.
   cortar y volver a conectar cuando quieras.
 - **Ver la conversación completa.** Todo lo que entra y sale queda en pantalla,
   en orden y en el momento en que ocurre. Puedes detenerte en cualquier mensaje y
-  leerlo con calma.
+  leerlo con calma, filtrar por lo que enviaste, lo que llegó o lo que falló, y
+  ver de un vistazo cuántos mensajes lleva movidos la conexión y cuánto pesan.
+- **Llevarte lo que viste.** Copias un mensaje suelto o guardas la sesión entera
+  en un archivo —JSON o texto— para adjuntarla a un reporte. Las claves marcadas
+  como secretas no salen en el archivo.
+- **Repetir un mensaje que te llegó.** Un clic lo carga en el editor, listo para
+  reenviarlo tal cual o con cambios.
 - **Enviar mensajes.** Escribes lo que quieras mandar y lo envías. Ni más ni
   menos: llega exactamente lo que escribiste.
 - **Guardar los mensajes que repites.** Los que usas siempre se quedan en un
@@ -121,8 +127,10 @@ Lo que eso implica mientras dure esta fase:
 
 - Siguen entrando funciones nuevas, así que la interfaz puede moverse de una
   versión a otra.
-- El formato de los archivos guardados puede cambiar; se migra al abrir, pero
-  conviene no confiarle todavía trabajo irrecuperable.
+- El formato de los archivos guardados puede cambiar, y mientras dure la alpha
+  cambia sin conversión automática: un espacio de trabajo escrito por una
+  versión anterior puede dejar de abrirse. Conviene no confiarle todavía trabajo
+  irrecuperable.
 - Los fallos son esperables. Reportarlos es la mejor forma de ayudar.
 
 ## Lo que viene
@@ -135,14 +143,10 @@ lo usa.
 
 - **Ver los mensajes que no son texto.** Hoy, cuando llega algo que no son
   letras, Hybi solo dice cuánto ocupa. Va a poder abrirse y mirarse por dentro.
-- **Llevarte la conversación fuera.** Copiar un mensaje suelto o guardar la
-  sesión entera en un archivo, para adjuntarla a un reporte o revisarla después.
-- **Ver solo lo que te interesa.** Filtrar la conversación por lo que enviaste,
-  lo que llegó o lo que falló, en vez de leerlo todo.
-- **Repetir un mensaje que te llegó**, sin copiarlo a mano.
 - **Que la aplicación recuerde cómo la dejaste**, empezando por el tema claro u
   oscuro.
-- **Saber cuánto va moviendo cada conexión**: cuántos mensajes y cuánto pesan.
+- **Avisar cuando un espacio de trabajo no se puede leer**, en vez de dejarlo
+  fuera de la lista sin decir nada.
 
 ### Camino a la primera versión estable
 

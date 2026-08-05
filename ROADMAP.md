@@ -129,8 +129,8 @@ defendibles:
 ### Recomendación de alcance
 
 **No añadir transportes hasta cerrar la beta.** El orden que maximiza retorno
-por esfuerzo es: binarios → exportar el log → inglés → firma → Socket.IO. Todo
-lo demás puede esperar a después de la 1.0.
+por esfuerzo es: binarios → inglés → firma → Socket.IO. Exportar el log ya está
+hecho, en la 0.3.0-alpha.6. Todo lo demás puede esperar a después de la 1.0.
 
 ---
 
@@ -146,18 +146,19 @@ ningún flujo que la app ya promete**, con el formato de datos congelado.
       enseña binario es medio cliente.
 - [ ] **Enviar frames binarios.** `WebSocketTransportMessage` sólo lleva
       `text`. Falta el modo binario en el composer (hex, base64 o archivo).
-- [ ] **Copiar un frame.** Ni el cuerpo ni la fila se pueden copiar. Con el
-      log siendo el producto, no poder sacar nada de él es contradictorio.
-- [ ] **Exportar la sesión.** Volcar el log a JSON o texto. Es el paso natural
-      después de «inspeccionar»: pegarlo en un ticket o en un chat.
-- [ ] **Filtrar el log por tipo.** Sólo hay búsqueda de texto. Faltan
-      entrante / saliente / estado / error, que es como se lee un log real.
-- [ ] **Reenviar un frame recibido.** Un clic desde una fila entrante al
-      composer. Es el atajo que la gente busca a los diez minutos de uso.
+- [x] **Copiar un frame.** Menú contextual en la fila, Ctrl+C con el foco
+      puesto en ella y botón en el detalle. El cuerpo sale exacto.
+- [x] **Exportar la sesión.** JSON o texto plano, con el diálogo de guardado
+      del sistema. Los secretos resueltos vuelven a escribirse como
+      `{{variable}}` antes de tocar el disco.
+- [x] **Filtrar el log por tipo.** Entrante, saliente, estado y error,
+      combinados con la búsqueda de texto en una sola pasada.
+- [x] **Reenviar un frame recibido.** Un clic desde la fila o desde el detalle
+      al composer, preguntando antes de pisar un borrador sin guardar.
 - [ ] **Persistir el tema** y retirar el `ThemeToggle` temporal a su sitio
       definitivo.
-- [ ] **Contador de mensajes y bytes por conexión** en la pestaña o la barra.
-      Barato de hacer y es la primera pregunta de cualquiera que depura.
+- [x] **Contador de mensajes y bytes por conexión** en la barra de conexión.
+      Se acumula cuando aterriza cada lote, no se deriva del log recortado.
 
 ### Robustez
 
@@ -280,12 +281,12 @@ habitual.**
 | Frente | Estado | Riesgo |
 | --- | --- | --- |
 | Ingeniería y seguridad | Sólido, por encima de la etiqueta alpha | Bajo |
-| Alcance funcional | Falta binario, exportar log y Socket.IO | **Alto** |
+| Alcance funcional | Falta binario y Socket.IO | **Alto** |
 | Distribución | Sin firmar: la mayor pérdida de usuarios | **Crítico** |
 | Alcance de mercado | Sólo español | **Alto** |
 | Diferenciación | AsyncAPI + headers + local: real y defendible | Bajo |
 | Monetización | Sin modelo | Medio, aplazable |
 
 **Los tres siguientes movimientos, en orden:** frames binarios (cierra el hueco
-funcional más visible), exportar el log (cierra la promesa de *Inspect*) y la
-capa de idioma con inglés (cuanto más tarde, más cara).
+funcional más visible), preferencias de aplicación (donde vive todo lo que hoy
+es constante) y la capa de idioma con inglés (cuanto más tarde, más cara).

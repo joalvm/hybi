@@ -22,22 +22,22 @@ revisión. `S` = 0,5–1 día. `M` = 2–4 días. `L` = 5–10 días. Total apro
 
 ## Orden de ejecución
 
-| # | Punto | Coste | Fase |
-| --- | --- | --- | --- |
-| 1 | Contador de mensajes y bytes por conexión | S | Cosecha rápida |
-| 2 | Filtro del log por tipo | S | Cosecha rápida |
-| 3 | Copiar un frame | S | Cosecha rápida |
-| 4 | Reenviar un frame recibido | S | Cosecha rápida |
-| 5 | Exportar la sesión a un archivo | M | Cosecha rápida |
-| 6 | Preferencias de aplicación | M | Cimientos |
-| 7 | Capa de idiomas (español + inglés) | M–L | Cimientos |
-| 8 | Integridad del workspace | M | Datos |
-| 9 | Diagnóstico: errores legibles y log en disco | M | Datos |
-| 10 | Frames binarios: ver y enviar | L | Protocolo |
-| 11 | Socket.IO | L | Protocolo |
-| 12 | `CHANGELOG.md` | S | Higiene |
-| 13 | Deuda del repositorio | S | Higiene |
-| 14 | Umbral de cobertura, carga y accesibilidad | M | Higiene |
+| # | Punto | Coste | Fase | Estado |
+| --- | --- | --- | --- | --- |
+| 1 | Contador de mensajes y bytes por conexión | S | Cosecha rápida | hecho |
+| 2 | Filtro del log por tipo | S | Cosecha rápida | hecho |
+| 3 | Copiar un frame | S | Cosecha rápida | hecho |
+| 4 | Reenviar un frame recibido | S | Cosecha rápida | hecho |
+| 5 | Exportar la sesión a un archivo | M | Cosecha rápida | hecho |
+| 6 | Preferencias de aplicación | M | Cimientos | pendiente |
+| 7 | Capa de idiomas (español + inglés) | M–L | Cimientos | pendiente |
+| 8 | Integridad del workspace | M | Datos | pendiente |
+| 9 | Diagnóstico: errores legibles y log en disco | M | Datos | pendiente |
+| 10 | Frames binarios: ver y enviar | L | Protocolo | pendiente |
+| 11 | Socket.IO | L | Protocolo | pendiente |
+| 12 | `CHANGELOG.md` | S | Higiene | pendiente |
+| 13 | Deuda del repositorio | S | Higiene | pendiente |
+| 14 | Umbral de cobertura, carga y accesibilidad | M | Higiene | pendiente |
 
 ---
 

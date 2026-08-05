@@ -105,7 +105,9 @@ test('connect, send an event and read it in the detail pane', async () => {
 
     await window.getByRole('button', { name: 'Enviar' }).click();
 
-    const incoming = window.getByLabel('entrante');
+    // The row, not the log's «Entrantes» filter: an accessible name is matched
+    // as a substring, and one contains the other.
+    const incoming = window.getByRole('button', { name: /^entrante / });
     await expect(incoming).toBeVisible();
     await incoming.click();
 
