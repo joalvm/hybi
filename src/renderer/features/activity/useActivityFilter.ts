@@ -1,5 +1,9 @@
 import { useMemo } from 'react';
 import type { ActivityRecord } from '@shared/ipc/activity.js';
+import type { HiddenActivityKinds } from '@/store/ui.slice.js';
+
+/** Nothing hidden, as a module constant so the default keeps one identity. */
+const NOTHING_HIDDEN: HiddenActivityKinds = {};
 
 /**
  * The query compiled once for the whole pass, or `null` when there is nothing to
@@ -32,15 +36,24 @@ export function formatOffset(at: number, origin: number): string {
  * flood that is sixty throwaway copies a second, and the second one existed only
  * to put the newest frame on top.
  *
+ * The kind filter is answered inside the same walk, before the pattern: a hidden
+ * frame is the cheapest one to reject, and chaining a second pass for it would
+ * bring back the copy this function exists to avoid.
+ *
  * The store's array is never touched: it is shared with every other reader.
  */
-export function newestFirstMatching(records: ActivityRecord[], query: string): ActivityRecord[] {
+export function newestFirstMatching(
+  records: ActivityRecord[],
+  query: string,
+  hidden: HiddenActivityKinds = NOTHING_HIDDEN,
+): ActivityRecord[] {
   const pattern = matcher(query);
   const visible: ActivityRecord[] = [];
 
   for (let index = records.length - 1; index >= 0; index -= 1) {
     const record = records[index];
     if (record === undefined) continue;
+    if (hidden[record.kind] === true) continue;
     if (pattern === null || pattern.test(record.label) || pattern.test(record.body)) {
       visible.push(record);
     }
@@ -49,6 +62,10 @@ export function newestFirstMatching(records: ActivityRecord[], query: string): A
   return visible;
 }
 
-export function useActivityFilter(records: ActivityRecord[], query: string): ActivityRecord[] {
-  return useMemo(() => newestFirstMatching(records, query), [records, query]);
+export function useActivityFilter(
+  records: ActivityRecord[],
+  query: string,
+  hidden: HiddenActivityKinds = NOTHING_HIDDEN,
+): ActivityRecord[] {
+  return useMemo(() => newestFirstMatching(records, query, hidden), [records, query, hidden]);
 }

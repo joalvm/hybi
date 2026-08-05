@@ -1,8 +1,14 @@
+import type { ComponentProps } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ActivityRecord } from '@shared/ipc/activity.js';
+import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
+import { createWorkspace } from '@shared/domain/factory.js';
+import type { ActivityKind, ActivityRecord } from '@shared/ipc/activity.js';
+import { ActivityDetail } from '@/features/activity/ActivityDetail.js';
 import { ActivityPanel } from '@/features/activity/ActivityPanel.js';
 import { ActivityRow } from '@/features/activity/ActivityRow.js';
+import { rowText } from '@/features/activity/copy-text.js';
 import { ActivityToolbar } from '@/features/activity/ActivityToolbar.js';
 import { formatOffset, newestFirstMatching } from '@/features/activity/useActivityFilter.js';
 import { useStore } from '@/store/index.js';
@@ -13,6 +19,13 @@ vi.mock('@/shared/monaco/useMonacoEditor.js', () => ({
   modelFor: () => ({ getValue: () => '', setValue: () => undefined }),
   useMonacoEditor: () => ({ containerRef: { current: null }, editorRef: { current: null } }),
 }));
+
+const bridgeMock = vi.hoisted(() => ({
+  activity: { export: vi.fn(() => Promise.resolve({ ok: true as const })) },
+  clipboard: { writeText: vi.fn(() => Promise.resolve()) },
+}));
+
+vi.mock('@/ipc/bridge.js', () => ({ bridge: bridgeMock }));
 
 const record = (over: Partial<ActivityRecord>): ActivityRecord => ({
   id: 'c1:1',
@@ -47,6 +60,25 @@ describe('newestFirstMatching', () => {
     expect(records.map((item) => item.id)).toEqual(['a', 'b', 'c']);
   });
 
+  // Both filters are answered in the same walk of the log: a hidden kind never
+  // reaches the pattern, and a second array is never built to drop it.
+  it('combines the query with the kinds that are hidden', () => {
+    const records = [
+      record({ id: 'a', kind: 'incoming', label: 'DeviceLogin', body: '{}' }),
+      record({ id: 'b', kind: 'status', label: 'Conectado', body: 'device' }),
+      record({ id: 'c', kind: 'outgoing', label: 'DeviceLogin', body: '{}' }),
+    ];
+
+    expect(newestFirstMatching(records, '', { status: true }).map((item) => item.id)).toEqual([
+      'c',
+      'a',
+    ]);
+    expect(
+      newestFirstMatching(records, 'device', { outgoing: true }).map((item) => item.id),
+    ).toEqual(['b', 'a']);
+    expect(newestFirstMatching(records, '', { incoming: true, outgoing: true, status: true })).toHaveLength(0);
+  });
+
   // The needle is compiled into a pattern, so anything a user types has to be
   // taken literally rather than as syntax.
   it('treats regular expression syntax in the query as text', () => {
@@ -76,6 +108,9 @@ describe('ActivityRow', () => {
         origin={1000}
         selected={false}
         onSelect={() => undefined}
+        onCopy={() => undefined}
+        onResend={() => undefined}
+        canResend={false}
       />,
     );
     expect(screen.getByText('DeviceLogin')).toBeTruthy();
@@ -97,6 +132,9 @@ describe('ActivityRow', () => {
         origin={1000}
         selected={false}
         onSelect={() => undefined}
+        onCopy={() => undefined}
+        onResend={() => undefined}
+        canResend={false}
       />,
     );
     expect(screen.queryByText('echo:{ "ok": true }')).toBeNull();
@@ -110,6 +148,9 @@ describe('ActivityRow', () => {
         origin={1000}
         selected={false}
         onSelect={() => undefined}
+        onCopy={() => undefined}
+        onResend={() => undefined}
+        canResend={false}
       />,
     );
     expect(screen.getByText('Cerrado (1000)')).toBeTruthy();
@@ -117,27 +158,225 @@ describe('ActivityRow', () => {
   });
 });
 
-describe('ActivityToolbar', () => {
-  it('warns only when the peer closed the socket', () => {
-    const { rerender } = render(
-      <ActivityToolbar
-        query=""
-        dropped={false}
-        onQueryChange={() => undefined}
-        onClear={() => undefined}
+describe('copying a frame', () => {
+  it('writes the row as one line, with the offset and the direction', () => {
+    expect(
+      rowText(record({ kind: 'outgoing', label: 'DeviceLogin', body: '{\n  "a": 1\n}', at: 3800 }), 1000),
+    ).toBe('00:02.8\tSaliente\tDeviceLogin\t{ "a": 1 }');
+  });
+
+  it('offers both scopes and reports which one was picked', async () => {
+    const user = userEvent.setup();
+    const copied: string[] = [];
+    const frame = record({ body: '{"ok":true}' });
+    render(
+      <ActivityRow
+        record={frame}
+        origin={1000}
+        selected={false}
+        onSelect={() => undefined}
+        onCopy={(_record, scope) => copied.push(scope)}
+        onResend={() => undefined}
+        canResend
       />,
     );
+
+    await user.pointer({ keys: '[MouseRight]', target: screen.getByRole('button') });
+    expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+      'Copiar cuerpo',
+      'Copiar fila',
+      'Reenviar al composer',
+    ]);
+
+    await user.click(screen.getByRole('menuitem', { name: 'Copiar cuerpo' }));
+    expect(copied).toEqual(['body']);
+  });
+
+  // The row is a button and the log is walked with the keyboard: the shortcut
+  // has to work where the focus already is, without opening the menu.
+  it('copies the body with the keyboard from the focused row', () => {
+    const copied: string[] = [];
+    render(
+      <ActivityRow
+        record={record({})}
+        origin={1000}
+        selected={false}
+        onSelect={() => undefined}
+        onCopy={(_record, scope) => copied.push(scope)}
+        onResend={() => undefined}
+        canResend
+      />,
+    );
+
+    fireEvent.keyDown(screen.getByRole('button'), { key: 'c', ctrlKey: true });
+    expect(copied).toEqual(['body']);
+  });
+
+  it('copies the exact frame from the detail pane, not the pretty-printed one', () => {
+    const copied: string[] = [];
+    render(
+      <ActivityDetail
+        record={record({ body: '{"ok":true}' })}
+        onClose={() => undefined}
+        onCopy={() => copied.push('body')}
+        onResend={() => undefined}
+        canResend={false}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copiar el frame' }));
+    expect(copied).toEqual(['body']);
+  });
+});
+
+describe('resending a frame', () => {
+  const workspaceWithEvent = (): void => {
+    const workspace = createWorkspace('Demo');
+    const [collection] = workspace.catalog.collections;
+    workspace.catalog.items.push({
+      id: 'e1',
+      collectionId: collection?.id ?? '',
+      name: 'Ping',
+      payload: '{"a":1}',
+      source: 'manual',
+    });
+    useStore.getState().setWorkspace(workspace);
+    useStore.getState().setSelectedEvent('c1', 'e1');
+  };
+
+  const openDetail = (): void => {
+    useStore.getState().appendActivity([record({ id: 'c1:1', body: '{"from":"server"}' })]);
+    render(<ActivityPanel connectionId="c1" />);
+    act(() => {
+      useStore.getState().setSelectedActivity('c1', 'c1:1');
+    });
+  };
+
+  beforeEach(() => {
+    useStore.getState().reset();
+  });
+
+  it('loads the frame into the composer when no edit is at risk', () => {
+    workspaceWithEvent();
+    openDetail();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reenviar al composer' }));
+
+    expect(useStore.getState().drafts['c1:e1']).toBe('{"from":"server"}');
+  });
+
+  // Overwriting an unsaved payload without asking is the one way this action
+  // can destroy work the user cannot get back.
+  it('asks before replacing a draft with unsaved changes', async () => {
+    const user = userEvent.setup();
+    workspaceWithEvent();
+    useStore.getState().setDraft('c1', 'e1', '{"a":2}');
+    openDetail();
+
+    await user.click(screen.getByRole('button', { name: 'Reenviar al composer' }));
+    expect(useStore.getState().drafts['c1:e1']).toBe('{"a":2}');
+
+    await user.click(screen.getByRole('button', { name: 'Reemplazar' }));
+    expect(useStore.getState().drafts['c1:e1']).toBe('{"from":"server"}');
+  });
+
+  it('offers nothing to resend into while no event is open', () => {
+    openDetail();
+
+    expect(
+      screen.getByRole('button', { name: 'Reenviar al composer' }).hasAttribute('disabled'),
+    ).toBe(true);
+  });
+});
+
+describe('exporting the session', () => {
+  beforeEach(() => {
+    useStore.getState().reset();
+    bridgeMock.activity.export.mockClear();
+  });
+
+  // The values were substituted into the frames before they went on the wire, so
+  // the log holds in plain text what the workspace file is never allowed to keep.
+  it('hands the log over with the secrets that have to be hidden', () => {
+    const workspace = createWorkspace('Demo');
+    workspace.environments.push({
+      id: 'env1',
+      name: 'local',
+      variables: [
+        { name: 'token', value: 's3cr3t', secret: true },
+        { name: 'host', value: '127.0.0.1', secret: false },
+      ],
+    });
+    workspace.connections.push({
+      id: 'c1',
+      name: 'echo',
+      environmentId: 'env1',
+      transport: { kind: 'websocket', url: 'ws://x', settings: cloneWebSocketSettings() },
+    });
+    useStore.getState().setWorkspace(workspace);
+    useStore.getState().appendActivity([record({ id: 'c1:1', body: 'auth=s3cr3t' })]);
+
+    render(<ActivityPanel connectionId="c1" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar la actividad' }));
+
+    expect(bridgeMock.activity.export).toHaveBeenCalledWith({
+      connectionName: 'echo',
+      records: useStore.getState().activity.c1,
+      secrets: [{ name: 'token', value: 's3cr3t' }],
+    });
+  });
+
+  it('offers nothing to export while the log is empty', () => {
+    render(<ActivityPanel connectionId="c1" />);
+
+    expect(
+      screen.getByRole('button', { name: 'Exportar la actividad' }).hasAttribute('disabled'),
+    ).toBe(true);
+  });
+});
+
+describe('ActivityToolbar', () => {
+  const toolbar = (over: Partial<ComponentProps<typeof ActivityToolbar>> = {}) => (
+    <ActivityToolbar
+      query=""
+      dropped={false}
+      hidden={{}}
+      exportable
+      onQueryChange={() => undefined}
+      onToggleKind={() => undefined}
+      onExport={() => undefined}
+      onClear={() => undefined}
+      {...over}
+    />
+  );
+
+  it('warns only when the peer closed the socket', () => {
+    const { rerender } = render(toolbar());
     expect(screen.queryByText('Desconectado')).toBeNull();
 
-    rerender(
-      <ActivityToolbar
-        query=""
-        dropped
-        onQueryChange={() => undefined}
-        onClear={() => undefined}
-      />,
-    );
+    rerender(toolbar({ dropped: true }));
     expect(screen.getByText('Desconectado')).toBeTruthy();
+  });
+
+  it('marks each kind as shown or hidden and reports the change', () => {
+    const toggled: ActivityKind[] = [];
+    const { rerender } = render(
+      toolbar({
+        onToggleKind: (kind) => {
+          toggled.push(kind);
+        },
+      }),
+    );
+
+    const status = screen.getByRole('button', { name: 'Estado' });
+    expect(status.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(status);
+    expect(toggled).toEqual(['status']);
+
+    rerender(toolbar({ hidden: { status: true } }));
+    expect(screen.getByRole('button', { name: 'Estado' }).getAttribute('aria-pressed')).toBe(
+      'false',
+    );
   });
 });
 

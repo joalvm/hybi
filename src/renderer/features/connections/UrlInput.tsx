@@ -1,14 +1,15 @@
-import clsx from 'clsx';
-import { useMemo, useRef } from 'react';
-import { scanVariables } from '@shared/variables/scan.js';
-
-type Tone = 'plain' | 'resolved' | 'missing';
-export type UrlSegment = { text: string; tone: Tone; name?: string };
+import { useId, useLayoutEffect, useMemo, useRef, type KeyboardEvent, type PointerEvent } from 'react';
+import type { VariableScope } from '@shared/variables/resolve.js';
+import { paintSegments, readCaret, readSelection, readText, writeCaret } from './urlCaret.js';
+import { urlSegments } from './urlSegments.js';
+import { useUrlSuggestions } from './useUrlSuggestions.js';
+import { VariableSuggestions } from './VariableSuggestions.js';
 
 type Props = {
   value: string;
   /** Names the current scope cannot resolve. Derived by the caller, not here. */
   missing: readonly string[];
+  scope: VariableScope;
   onChange: (value: string) => void;
   /**
    * A variable was pointed at. The rectangle is the token's own box, so the
@@ -17,93 +18,126 @@ type Props = {
   onVariablePoint: (name: string, rect: DOMRect | null) => void;
 };
 
-const TONE_CLASS: Record<Tone, string | false> = {
-  plain: false,
-  resolved: 'wsw-var-resolved',
-  missing: 'wsw-var-missing',
-};
-
-/** Splits a URL template so the mirror can colour `{{var}}` like the editor. */
-export function urlSegments(text: string, missing: readonly string[]): UrlSegment[] {
-  const segments: UrlSegment[] = [];
-  let cursor = 0;
-
-  for (const token of scanVariables(text)) {
-    if (token.start > cursor) {
-      segments.push({ text: text.slice(cursor, token.start), tone: 'plain' });
-    }
-    segments.push({
-      text: text.slice(token.start, token.end),
-      tone: missing.includes(token.name) ? 'missing' : 'resolved',
-      name: token.name,
-    });
-    cursor = token.end;
-  }
-
-  if (cursor < text.length) segments.push({ text: text.slice(cursor), tone: 'plain' });
-  return segments;
+/** The token under the pointer, if the pointer is over one at all. */
+function tokenAt(event: PointerEvent<HTMLDivElement>): HTMLElement | null {
+  const target = event.target;
+  if (!(target instanceof Element)) return null;
+  return target.closest<HTMLElement>('[data-variable]');
 }
 
 /**
- * A transparent input over a coloured mirror. Monaco would give the same
- * highlighting, but a second editor instance for one line of text costs a
- * worker and a model — the mirror costs a `<span>` per token.
+ * A `contenteditable`, not an `<input>` under a coloured mirror. A mirror has
+ * to match the field's text metrics character for character, which rules out
+ * the padding a token pill needs: the pill's box ended up painted outside its
+ * own text and covered the characters on either side of it.
+ *
+ * Here a token is a real inline box, so the space it takes is the space the
+ * caret walks. The price is that an edit has to be read back out of the DOM,
+ * and that the field is repainted rather than reconciled — see `urlCaret.ts`.
  */
-export function UrlInput({ value, missing, onChange, onVariablePoint }: Props) {
+export function UrlInput({ value, missing, scope, onChange, onVariablePoint }: Props) {
   const segments = useMemo(() => urlSegments(value, missing), [value, missing]);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestions = useUrlSuggestions(value, scope);
+  const editorRef = useRef<HTMLDivElement>(null);
+  const caret = useRef<number | null>(null);
+  const listboxId = `url-variable-suggestions${useId()}`;
+  const open = suggestions.variables.length > 0;
+
+  // No dependency list: the text the browser left in the field is the only
+  // thing that can say whether a repaint is owed, and reading it is a
+  // `textContent` away. A pending caret means the edit was ours, so the tokens
+  // have to be rebuilt even when the characters already match.
+  useLayoutEffect(() => {
+    const root = editorRef.current;
+    if (root === null) return;
+    const offset = caret.current;
+    caret.current = null;
+    if (offset === null && readText(root) === value) return;
+
+    paintSegments(root, segments);
+    if (offset !== null) writeCaret(root, offset);
+  });
+
+  const edit = (next: string, cursor: number): void => {
+    caret.current = cursor;
+    onChange(next);
+  };
+
+  const complete = (name: string): void => {
+    const completion = suggestions.complete(name);
+    if (completion === null) return;
+    editorRef.current?.focus();
+    edit(completion.url, completion.caret);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    // One line only: a break lands text where no character offset describes it.
+    if (event.key === 'Enter') event.preventDefault();
+    if (!open) return;
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      suggestions.dismiss();
+      return;
+    }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      suggestions.step(event.key === 'ArrowDown' ? 1 : -1);
+      return;
+    }
+    const selected = suggestions.variables[suggestions.activeIndex];
+    if (event.key === 'Enter' && selected !== undefined) complete(selected.name);
+  };
 
   return (
     <div className="relative h-7.5 min-w-0 flex-1 rounded-ui border border-border bg-panel focus-within:border-accent focus-within:outline focus-within:outline-1 focus-within:outline-accent">
       <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-1 h-full w-full overflow-hidden border-0 bg-transparent px-2 font-mono leading-url whitespace-pre text-foreground"
-        data-part="url-input-mirror"
-      >
-        {segments.map((segment, index) => (
-          // Segments are regenerated whole on every keystroke, so the index is
-          // the only stable identity a token has.
-          <span
-            key={index}
-            className={clsx(
-              TONE_CLASS[segment.tone],
-              segment.name !== undefined && 'pointer-events-auto cursor-pointer',
-            )}
-            onPointerEnter={(event) => {
-              if (segment.name === undefined) return;
-              onVariablePoint(segment.name, event.currentTarget.getBoundingClientRect());
-            }}
-            onPointerLeave={() => {
-              if (segment.name === undefined) return;
-              onVariablePoint(segment.name, null);
-            }}
-            onClick={(event) => {
-              if (segment.name === undefined) return;
-              // The click must not be swallowed: the field is what the user was
-              // aiming at, so the caret lands at the end of the token as well.
-              const end = segments
-                .slice(0, index + 1)
-                .reduce((total, entry) => total + entry.text.length, 0);
-              inputRef.current?.focus();
-              inputRef.current?.setSelectionRange(end, end);
-              onVariablePoint(segment.name, event.currentTarget.getBoundingClientRect());
-            }}
-          >
-            {segment.text}
-          </span>
-        ))}
-      </div>
-      <input
-        ref={inputRef}
-        className="url-input-field-runtime relative h-full w-full border-0 bg-transparent px-2 font-mono leading-url whitespace-pre text-transparent caret-foreground focus-visible:outline-none"
+        ref={editorRef}
+        className="h-full w-full overflow-hidden px-2 font-ui text-ui leading-url font-normal whitespace-pre text-foreground caret-foreground outline-none"
         data-part="url-input-field"
+        contentEditable
+        role="combobox"
         aria-label="URL"
+        aria-autocomplete="list"
+        aria-expanded={open}
+        aria-controls={open ? listboxId : undefined}
+        aria-activedescendant={open ? `${listboxId}-${String(suggestions.activeIndex)}` : undefined}
         spellCheck={false}
-        autoComplete="off"
-        value={value}
-        onChange={(event) => {
-          onChange(event.target.value);
+        onInput={() => {
+          const root = editorRef.current;
+          if (root === null) return;
+          edit(readText(root), readCaret(root));
         }}
+        onKeyDown={handleKeyDown}
+        onPaste={(event) => {
+          // Plain text on one line: anything else arrives as nodes no segment
+          // describes, and the next repaint would drop them regardless.
+          event.preventDefault();
+          const root = editorRef.current;
+          if (root === null) return;
+          const pasted = event.clipboardData.getData('text/plain').replace(/\s/g, '');
+          const { start, end } = readSelection(root);
+          edit(`${value.slice(0, start)}${pasted}${value.slice(end)}`, start + pasted.length);
+        }}
+        // Delegated, because the tokens are not React's to hang props on.
+        // `over`/`out` bubble where `enter`/`leave` do not.
+        onPointerOver={(event) => {
+          const token = tokenAt(event);
+          if (token === null) return;
+          onVariablePoint(token.dataset.variable ?? '', token.getBoundingClientRect());
+        }}
+        onPointerOut={(event) => {
+          const token = tokenAt(event);
+          if (token === null) return;
+          onVariablePoint(token.dataset.variable ?? '', null);
+        }}
+      />
+      <VariableSuggestions
+        id={listboxId}
+        variables={suggestions.variables}
+        activeIndex={suggestions.activeIndex}
+        onActiveIndexChange={suggestions.setActiveIndex}
+        onSelect={complete}
       />
     </div>
   );

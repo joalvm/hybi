@@ -46,7 +46,7 @@ export type EventCatalog = { collections: Collection[]; items: EventItem[] };
 /** A workspace owns its connections, its environments and its shared catalog. */
 export type Workspace = {
   id: string;
-  version: 4;
+  version: 1;
   name: string;
   environments: Environment[];
   connections: Connection[];

@@ -37,7 +37,7 @@ export type AsyncApiExportDocument = {
   components: { messages: Record<string, AsyncApiMessage> };
   'x-hybi': {
     schemaVersion: 1;
-    workspace: { id: string; formatVersion: 4 };
+    workspace: { id: string; formatVersion: 1 };
     collections: Collection[];
     environments: Environment[];
     connections: (Connection & { serverId: string | null })[];

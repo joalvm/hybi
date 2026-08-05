@@ -19,6 +19,9 @@ type Props = {
   onToggleAll: () => void;
 };
 
+/** These sit next to the filter field, so they take its height, not the row's. */
+const ACTION = 'h-6 min-h-6 min-w-6';
+
 /**
  * One row where the panel title used to be: the field, then the three things
  * that act on the whole tree. The collapse button is a single toggle — it folds
@@ -35,21 +38,30 @@ export function CatalogToolbar({
   onToggleAll,
 }: Props) {
   return (
-    <div className="flex items-center gap-1 p-2">
-      <CatalogSearch value={query} onChange={onQueryChange} />
-      <IconButton label="Nueva colección" onClick={onCreateCollection}>
-        <NewCollectionIcon />
-      </IconButton>
-      <IconButton
-        label={importing ? 'Importando AsyncAPI…' : 'Importar AsyncAPI'}
-        disabled={importing}
-        onClick={onImport}
-      >
-        {importing ? <SpinnerIcon className="icon-spin" /> : <ImportIcon />}
-      </IconButton>
-      <IconButton label={allCollapsed ? 'Expandir todo' : 'Contraer todo'} onClick={onToggleAll}>
-        {allCollapsed ? <ExpandAllIcon /> : <CollapseAllIcon />}
-      </IconButton>
+    <div className="flex shrink-0 items-center gap-1.5 self-stretch pt-1">
+      <div className="flex min-w-0 flex-1 items-center pl-1">
+        <CatalogSearch value={query} onChange={onQueryChange} />
+      </div>
+      <div className="flex min-w-0 items-center justify-end gap-0.5">
+        <IconButton
+          className={ACTION}
+          label={allCollapsed ? 'Expandir todo' : 'Contraer todo'}
+          onClick={onToggleAll}
+        >
+          {allCollapsed ? <ExpandAllIcon /> : <CollapseAllIcon />}
+        </IconButton>
+        <IconButton className={ACTION} label="Nueva colección" onClick={onCreateCollection}>
+          <NewCollectionIcon />
+        </IconButton>
+        <IconButton
+          className={ACTION}
+          label={importing ? 'Importando AsyncAPI…' : 'Importar AsyncAPI'}
+          disabled={importing}
+          onClick={onImport}
+        >
+          {importing ? <SpinnerIcon className="icon-spin" /> : <ImportIcon />}
+        </IconButton>
+      </div>
     </div>
   );
 }

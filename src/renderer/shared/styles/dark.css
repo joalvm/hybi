@@ -32,6 +32,7 @@
   --shadow-switch: 0 1px 2px rgb(0 0 0 / 55%);
   --var-resolved: #6ee7a2;
   --var-missing: #fb7185;
+  --var-token: #8ab4ff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -68,5 +69,6 @@
     --shadow-switch: 0 1px 2px rgb(0 0 0 / 55%);
     --var-resolved: #6ee7a2;
     --var-missing: #fb7185;
+    --var-token: #8ab4ff;
   }
 }

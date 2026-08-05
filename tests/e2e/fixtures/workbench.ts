@@ -3,6 +3,32 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { _electron as electron, type ElectronApplication, type Page } from '@playwright/test';
 
+/**
+ * A seeded connection in the exact shape the workspace file stores. Written out
+ * here rather than imported from the domain because these tests run against the
+ * packaged main process: if the persisted shape drifts, the seed must fail with
+ * it instead of following it.
+ */
+export function seededConnection(url = 'ws://127.0.0.1:9') {
+  return {
+    id: 'conn-1',
+    name: 'local',
+    environmentId: null,
+    transport: {
+      kind: 'websocket',
+      url,
+      settings: {
+        headers: [],
+        protocols: [],
+        retry: { enabled: true, attempts: 5, baseMs: 500, maxMs: 8000 },
+        keepalive: { enabled: false, intervalMs: 30000, timeoutMs: 10000 },
+        verifyCertificate: true,
+        maxMessageBytes: 104857600,
+      },
+    },
+  };
+}
+
 /** A throwaway userData directory, so a run never touches a real workspace. */
 export async function launch(prefix = 'wsw-e2e-'): Promise<ElectronApplication> {
   const userData = await mkdtemp(join(tmpdir(), prefix));

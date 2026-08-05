@@ -1,7 +1,16 @@
-import { memo, type ReactNode } from 'react';
+import { memo, type KeyboardEvent, type ReactNode } from 'react';
 import type { ActivityRecord } from '@shared/ipc/activity.js';
-import { ErrorIcon, IncomingIcon, OutgoingIcon, StatusIcon } from '@/shared/ui/icons.js';
+import { ContextMenu } from '@/shared/ui/ContextMenu.js';
+import {
+  DuplicateIcon,
+  ErrorIcon,
+  IncomingIcon,
+  OutgoingIcon,
+  SendIcon,
+  StatusIcon,
+} from '@/shared/ui/icons.js';
 import { cn } from '@/shared/utils/cn.js';
+import type { CopyScope } from './copy-text.js';
 import { formatOffset } from './useActivityFilter.js';
 
 const GLYPH: Record<ActivityRecord['kind'], { icon: ReactNode; label: string }> = {
@@ -48,6 +57,10 @@ type Props = {
   origin: number;
   selected: boolean;
   onSelect: (id: string) => void;
+  onCopy: (record: ActivityRecord, scope: CopyScope) => void;
+  onResend: (record: ActivityRecord) => void;
+  /** False while no event is open: the composer would have nowhere to put it. */
+  canResend: boolean;
 };
 
 /**
@@ -55,37 +68,90 @@ type Props = {
  * name when the frame carries one, so the eye scans a column of names while the
  * body beside it stays dim — detail on demand, without opening the row.
  *
- * Primitives and one stable callback in, so `memo` actually holds.
+ * Primitives and two stable callbacks in, so `memo` actually holds.
  */
-export const ActivityRow = memo(function ActivityRow({ record, origin, selected, onSelect }: Props) {
+export const ActivityRow = memo(function ActivityRow({
+  record,
+  origin,
+  selected,
+  onSelect,
+  onCopy,
+  onResend,
+  canResend,
+}: Props) {
   const glyph = GLYPH[record.kind];
   const body = preview(record.body, record.label);
+  // A status note or an error is the app talking, not a frame: there is nothing
+  // in either that the composer could put back on the wire.
+  const replayable = record.kind === 'incoming' || record.kind === 'outgoing';
+
+  // The log is walked with the keyboard, so the shortcut answers where the focus
+  // already is instead of making the user open the menu to reach it.
+  const shortcut = (event: KeyboardEvent<HTMLButtonElement>): void => {
+    if (event.key !== 'c' || !(event.ctrlKey || event.metaKey)) return;
+    event.preventDefault();
+    onCopy(record, 'body');
+  };
+
   return (
-    <button
-      type="button"
-      className={cn(
-        'flex h-full w-full cursor-pointer items-center gap-2 border-0 bg-transparent px-2 text-left font-ui text-ui text-foreground hover:bg-hover',
-        selected && 'bg-selected',
-      )}
-      data-selected={selected}
-      onClick={() => {
-        onSelect(record.id);
-      }}
+    <ContextMenu
+      label="Acciones del frame"
+      items={[
+        {
+          label: 'Copiar cuerpo',
+          icon: <DuplicateIcon />,
+          onSelect: () => {
+            onCopy(record, 'body');
+          },
+        },
+        {
+          label: 'Copiar fila',
+          icon: <DuplicateIcon />,
+          onSelect: () => {
+            onCopy(record, 'row');
+          },
+        },
+        ...(replayable
+          ? [
+              {
+                label: 'Reenviar al composer',
+                icon: <SendIcon />,
+                disabled: !canResend,
+                onSelect: () => {
+                  onResend(record);
+                },
+              },
+            ]
+          : []),
+      ]}
     >
-      <span className={cn('inline-flex shrink-0 items-center', TONE[record.kind])} aria-label={glyph.label}>
-        {glyph.icon}
-      </span>
-      <span className="max-w-activity-label min-w-24 shrink overflow-hidden font-semibold text-ellipsis whitespace-nowrap">
-        {record.label}
-      </span>
-      {body !== '' && (
-        <span className="flex-1 overflow-hidden font-mono text-label text-ellipsis whitespace-nowrap text-muted">
-          {body}
+      <button
+        type="button"
+        className={cn(
+          'flex h-full w-full cursor-pointer items-center gap-2 border-0 bg-transparent px-2 text-left font-ui text-ui text-foreground hover:bg-hover',
+          selected && 'bg-selected',
+        )}
+        data-selected={selected}
+        onClick={() => {
+          onSelect(record.id);
+        }}
+        onKeyDown={shortcut}
+      >
+        <span className={cn('inline-flex shrink-0 items-center', TONE[record.kind])} aria-label={glyph.label}>
+          {glyph.icon}
         </span>
-      )}
-      <span className="ml-auto shrink-0 font-mono text-label whitespace-nowrap text-muted tabular-nums">
-        {formatOffset(record.at, origin)}
-      </span>
-    </button>
+        <span className="max-w-activity-label min-w-24 shrink overflow-hidden font-semibold text-ellipsis whitespace-nowrap">
+          {record.label}
+        </span>
+        {body !== '' && (
+          <span className="flex-1 overflow-hidden font-mono text-label text-ellipsis whitespace-nowrap text-muted">
+            {body}
+          </span>
+        )}
+        <span className="ml-auto shrink-0 font-mono text-label whitespace-nowrap text-muted tabular-nums">
+          {formatOffset(record.at, origin)}
+        </span>
+      </button>
+    </ContextMenu>
   );
 });

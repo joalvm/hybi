@@ -16,6 +16,14 @@ export type ConnectionState =
 
 export type ActivityKind = 'outgoing' | 'incoming' | 'status' | 'error';
 
+/** What each kind is called wherever a frame is named in words. */
+export const ACTIVITY_KIND_LABEL: Record<ActivityKind, string> = {
+  outgoing: 'Saliente',
+  incoming: 'Entrante',
+  status: 'Estado',
+  error: 'Error',
+};
+
 /**
  * One line in the activity log. `body` is the exact text that crossed the
  * socket; `label` is only a display hint derived from it.
@@ -34,6 +42,18 @@ type TransportActivityRecord<TKind extends TransportKind> = {
 
 export type WebSocketActivityRecord = TransportActivityRecord<'websocket'>;
 export type ActivityRecord = WebSocketActivityRecord;
+
+/**
+ * A resolved secret the export has to hide. The renderer holds the values —
+ * they never reach disk — so it hands them over with the log they leaked into.
+ */
+export type ActivitySecret = { name: string; value: string };
+
+export type ActivityExportRequest = {
+  connectionName: string;
+  records: ActivityRecord[];
+  secrets: ActivitySecret[];
+};
 
 export type ConnectionStateEvent = {
   connectionId: string;

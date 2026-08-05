@@ -12,7 +12,7 @@ const roots: string[] = [];
 function workspace(): Workspace {
   return {
     id: 'workspace-1',
-    version: 4,
+    version: 1,
     name: 'Realtime API',
     environments: [
       {
@@ -92,7 +92,7 @@ describe('AsyncAPI workspace export', () => {
     });
     expect(document['x-hybi']).toMatchObject({
       schemaVersion: 1,
-      workspace: { id: 'workspace-1', formatVersion: 4 },
+      workspace: { id: 'workspace-1', formatVersion: 1 },
       collections: [{ id: 'collection-1', name: 'devices' }],
       connections: [
         {

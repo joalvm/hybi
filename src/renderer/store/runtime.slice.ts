@@ -1,6 +1,7 @@
 import type { ActivityRecord, ConnectionState } from '@shared/ipc/activity.js';
 import type { TransportKind } from '@shared/domain/connections/connection.js';
 import { without } from './records.js';
+import { accumulate, type ActivityTotals } from './totals.js';
 import type { SliceCreator } from './types.js';
 
 /** How many records a single connection keeps before the oldest fall off. */
@@ -44,6 +45,8 @@ function withinBudget(records: ActivityRecord[]): ActivityRecord[] {
 export type RuntimeSlice = {
   states: Record<string, ConnectionState>;
   activity: Record<string, ActivityRecord[]>;
+  /** Traffic moved per connection, which outlives the records the budget drops. */
+  totals: Record<string, ActivityTotals>;
   drafts: Record<string, string>;
   setConnectionState: (connectionId: string, state: ConnectionState) => void;
   appendActivity: (records: ActivityRecord[]) => void;
@@ -59,6 +62,7 @@ export const draftKey = (connectionId: string, eventId: string): string =>
 export const createRuntimeSlice: SliceCreator<RuntimeSlice> = (set) => ({
   states: {},
   activity: {},
+  totals: {},
   drafts: {},
 
   setConnectionState: (connectionId, state) => {
@@ -82,13 +86,15 @@ export const createRuntimeSlice: SliceCreator<RuntimeSlice> = (set) => ({
       }
 
       const activity = { ...current.activity };
+      const totals = { ...current.totals };
       for (const [connectionId, batch] of incoming) {
         const existing = activity[connectionId];
         activity[connectionId] = withinBudget(
           existing === undefined ? batch : existing.concat(batch),
         );
+        totals[connectionId] = accumulate(totals[connectionId], batch);
       }
-      return { activity };
+      return { activity, totals };
     });
   },
 
@@ -122,7 +128,12 @@ export const createRuntimeSlice: SliceCreator<RuntimeSlice> = (set) => ({
   // The key goes rather than being emptied: a live connection reads through a
   // selector that already answers an absent key with a shared empty list.
   clearActivity: (connectionId) => {
-    set((current) => ({ activity: without(current.activity, connectionId) }));
+    set((current) => ({
+      activity: without(current.activity, connectionId),
+      // The counter describes the log: emptying one empties the other, or the
+      // number would speak for frames nobody can look at any more.
+      totals: without(current.totals, connectionId),
+    }));
   },
 
   setDraft: (connectionId, eventId, text) => {

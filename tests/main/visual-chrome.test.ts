@@ -52,7 +52,10 @@ describe('Hybi packaging', () => {
 
   it('ships under the Hybi identity', () => {
     expect(config.name).toBe('hybi');
-    expect(config.version).toBe('0.3.0-alpha.5');
+    // The shape, not the number. What the version has to equal is the tag being
+    // released, and the `guard` job of the release workflow is what checks that;
+    // pinning it here only means every bump edits a test that learns nothing.
+    expect(config.version).toMatch(/^\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$/);
     expect(config.desktopName).toBe('hybi');
     expect(config.build?.appId).toBe('com.hybi.desktop');
     expect(config.build?.productName).toBe('Hybi');

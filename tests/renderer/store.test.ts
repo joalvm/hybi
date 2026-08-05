@@ -4,7 +4,12 @@ import { createWorkspace } from '@shared/domain/factory.js';
 import type { EventItem, Workspace } from '@shared/domain/types.js';
 import type { ActivityRecord } from '@shared/ipc/activity.js';
 import { ACTIVITY_BYTE_LIMIT, ACTIVITY_LIMIT, useStore } from '@/store/index.js';
-import { selectEffectivePayload, selectIsDirty, selectScopeFor } from '@/store/selectors.js';
+import {
+  selectEffectivePayload,
+  selectIsDirty,
+  selectScopeFor,
+  selectTotalsFor,
+} from '@/store/selectors.js';
 
 beforeEach(() => {
   useStore.getState().reset();
@@ -89,6 +94,46 @@ describe('runtime slice', () => {
     expect(useStore.getState().activity.c1).toHaveLength(1);
   });
 
+  it('counts messages and bytes by direction, ignoring what is not traffic', () => {
+    useStore.getState().appendActivity([
+      activityRecord({ id: 'c1:1', kind: 'incoming', bytes: 10 }),
+      activityRecord({ id: 'c1:2', kind: 'outgoing', bytes: 4 }),
+      activityRecord({ id: 'c1:3', kind: 'incoming', bytes: 6 }),
+      activityRecord({ id: 'c1:4', kind: 'status', bytes: 99 }),
+    ]);
+
+    expect(selectTotalsFor('c1')(useStore.getState())).toEqual({
+      incoming: { messages: 2, bytes: 16 },
+      outgoing: { messages: 1, bytes: 4 },
+    });
+  });
+
+  // The counter answers what the socket moved, not what the log still holds:
+  // the budget is free to drop records, and the total must not drop with them.
+  it('keeps counting past what the log evicts', () => {
+    const oneMegabyte = 1024 * 1024;
+    useStore.getState().appendActivity(
+      Array.from({ length: 40 }, (_unused, index) =>
+        activityRecord({ id: `c1:${String(index)}`, sequence: index, bytes: oneMegabyte }),
+      ),
+    );
+
+    expect(useStore.getState().activity.c1?.length).toBeLessThan(40);
+    expect(selectTotalsFor('c1')(useStore.getState())).toEqual({
+      incoming: { messages: 40, bytes: 40 * oneMegabyte },
+      outgoing: { messages: 0, bytes: 0 },
+    });
+  });
+
+  it('resets the totals with the log they describe', () => {
+    useStore.getState().appendActivity([activityRecord({ id: 'c1:1', bytes: 10 })]);
+    useStore.getState().clearActivity('c1');
+    expect(selectTotalsFor('c1')(useStore.getState())).toEqual({
+      incoming: { messages: 0, bytes: 0 },
+      outgoing: { messages: 0, bytes: 0 },
+    });
+  });
+
   it('splits a batch that carries more than one connection', () => {
     useStore.getState().appendActivity([
       activityRecord({ id: 'c1:1', connectionId: 'c1' }),
@@ -121,6 +166,7 @@ describe('dropConnection', () => {
 
     const next = useStore.getState();
     expect(next.activity.c1).toBeUndefined();
+    expect(next.totals.c1).toBeUndefined();
     expect(next.states.c1).toBeUndefined();
     expect(next.drafts['c1:e1']).toBeUndefined();
     expect(next.selectedEventByConnection.c1).toBeUndefined();
@@ -200,6 +246,20 @@ describe('workspace slice', () => {
 
     expect(useStore.getState().workspace?.environments).toHaveLength(0);
     expect(useStore.getState().workspace?.connections[0]?.environmentId).toBeNull();
+  });
+});
+
+describe('activity kind filter', () => {
+  // An absent key means visible, so the log starts showing everything and a
+  // kind added later is not hidden by a stale record.
+  it('hides one kind and shows it again', () => {
+    expect(useStore.getState().hiddenActivityKinds).toEqual({});
+
+    useStore.getState().toggleActivityKind('status');
+    expect(useStore.getState().hiddenActivityKinds).toEqual({ status: true });
+
+    useStore.getState().toggleActivityKind('status');
+    expect(useStore.getState().hiddenActivityKinds).toEqual({});
   });
 });
 

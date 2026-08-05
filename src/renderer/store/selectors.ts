@@ -2,6 +2,7 @@ import type { Connection, EventItem } from '@shared/domain/types.js';
 import type { ActivityRecord } from '@shared/ipc/activity.js';
 import { buildScope, type VariableScope } from '@shared/variables/resolve.js';
 import { draftKey, type StoreState } from './index.js';
+import { EMPTY_TOTALS, type ActivityTotals } from './totals.js';
 
 /** A module constant so the selector keeps a stable reference between renders. */
 const EMPTY_ACTIVITY: ActivityRecord[] = [];
@@ -73,3 +74,12 @@ export const selectActivityFor =
   (connectionId: string) =>
   (state: StoreState): ActivityRecord[] =>
     state.activity[connectionId] ?? EMPTY_ACTIVITY;
+
+/**
+ * The stored totals, or the shared empty one. The reference only changes when a
+ * frame moved, so the counter is not repainted by every batch of status lines.
+ */
+export const selectTotalsFor =
+  (connectionId: string) =>
+  (state: StoreState): ActivityTotals =>
+    state.totals[connectionId] ?? EMPTY_TOTALS;

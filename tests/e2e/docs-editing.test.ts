@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { _electron as electron, expect, test } from '@playwright/test';
-import { openWorkspace } from './fixtures/workbench.js';
+import { openWorkspace, seededConnection } from './fixtures/workbench.js';
 
 const WORKSPACE_ID = 'e2e-docs';
 const MARKDOWN =
@@ -10,10 +10,10 @@ const MARKDOWN =
 
 const workspace = {
   id: WORKSPACE_ID,
-  version: 2,
+  version: 1,
   name: 'Docs',
   environments: [],
-  connections: [{ id: 'conn-1', name: 'local', url: 'ws://127.0.0.1:9', environmentId: null }],
+  connections: [seededConnection()],
   catalog: {
     collections: [{ id: 'col-1', name: 'General' }],
     items: [

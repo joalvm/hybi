@@ -154,7 +154,7 @@ describe('VariablePopover', () => {
     useStore.setState({
       workspace: {
         id: 'w1',
-        version: 4,
+        version: 1,
         name: 'local',
         environments: [
           { id: 'env-1', name: 'local', variables: [{ name: 'host', value: 'ws://a', secret: false }] },

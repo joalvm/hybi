@@ -98,7 +98,7 @@ export function CatalogPanel({ connectionId }: Props) {
 
   return (
     <Panel surface="chrome">
-      <div className="flex h-full min-h-0 flex-col bg-chrome">
+      <div className="flex h-full min-h-0 flex-1 flex-col gap-2 overflow-hidden bg-chrome p-1">
         {/* No "new event" here: an event needs a collection to live in, so the
             action belongs to a collection's own menu and nowhere else. */}
         <CatalogToolbar
@@ -110,28 +110,34 @@ export function CatalogPanel({ connectionId }: Props) {
           onImport={asyncapi.start}
           onToggleAll={toggleAll}
         />
-        {/* A big document takes seconds to parse in the main process, and until
+
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden" data-part="catalog-content">
+          {/* A big document takes seconds to parse in the main process, and until
             this line existed the app simply stopped answering. */}
-        {asyncapi.importing && (
-          <p className="flex items-center gap-2 border-b border-border px-3 py-2 text-label text-muted" role="status">
-            <SpinnerIcon className="icon-spin" />
-            Leyendo el documento AsyncAPI…
-          </p>
-        )}
-        <h3 className="px-2 pt-2 pb-1 text-label font-semibold tracking-section text-muted uppercase">
-          Colecciones
-        </h3>
-        <CatalogTree
-          groups={groups}
-          selectedId={selectedId}
-          renamingId={renamingId}
-          collapsed={collapsed}
-          actions={rowActions}
-          onToggleCollection={toggleCollection}
-          onSelect={(eventId) => {
-            setSelectedEvent(connectionId, eventId);
-          }}
-        />
+          {asyncapi.importing && (
+            <p
+              className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-2 text-label text-muted"
+              role="status"
+            >
+              <SpinnerIcon className="icon-spin" />
+              Leyendo el documento AsyncAPI…
+            </p>
+          )}
+          <h3 className="shrink-0 px-2 pt-2 pb-1 text-label font-semibold tracking-section text-muted uppercase">
+            Colecciones
+          </h3>
+          <CatalogTree
+            groups={groups}
+            selectedId={selectedId}
+            renamingId={renamingId}
+            collapsed={collapsed}
+            actions={rowActions}
+            onToggleCollection={toggleCollection}
+            onSelect={(eventId) => {
+              setSelectedEvent(connectionId, eventId);
+            }}
+          />
+        </div>
       </div>
       {/* The one dialog the catalog still raises. Naming happens in the row it
           names; only a delete is worth interrupting for. */}
