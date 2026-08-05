@@ -20,6 +20,7 @@ export function dropConnectionState(
 ): Partial<StoreState> {
   return {
     activity: without(state.activity, connectionId),
+    totals: without(state.totals, connectionId),
     states: without(state.states, connectionId),
     // Drafts are keyed by connection and event, so the prefix is what identifies
     // them. `draftKey` with an empty event id is that prefix, taken from the one

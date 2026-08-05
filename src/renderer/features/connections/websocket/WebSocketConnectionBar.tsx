@@ -2,12 +2,14 @@ import { useMemo } from 'react';
 import type { WebSocketTransport } from '@shared/domain/connections/websocket.js';
 import type { ConnectionState } from '@shared/ipc/activity.js';
 import type { VariableScope } from '@shared/variables/resolve.js';
+import type { ActivityTotals } from '@/store/totals.js';
 import { bridge } from '@/ipc/bridge.js';
 import { VariablePopover } from '@/features/workspace/VariablePopover.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import { SettingsIcon } from '@/shared/ui/icons.js';
 import { useHoverIntent } from '@/shared/ui/useHoverIntent.js';
 import { ConnectButton } from '../ConnectButton.js';
+import { TrafficCounter } from '../TrafficCounter.js';
 import { UrlInput } from '../UrlInput.js';
 import { resolveWebSocketTransport } from './resolve.js';
 
@@ -17,6 +19,7 @@ type Props = {
   transport: WebSocketTransport;
   scope: VariableScope;
   state: ConnectionState;
+  totals: ActivityTotals;
   onTransportChange: (transport: WebSocketTransport) => void;
   onStateChange: (state: ConnectionState) => void;
   onLocalError: (message: string) => void;
@@ -69,6 +72,7 @@ export function WebSocketConnectionBar(props: Props) {
           hover.point(() => ({ name, rect }));
         }}
       />
+      <TrafficCounter totals={props.totals} />
       <IconButton label="Configuración de la conexión" onClick={props.onOpenSettings}>
         <SettingsIcon />
       </IconButton>

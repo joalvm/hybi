@@ -148,6 +148,45 @@ describe('ConnectionBar', () => {
     });
   });
 
+  // The counter answers for the whole session, so it is read from the running
+  // totals and not from the records the log still happens to be holding.
+  it('reports what the connection has moved, in both directions', () => {
+    loadWorkspace('ws://127.0.0.1:3000', null);
+    render(<ConnectionBar connectionId="c1" />);
+
+    expect(screen.getByLabelText('Recibido: 0 mensajes, 0 B')).toBeTruthy();
+
+    act(() => {
+      useStore.getState().appendActivity([
+        {
+          id: 'c1:1',
+          connectionId: 'c1',
+          transportKind: 'websocket',
+          sequence: 1,
+          kind: 'incoming',
+          at: 0,
+          label: 'Pong',
+          body: 'x',
+          bytes: 2400,
+        },
+        {
+          id: 'c1:2',
+          connectionId: 'c1',
+          transportKind: 'websocket',
+          sequence: 2,
+          kind: 'outgoing',
+          at: 1,
+          label: 'Ping',
+          body: 'x',
+          bytes: 12,
+        },
+      ]);
+    });
+
+    expect(screen.getByLabelText('Recibido: 1 mensaje, 2,4 kB')).toBeTruthy();
+    expect(screen.getByLabelText('Enviado: 1 mensaje, 12 B')).toBeTruthy();
+  });
+
   it('refuses to open while a variable is unresolved', () => {
     loadWorkspace('ws://{{host}}/socket', null);
     render(<ConnectionBar connectionId="c1" />);
