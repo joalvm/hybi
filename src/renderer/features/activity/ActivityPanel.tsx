@@ -21,7 +21,11 @@ export function ActivityPanel({ connectionId }: Props) {
       dropped: state.states[connectionId] === 'dropped',
     })),
   );
+  // Its own subscription: the reference only changes when a kind is toggled, so
+  // the filter memo is not invalidated by anything else the panel reads.
+  const hidden = useStore((state) => state.hiddenActivityKinds);
   const setActivityQuery = useStore((state) => state.setActivityQuery);
+  const toggleActivityKind = useStore((state) => state.toggleActivityKind);
 
   // Read through `getState()` so the callback identity survives every batch and
   // the memoized rows are not repainted by an unrelated append. Clicking the
@@ -44,7 +48,7 @@ export function ActivityPanel({ connectionId }: Props) {
   }, [connectionId]);
 
   // Newest first, which is the order the hook hands back.
-  const visible = useActivityFilter(records, query);
+  const visible = useActivityFilter(records, query, hidden);
   // The origin is the first record of the connection, not of the filtered view,
   // so offsets stay comparable while the user types in the search box.
   const origin = records[0]?.at ?? 0;
@@ -64,7 +68,9 @@ export function ActivityPanel({ connectionId }: Props) {
         <ActivityToolbar
           query={query}
           dropped={dropped}
+          hidden={hidden}
           onQueryChange={setActivityQuery}
+          onToggleKind={toggleActivityKind}
           onClear={clear}
         />
       }

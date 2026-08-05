@@ -249,6 +249,20 @@ describe('workspace slice', () => {
   });
 });
 
+describe('activity kind filter', () => {
+  // An absent key means visible, so the log starts showing everything and a
+  // kind added later is not hidden by a stale record.
+  it('hides one kind and shows it again', () => {
+    expect(useStore.getState().hiddenActivityKinds).toEqual({});
+
+    useStore.getState().toggleActivityKind('status');
+    expect(useStore.getState().hiddenActivityKinds).toEqual({ status: true });
+
+    useStore.getState().toggleActivityKind('status');
+    expect(useStore.getState().hiddenActivityKinds).toEqual({});
+  });
+});
+
 describe('collapsed collections', () => {
   it('starts expanded and toggles one collection', () => {
     const store = useStore.getState();

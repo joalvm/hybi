@@ -1,7 +1,11 @@
+import type { ActivityKind } from '@shared/ipc/activity.js';
 import { without } from './records.js';
 import type { SliceCreator } from './types.js';
 
 export type DialogName = 'variables' | null;
+
+/** Which kinds the activity log leaves out. An absent key means shown. */
+export type HiddenActivityKinds = Partial<Record<ActivityKind, true>>;
 
 /**
  * Pure view state. Nothing derived lives here — selectors do that work.
@@ -16,6 +20,12 @@ export type UiSlice = {
   selectedActivityByConnection: Record<string, string>;
   catalogQuery: string;
   activityQuery: string;
+  /**
+   * Not keyed by connection, like `activityQuery` beside it: only one log is on
+   * screen at a time, and a filter that changed under the tabs would be a
+   * setting the user has to remember they left on somewhere else.
+   */
+  hiddenActivityKinds: HiddenActivityKinds;
   dialog: DialogName;
   /**
    * The connection whose settings dialog is open. Here rather than inside a
@@ -34,6 +44,7 @@ export type UiSlice = {
   setSelectedActivity: (connectionId: string, activityId: string | null) => void;
   setCatalogQuery: (query: string) => void;
   setActivityQuery: (query: string) => void;
+  toggleActivityKind: (kind: ActivityKind) => void;
   setDialog: (dialog: DialogName) => void;
   openConnectionSettings: (connectionId: string) => void;
   closeConnectionSettings: () => void;
@@ -48,6 +59,7 @@ export const createUiSlice: SliceCreator<UiSlice> = (set) => ({
   selectedActivityByConnection: {},
   catalogQuery: '',
   activityQuery: '',
+  hiddenActivityKinds: {},
   dialog: null,
   settingsConnectionId: null,
   collapsedCollections: {},
@@ -80,6 +92,17 @@ export const createUiSlice: SliceCreator<UiSlice> = (set) => ({
 
   setActivityQuery: (query) => {
     set({ activityQuery: query });
+  },
+
+  // The key goes rather than being set to `false`, so "shown" has exactly one
+  // representation and the filter never has to read a value to know it is off.
+  toggleActivityKind: (kind) => {
+    set((current) => ({
+      hiddenActivityKinds:
+        current.hiddenActivityKinds[kind] === true
+          ? without(current.hiddenActivityKinds, kind)
+          : { ...current.hiddenActivityKinds, [kind]: true },
+    }));
   },
 
   setDialog: (dialog) => {

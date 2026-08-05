@@ -1,6 +1,7 @@
+import type { ComponentProps } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ActivityRecord } from '@shared/ipc/activity.js';
+import type { ActivityKind, ActivityRecord } from '@shared/ipc/activity.js';
 import { ActivityPanel } from '@/features/activity/ActivityPanel.js';
 import { ActivityRow } from '@/features/activity/ActivityRow.js';
 import { ActivityToolbar } from '@/features/activity/ActivityToolbar.js';
@@ -45,6 +46,25 @@ describe('newestFirstMatching', () => {
     // The store hands out its own array: reversing it in place would reorder the
     // buffer every other reader shares.
     expect(records.map((item) => item.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  // Both filters are answered in the same walk of the log: a hidden kind never
+  // reaches the pattern, and a second array is never built to drop it.
+  it('combines the query with the kinds that are hidden', () => {
+    const records = [
+      record({ id: 'a', kind: 'incoming', label: 'DeviceLogin', body: '{}' }),
+      record({ id: 'b', kind: 'status', label: 'Conectado', body: 'device' }),
+      record({ id: 'c', kind: 'outgoing', label: 'DeviceLogin', body: '{}' }),
+    ];
+
+    expect(newestFirstMatching(records, '', { status: true }).map((item) => item.id)).toEqual([
+      'c',
+      'a',
+    ]);
+    expect(
+      newestFirstMatching(records, 'device', { outgoing: true }).map((item) => item.id),
+    ).toEqual(['b', 'a']);
+    expect(newestFirstMatching(records, '', { incoming: true, outgoing: true, status: true })).toHaveLength(0);
   });
 
   // The needle is compiled into a pattern, so anything a user types has to be
@@ -118,26 +138,45 @@ describe('ActivityRow', () => {
 });
 
 describe('ActivityToolbar', () => {
+  const toolbar = (over: Partial<ComponentProps<typeof ActivityToolbar>> = {}) => (
+    <ActivityToolbar
+      query=""
+      dropped={false}
+      hidden={{}}
+      onQueryChange={() => undefined}
+      onToggleKind={() => undefined}
+      onClear={() => undefined}
+      {...over}
+    />
+  );
+
   it('warns only when the peer closed the socket', () => {
-    const { rerender } = render(
-      <ActivityToolbar
-        query=""
-        dropped={false}
-        onQueryChange={() => undefined}
-        onClear={() => undefined}
-      />,
-    );
+    const { rerender } = render(toolbar());
     expect(screen.queryByText('Desconectado')).toBeNull();
 
-    rerender(
-      <ActivityToolbar
-        query=""
-        dropped
-        onQueryChange={() => undefined}
-        onClear={() => undefined}
-      />,
-    );
+    rerender(toolbar({ dropped: true }));
     expect(screen.getByText('Desconectado')).toBeTruthy();
+  });
+
+  it('marks each kind as shown or hidden and reports the change', () => {
+    const toggled: ActivityKind[] = [];
+    const { rerender } = render(
+      toolbar({
+        onToggleKind: (kind) => {
+          toggled.push(kind);
+        },
+      }),
+    );
+
+    const status = screen.getByRole('button', { name: 'Estado' });
+    expect(status.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(status);
+    expect(toggled).toEqual(['status']);
+
+    rerender(toolbar({ hidden: { status: true } }));
+    expect(screen.getByRole('button', { name: 'Estado' }).getAttribute('aria-pressed')).toBe(
+      'false',
+    );
   });
 });
 
