@@ -465,7 +465,7 @@ describe('connection tab menu', () => {
     useStore.setState({
       workspace: {
         id: 'w1',
-        version: 4,
+        version: 1,
         name: 'local',
         environments: [],
         connections: [

@@ -38,7 +38,7 @@ const eventItemSchema = z.object({
 
 const baseWorkspaceSchema = z.object({
   id,
-  version: z.literal(4),
+  version: z.literal(1),
   name: z.string().min(1),
   environments: z.array(environmentSchema),
   connections: z.array(connectionSchema),

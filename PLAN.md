@@ -147,15 +147,17 @@ que respalda esa frase.
 
 ### 8. Integridad del workspace — `M`
 
-- **Qué**: tres cosas que van juntas. Avisar de un workspace ilegible en vez de
-  esconderlo; guardar copia del archivo original antes de migrar; congelar el
-  formato v4 o comprometerse por escrito a migrar sin pérdida.
+- **Qué**: dos cosas que van juntas. Avisar de un workspace ilegible en vez de
+  esconderlo, y reponer la migración de documentos —borrada durante la alpha
+  junto con la cadena v1→v4— con copia del archivo original antes de tocarlo.
 - **Por qué ahora**: `summarize()` en `src/main/workspace/repository.ts`
   devuelve `null` ante un archivo dañado y la fila desaparece de la lista. El
   usuario concluye que perdió el trabajo. Es el peor fallo que puede tener el
-  producto y hoy es silencioso.
-- **Toca**: `repository.ts`, `src/shared/domain/migrate.ts`, la lista de la
-  ventana de bienvenida.
+  producto y hoy es silencioso. Y a partir de la beta ya hay instalaciones
+  reales: el formato v1 queda congelado y cualquier cambio posterior necesita
+  su paso de migración.
+- **Toca**: `repository.ts`, un módulo de migración nuevo en
+  `src/shared/domain/`, la lista de la ventana de bienvenida.
 - **Hecho cuando**: un archivo dañado a mano aparece como fila marcada, con la
   ruta y la opción de descartarla, y una migración interrumpida puede volver
   atrás.
@@ -206,8 +208,9 @@ Lo caro. Aquí se ensancha lo que la aplicación entiende.
   hasta que cubre todos los transportes, y `ADAPTER_FACTORIES` en
   `main/connections/transport.ts` es el único punto de registro. El compilador
   va a ir señalando cada sitio que falta: eso es diseño, no accidente.
-- **Toca**: nueva rama de la unión `ConnectionTransport` y su esquema, migración
-  v5, adaptador nuevo bajo `src/main/connections/socketio/`, `ActivityRecord`
+- **Toca**: nueva rama de la unión `ConnectionTransport` y su esquema, el paso
+  de migración que corresponda al formato vigente, adaptador nuevo bajo
+  `src/main/connections/socketio/`, `ActivityRecord`
   —que hoy es un alias de una sola variante y pasa a ser unión—, panel de
   configuración y composer con nombre de evento.
 - **Depende de**: 7 (nace traducido) y 10 (adjuntos binarios).

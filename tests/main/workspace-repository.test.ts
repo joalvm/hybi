@@ -99,30 +99,18 @@ describe('WorkspaceRepository', () => {
     await expect(repository.load('../../etc/passwd')).rejects.toThrow(/Invalid workspace id/);
   });
 
-  it('migrates a v1 file on load instead of rejecting it', async () => {
+  // There is one format and no upgrade path into it: the alpha shapes were
+  // never in anyone's hands, so a file announcing one of them is a file this
+  // build must refuse rather than reinterpret.
+  it('rejects a file written by a pre-release format', async () => {
+    const workspace = createWorkspace('Demo');
+    await repository.save(workspace);
     await writeFile(
-      join(root, 'legacy.json'),
-      JSON.stringify({
-        id: 'legacy',
-        version: 1,
-        name: 'Legacy',
-        environments: [],
-        connections: [],
-        catalog: {
-          folders: [{ id: 'f1', name: 'devices' }],
-          items: [
-            { id: 'e1', folderId: 'f1', name: 'Login', payload: '{}', source: 'manual' },
-            { id: 'e2', folderId: null, name: 'Ad hoc', payload: '{}', source: 'manual' },
-          ],
-        },
-      }),
+      join(root, `${workspace.id}.json`),
+      JSON.stringify({ ...workspace, version: 4 }),
       'utf8',
     );
-
-    const loaded = await repository.load('legacy');
-    expect(loaded.version).toBe(4);
-    expect(loaded.catalog.collections.map((entry) => entry.name)).toEqual(['General', 'devices']);
-    expect(loaded.catalog.items.map((entry) => entry.name)).toEqual(['Login', 'Ad hoc']);
+    await expect(repository.load(workspace.id)).rejects.toThrow(/Invalid workspace file/);
   });
 
   it('rejects a file whose contents no longer match the schema', async () => {

@@ -5,7 +5,6 @@ import {
   duplicateWorkspace,
   ensureStarterConnection,
 } from '@shared/domain/factory.js';
-import { migrateWorkspace } from '@shared/domain/migrate.js';
 import { parseWorkspace } from '@shared/domain/schema.js';
 import type { Workspace, WorkspaceSummary } from '@shared/domain/types.js';
 import { redactSecrets } from './redact.js';
@@ -38,9 +37,9 @@ export class WorkspaceRepository {
   async load(workspaceId: string): Promise<Workspace> {
     const raw = await readFile(this.filePath(workspaceId), 'utf8');
     const { updatedAt: _updatedAt, ...rest } = JSON.parse(raw) as StoredWorkspace;
-    // Migrating here and not in the renderer keeps every older shape on this
-    // side of the bridge: the rest of the app only ever sees the current one.
-    return parseWorkspace(migrateWorkspace(rest));
+    // Validated here and not in the renderer: a file that does not match the
+    // current format never crosses the bridge.
+    return parseWorkspace(rest);
   }
 
   async save(workspace: Workspace): Promise<string> {

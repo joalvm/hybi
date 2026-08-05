@@ -12,7 +12,7 @@ import type {
   Workspace,
 } from './types.js';
 
-/** The collection every workspace starts with, and where migrated orphans land. */
+/** The collection every workspace starts with. */
 export const DEFAULT_COLLECTION_NAME = 'General';
 
 function newId(): string {
@@ -22,7 +22,7 @@ function newId(): string {
 export function createWorkspace(name: string): Workspace {
   return {
     id: newId(),
-    version: 4,
+    version: 1,
     name,
     environments: [],
     connections: [],
@@ -89,7 +89,7 @@ export function duplicateWorkspace(source: Workspace, name: string): Workspace {
 
   return {
     id: newId(),
-    version: 4,
+    version: 1,
     name,
     environments: environments.list.map((entry) => ({
       ...entry,

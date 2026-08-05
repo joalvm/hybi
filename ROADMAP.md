@@ -18,7 +18,7 @@ Release automatizado por tag, con checksums SHA-256 y firma condicionada a que
 existan los secretos.
 
 **Veredicto de ingeniería: por encima de lo que la etiqueta *alpha* sugiere.**
-La arquitectura de procesos, la política de seguridad, la migración de
+La arquitectura de procesos, la política de seguridad, la persistencia de
 documentos y el presupuesto de memoria del log están resueltos a nivel de
 producto maduro. El riesgo del proyecto **no es técnico**; es de alcance,
 distribución y mercado. Eso es lo que ordena las dos listas de abajo.
@@ -41,8 +41,8 @@ distribución y mercado. Eso es lo que ordena las dos listas de abajo.
       antes de escribir a disco.
 - [x] **Log de actividad a prueba de floods.** Lotes de 16 ms desde el main,
       lista virtualizada, presupuesto doble de 2 000 registros u 8 MB.
-- [x] **Workspaces múltiples con migración v1→v4** y escritura atómica
-      (temporal + rename).
+- [x] **Workspaces múltiples** con escritura atómica (temporal + rename) y un
+      único formato en disco, el v1.
 - [x] **Ventana de bienvenida separada**, chrome propio sin marco y menú nativo
       accesible desde el botón.
 - [x] **Distribución multiplataforma**: NSIS, ZIP, DMG, AppImage, DEB y RPM.
@@ -171,11 +171,12 @@ ningún flujo que la app ya promete**, con el formato de datos congelado.
 - [ ] **Prueba de carga.** Medir con 10 000 msg/s sostenidos: memoria estable,
       interfaz sin bloquear, presupuesto del log respetado. Dejar el número
       escrito.
-- [ ] **Congelar el formato v4** o comprometerse por escrito a migrar sin
-      pérdida. Mientras eso no esté, el README pide con razón no confiarle
-      trabajo irrecuperable.
-- [ ] **Copia de seguridad antes de migrar.** Guardar el archivo original al
-      subir de versión, para poder volver atrás.
+- [ ] **Migración de documentos a partir de la beta.** El formato volvió a v1
+      durante la alpha porque no había nada instalado que conservar; la cadena
+      v1→v4 se borró en lugar de arrastrarla. La primera versión que salga con
+      usuarios reales congela ese contrato: desde ahí, cada cambio de formato
+      necesita su paso de migración y una copia del archivo original antes de
+      tocarlo.
 
 ### Higiene de repositorio
 

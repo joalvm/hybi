@@ -1,7 +1,7 @@
 import type { ConnectionTransport, TransportFactoryMap } from './connection.js';
 import type { WebSocketTransport, WebSocketTransportSettings } from './websocket.js';
 
-/** Native WebSocket behavior used for new and migrated connections. */
+/** Native WebSocket behavior every new connection starts from. */
 export const DEFAULT_WEBSOCKET_SETTINGS: WebSocketTransportSettings = {
   headers: [],
   protocols: [],
