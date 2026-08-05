@@ -29,7 +29,7 @@ revisión. `S` = 0,5–1 día. `M` = 2–4 días. `L` = 5–10 días. Total apro
 | 3 | Copiar un frame | S | Cosecha rápida | hecho |
 | 4 | Reenviar un frame recibido | S | Cosecha rápida | hecho |
 | 5 | Exportar la sesión a un archivo | M | Cosecha rápida | hecho |
-| 6 | Preferencias de aplicación | M | Cimientos | pendiente |
+| 6 | Preferencias de aplicación | M | Cimientos | hecho |
 | 7 | Capa de idiomas (español + inglés) | M–L | Cimientos | pendiente |
 | 8 | Integridad del workspace | M | Datos | pendiente |
 | 9 | Diagnóstico: errores legibles y log en disco | M | Datos | pendiente |

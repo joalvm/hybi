@@ -1,5 +1,6 @@
-import { Dialog } from '@/shared/ui/Dialog.js';
+import { SettingsDialog } from '@/shared/ui/settings/SettingsDialog.js';
 import { useStore } from '@/store/index.js';
+import { settingsTabsFor } from './tabs.js';
 import { TransportSettings } from './TransportSettings.js';
 
 type Props = { connectionId: string; onClose: () => void };
@@ -9,8 +10,8 @@ type Props = { connectionId: string; onClose: () => void };
  * to no other: there is no workspace or app layer above it, so what the panel
  * shows is exactly what the next handshake carries.
  *
- * The only component in the group that reads the store — the sections take
- * their slice and a callback, which is what keeps each of them testable alone.
+ * The only component in the group that reads the store — the panes take their
+ * slice and a callback, which is what keeps each of them testable alone.
  *
  * Edits land in the workspace as they are made and autosave carries them to
  * disk, like every other edit in the app. There is no Save button and no
@@ -26,28 +27,28 @@ export function ConnectionSettingsDialog({ connectionId, onClose }: Props) {
   if (connection === null) return null;
 
   const { transport } = connection;
+  const live = state === 'open' || state === 'connecting';
 
   return (
-    <Dialog
+    <SettingsDialog
       open
-      size="settings"
       title={`Configuración · ${connection.name}`}
-      bodyClassName="pt-0 pb-0"
-      onClose={onClose}
-    >
-      <div className="flex flex-col gap-0 pb-4">
-        {(state === 'open' || state === 'connecting') && (
-          <p className="border-l-2 border-border bg-chrome px-3 py-2 text-label text-muted">
+      tabs={settingsTabsFor(transport)}
+      notice={
+        live ? (
+          <p className="border-b border-border bg-chrome px-6 py-2 text-label text-muted">
             El socket sigue abierto: lo que cambies aquí se aplica al volver a conectar.
           </p>
-        )}
-        <TransportSettings
-          transport={transport}
-          onChange={(next) => {
-            upsertConnection({ ...connection, transport: next });
-          }}
-        />
-      </div>
-    </Dialog>
+        ) : undefined
+      }
+      onClose={onClose}
+    >
+      <TransportSettings
+        transport={transport}
+        onChange={(next) => {
+          upsertConnection({ ...connection, transport: next });
+        }}
+      />
+    </SettingsDialog>
   );
 }

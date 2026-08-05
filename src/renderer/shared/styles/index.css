@@ -58,6 +58,11 @@
   --spacing-dialog-md: 520px;
   --spacing-dialog-settings: 624px;
   --spacing-dialog-lg: 720px;
+  --spacing-dialog-xl: 860px;
+  /* The settings dialog does not grow with its pane: the rail decides how tall
+     it is, and the pane scrolls inside it. */
+  --spacing-settings-body: 30rem;
+  --spacing-settings-rail: 13rem;
   --spacing-screen-safe: calc(100vh - 32px);
   --container-dialog: 92vw;
   --container-welcome: 40ch;
@@ -96,6 +101,10 @@
 }
 
 @utility settings-field-grid {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+@utility settings-row-grid {
   grid-template-columns: minmax(0, 1fr) auto;
 }
 

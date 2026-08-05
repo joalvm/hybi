@@ -17,24 +17,30 @@ import {
   Folder,
   FolderPlus,
   Import,
+  Languages,
+  List,
   ListFilter,
   LoaderCircle,
   Menu as MenuGlyph,
   Minus,
   MoreHorizontal,
+  Network,
+  Palette,
   Pencil,
   Plus,
+  Power,
+  RefreshCw,
   Save,
+  ScrollText,
   SendHorizontal,
   Settings,
   ShieldAlert,
   Scissors,
   Square,
-  Sun,
   Trash2,
+  Waves,
   WandSparkles,
   X,
-  Moon,
   type LucideIcon,
   type LucideProps,
 } from 'lucide-react';
@@ -134,6 +140,12 @@ export const SettingsIcon = hairline(Settings);
 /** Marks a setting that weakens the connection's own defences. */
 export const ShieldAlertIcon = hairline(ShieldAlert);
 /** Switches the QA theme to the light palette. */
-export const SunIcon = hairline(Sun);
-/** Switches the QA theme to the dark palette. */
-export const MoonIcon = hairline(Moon);
+/** The rail of a settings dialog: one glyph per group of settings. */
+export const PaletteIcon = hairline(Palette);
+export const LanguagesIcon = hairline(Languages);
+export const StartupIcon = hairline(Power);
+export const LogIcon = hairline(ScrollText);
+export const NetworkIcon = hairline(Network);
+export const RetryIcon = hairline(RefreshCw);
+export const KeepaliveIcon = hairline(Waves);
+export const HeadersIcon = hairline(List);

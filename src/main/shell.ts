@@ -3,6 +3,7 @@ import { BrowserWindow } from 'electron';
 import { CHANNELS } from '@shared/ipc/contract.js';
 import { registerWorkbenchIpc } from './ipc/register.js';
 import { guardNavigation } from './security/policy.js';
+import { watchPreferencesShortcut } from './shortcuts.js';
 import { createWelcomeWindow, createWorkbenchWindow } from './window.js';
 
 const devServerUrl = process.env.ELECTRON_RENDERER_URL ?? null;
@@ -37,6 +38,7 @@ export function openWelcome(): void {
   welcome.on('closed', () => {
     welcome = null;
   });
+  watchPreferencesShortcut(welcome.webContents, showPreferences);
   load(welcome);
 }
 
@@ -55,6 +57,7 @@ export function openWorkspace(workspaceId: string, from: BrowserWindow | null): 
   if (alive(previous)) previous.destroy();
 
   const window = createWorkbenchWindow(workspaceId);
+  watchPreferencesShortcut(window.webContents, showPreferences);
   const dispose = registerWorkbenchIpc(window);
   workbench = window;
   disposeWorkbenchIpc = dispose;
@@ -85,10 +88,19 @@ export function hasOpenWindow(): boolean {
 }
 
 /**
- * The Help menu belongs to whichever window is in front, so the request goes to
+ * A menu item belongs to whichever window is in front, so the request goes to
  * the focused one — on macOS a single menu bar serves both windows.
  */
-export function showAbout(): void {
+function askFocusedWindow(channel: string): void {
   const target = BrowserWindow.getFocusedWindow() ?? (alive(workbench) ? workbench : welcome);
-  if (alive(target)) target.webContents.send(CHANNELS.appAbout);
+  if (alive(target)) target.webContents.send(channel);
+}
+
+export function showAbout(): void {
+  askFocusedWindow(CHANNELS.appAbout);
+}
+
+/** Both windows paint it: a preference belongs to the app, not to a document. */
+export function showPreferences(): void {
+  askFocusedWindow(CHANNELS.appPreferences);
 }

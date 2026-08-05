@@ -5,8 +5,13 @@ type Actions = {
   openWelcome: () => void;
   /** Asks the focused window for its own About dialog. */
   showAbout: () => void;
+  /** Same contract as About: the window in front paints the dialog. */
+  showPreferences: () => void;
 };
 
+const PREFERENCES_ACCELERATOR = 'CmdOrCtrl+,';
+
+/** On macOS preferences belong to the app menu, so File only carries them here. */
 function fileMenu(actions: Actions): MenuItemConstructorOptions {
   return {
     label: 'Archivo',
@@ -16,6 +21,16 @@ function fileMenu(actions: Actions): MenuItemConstructorOptions {
         accelerator: 'CmdOrCtrl+Shift+N',
         click: actions.openWelcome,
       },
+      ...(process.platform === 'darwin'
+        ? []
+        : ([
+            { type: 'separator' },
+            {
+              label: 'Preferencias…',
+              accelerator: PREFERENCES_ACCELERATOR,
+              click: actions.showPreferences,
+            },
+          ] satisfies MenuItemConstructorOptions[])),
       { type: 'separator' },
       { role: 'close', label: 'Cerrar ventana' },
       ...(process.platform === 'darwin'
@@ -77,6 +92,12 @@ export function buildAppMenu(actions: Actions): Menu {
             label: app.name,
             submenu: [
               { label: `Acerca de ${app.name}`, click: actions.showAbout },
+              { type: 'separator' },
+              {
+                label: 'Preferencias…',
+                accelerator: PREFERENCES_ACCELERATOR,
+                click: actions.showPreferences,
+              },
               { type: 'separator' },
               { role: 'services' },
               { type: 'separator' },

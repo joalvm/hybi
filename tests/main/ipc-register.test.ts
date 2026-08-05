@@ -10,6 +10,8 @@ const PUSH_ONLY = new Set<string>([
   CHANNELS.connectionActivity,
   CHANNELS.windowState,
   CHANNELS.appAbout,
+  CHANNELS.appPreferences,
+  CHANNELS.preferencesChanged,
 ]);
 
 const handlers = new Map<string, unknown>();
@@ -19,7 +21,7 @@ vi.mock('electron', () => ({
   dialog: { showOpenDialog: vi.fn(), showSaveDialog: vi.fn() },
   clipboard: { readText: vi.fn(() => ''), writeText: vi.fn() },
   Menu: { buildFromTemplate: vi.fn() },
-  BrowserWindow: { fromWebContents: vi.fn(() => null) },
+  BrowserWindow: { fromWebContents: vi.fn(() => null), getAllWindows: vi.fn(() => []) },
   ipcMain: {
     handle: (channel: string, listener: unknown) => handlers.set(channel, listener),
     removeHandler: (channel: string) => handlers.delete(channel),
@@ -68,6 +70,8 @@ describe('IPC registration', () => {
       [
         CHANNELS.clipboardRead,
         CHANNELS.clipboardWrite,
+        CHANNELS.preferencesLoad,
+        CHANNELS.preferencesSave,
         CHANNELS.shellOpenWorkspace,
         CHANNELS.windowClose,
         CHANNELS.windowIsMaximized,

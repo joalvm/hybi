@@ -4,7 +4,8 @@ import { createRuntimeSlice, type RuntimeSlice } from './runtime.slice.js';
 import { createUiSlice, type UiSlice } from './ui.slice.js';
 import { createWorkspaceSlice, type WorkspaceSlice } from './workspace.slice.js';
 
-export { ACTIVITY_BYTE_LIMIT, ACTIVITY_LIMIT, draftKey } from './runtime.slice.js';
+export { draftKey } from './runtime.slice.js';
+export { usePreferences } from './preferences.store.js';
 export type { DialogName } from './ui.slice.js';
 
 export type StoreState = WorkspaceSlice &

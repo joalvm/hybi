@@ -53,8 +53,9 @@ distribución y mercado. Eso es lo que ordena las dos listas de abajo.
       `useCatalogActions.ts` (215), `asyncapi/importer.ts` (180),
       `CatalogPanel.tsx` (155). La regla o se cumple o se cambia; hoy está en
       tierra de nadie.
-- [ ] **`ThemeToggle` está marcado `data-temporary="true"` y en producción.** Un
-      control de QA no debe viajar en un instalador.
+- [x] **`ThemeToggle` está marcado `data-temporary="true"` y en producción.** Un
+      control de QA no debe viajar en un instalador. Retirado: el tema es una
+      preferencia persistida y se cambia desde el diálogo de preferencias.
 - [ ] **Un workspace corrupto desaparece en silencio.** `summarize()` devuelve
       `null` y el archivo deja de aparecer sin decir nada. El usuario cree que
       perdió el trabajo.
@@ -155,8 +156,9 @@ ningún flujo que la app ya promete**, con el formato de datos congelado.
       combinados con la búsqueda de texto en una sola pasada.
 - [x] **Reenviar un frame recibido.** Un clic desde la fila o desde el detalle
       al composer, preguntando antes de pisar un borrador sin guardar.
-- [ ] **Persistir el tema** y retirar el `ThemeToggle` temporal a su sitio
-      definitivo.
+- [x] **Persistir el tema** y retirar el `ThemeToggle` temporal a su sitio
+      definitivo. Vive en `preferences.json`, aparte del workspace, junto al
+      tamaño de fuente del editor, los límites del log y el arranque.
 - [x] **Contador de mensajes y bytes por conexión** en la barra de conexión.
       Se acumula cuando aterriza cada lote, no se deriva del log recortado.
 
@@ -220,8 +222,9 @@ habitual.**
 - [ ] **Socket.IO.** El transporte más pedido después de WebSocket puro, y el
       que hoy hace *parecer* que la herramienta falla. La arquitectura ya está
       preparada: `TransportKind` es discriminado y el contrato está abstraído.
-- [ ] **Preferencias de aplicación.** Tema, tamaño de fuente del editor, límites
-      del log, comportamiento al arrancar. Hoy son constantes en el código.
+- [x] **Preferencias de aplicación.** Tema, tamaño de fuente del editor, límites
+      del log, comportamiento al arrancar. Adelantadas a la beta: cada función
+      nueva añadía otra constante en el código.
 - [ ] **Importar y exportar el workspace completo**, no sólo AsyncAPI. Es como
       se comparte una configuración con un compañero y como se hace copia de
       seguridad.

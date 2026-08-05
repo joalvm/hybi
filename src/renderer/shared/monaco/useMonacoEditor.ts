@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { editor } from 'monaco-editor/editor/editor.api.js';
+import { editorTypeface, useEditorPreferences } from './useEditorPreferences.js';
 import { monaco, setupMonaco } from './setup.js';
 
 /**
@@ -65,17 +66,17 @@ export function useMonacoEditor(options: editor.IStandaloneEditorConstructionOpt
     const container = containerRef.current;
     if (container === null) return;
     // Dense on purpose: this is a desktop tool, and a payload is read next to a
-    // log, not in a full-window IDE. The line height is the tightest that still
-    // leaves the text legible. Three number columns and an 8px decoration strip
-    // keep the gutter readable without turning it into an IDE-sized rail.
+    // log, not in a full-window IDE. The line height tracks the size the user
+    // chose, at the tightest ratio that still leaves the text legible. Three
+    // number columns and an 8px decoration strip keep the gutter readable
+    // without turning it into an IDE-sized rail.
     const instance = monaco.editor.create(container, {
       automaticLayout: true,
       minimap: { enabled: false },
       scrollBeyondLastLine: false,
       renderWhitespace: 'none',
       fontFamily: 'var(--font-mono)',
-      fontSize: 12,
-      lineHeight: 17,
+      ...editorTypeface(),
       lineNumbersMinChars: 3,
       lineDecorationsWidth: 8,
       glyphMargin: false,
@@ -97,6 +98,10 @@ export function useMonacoEditor(options: editor.IStandaloneEditorConstructionOpt
       editorRef.current = null;
     };
   }, []);
+
+  // After creation, so the two app-wide settings follow the live instance
+  // instead of only the one the next editor is built with.
+  useEditorPreferences(editorRef);
 
   return { containerRef, editorRef };
 }

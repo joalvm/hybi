@@ -152,31 +152,44 @@ describe('ConnectionBar with settings', () => {
   });
 });
 
+/** The rail decides which pane exists; Radix does not render the others. */
+async function openTab(user: ReturnType<typeof userEvent.setup>, name: string) {
+  await user.click(screen.getByRole('tab', { name }));
+}
+
 describe('ConnectionSettingsDialog', () => {
-  it('uses a compact settings surface and controls', () => {
+  it('groups the settings in a rail instead of one long form', () => {
     loadWorkspace();
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
 
-    expect(screen.getByRole('dialog').dataset.size).toBe('settings');
-    expect(screen.getByRole('dialog').querySelector('[data-part="dialog-body"]')).not.toBeNull();
-    expect(screen.getByLabelText('Intentos')).toHaveProperty('type', 'number');
+    expect(screen.getByRole('dialog').dataset.size).toBe('xl');
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+      'Conexión',
+      'Cabeceras',
+      'Reintentos',
+      'Keepalive',
+    ]);
+    // Only the first pane is mounted, which is the point of the rail.
+    expect(screen.queryByLabelText('Intentos')).toBeNull();
+    expect(screen.getByLabelText('Subprotocolos')).toBeTruthy();
   });
 
-  it('keeps the Headers action compact in its section title', () => {
+  it('adds a header from the pane that lists them', async () => {
+    const user = userEvent.setup();
     loadWorkspace();
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
+    await openTab(user, 'Cabeceras');
 
-    expect(screen.getByRole('heading', { name: 'Headers' })).toBeTruthy();
-    const action = screen.getByRole('button', { name: 'Añadir cabecera' });
-    expect(action.closest('section')?.contains(screen.getByRole('heading', { name: 'Headers' }))).toBe(
-      true,
-    );
+    await user.click(screen.getByRole('button', { name: 'Añadir cabecera' }));
+
+    expect(storedSettings()?.headers).toEqual([{ name: '', value: '', enabled: true }]);
   });
 
   it('writes a header into the connection as it is typed', async () => {
     const user = userEvent.setup();
     loadWorkspace();
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
+    await openTab(user, 'Cabeceras');
 
     await user.click(screen.getByRole('button', { name: 'Añadir cabecera' }));
     await user.type(screen.getByLabelText('Nombre de la cabecera'), 'X-Key');
@@ -192,6 +205,7 @@ describe('ConnectionSettingsDialog', () => {
     const user = userEvent.setup();
     loadWorkspace(settings({ headers: [{ name: 'X-Key', value: '1', enabled: true }] }));
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
+    await openTab(user, 'Cabeceras');
 
     await user.click(screen.getByRole('button', { name: 'Quitar X-Key' }));
 
@@ -216,6 +230,7 @@ describe('ConnectionSettingsDialog', () => {
     const user = userEvent.setup();
     loadWorkspace();
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
+    await openTab(user, 'Reintentos');
 
     const attempts = screen.getByLabelText('Intentos');
     await user.clear(attempts);
@@ -230,6 +245,7 @@ describe('ConnectionSettingsDialog', () => {
     const user = userEvent.setup();
     loadWorkspace();
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
+    await openTab(user, 'Reintentos');
 
     const attempts = screen.getByLabelText('Intentos');
     await user.clear(attempts);
@@ -268,7 +284,7 @@ describe('connection tab menu', () => {
     await user.click(screen.getByRole('button', { name: 'Opciones de echo' }));
     await user.click(screen.getByRole('menuitem', { name: 'Configuración' }));
 
-    expect(screen.getByRole('dialog').textContent).toMatch(/Headers/);
+    expect(screen.getByRole('dialog').textContent).toMatch(/Cabeceras/);
   });
 
   it('gives a duplicated connection its own header list', async () => {

@@ -30,10 +30,21 @@ test('connect, send an event and read it in the detail pane', async () => {
     await expect(closeWindow).toHaveCSS('border-radius', '0px');
     await window.mouse.move(0, 0);
 
-    // The temporary QA switch changes both the semantic palette and Monaco.
+    // The theme is a preference now. Driven from the gear and not from the
+    // `Ctrl+,` accelerator: that one is delivered by `before-input-event`, which
+    // the browser process never sees for input injected over the debug protocol.
+    //
     // In dark mode, an active tab uses the same selected surface as an event;
     // no extra border or accent bar introduces a second selection language.
-    await window.getByRole('button', { name: 'Probar tema oscuro' }).click();
+    // The dialog is modal, so everything behind it is `aria-hidden` while it is
+    // up: the palette is asserted once it is closed, not through it.
+    await window.getByRole('button', { name: 'Preferencias' }).click();
+    await window.getByRole('tab', { name: 'Apariencia' }).click();
+    await window.getByRole('combobox', { name: 'Tema' }).click();
+    await window.getByRole('option', { name: 'Oscuro' }).click();
+    await window.keyboard.press('Escape');
+    await expect(window.getByRole('dialog')).toHaveCount(0);
+
     await expect(window.locator('html')).toHaveAttribute('data-theme', 'dark');
     const activeConnectionTab = window.locator('[data-active="true"]');
     await expect(activeConnectionTab).toHaveCSS('background-color', 'rgb(17, 59, 57)');
@@ -42,7 +53,14 @@ test('connect, send an event and read it in the detail pane', async () => {
       'color',
       'rgb(6, 17, 16)',
     );
-    await window.getByRole('button', { name: 'Probar tema claro' }).click();
+
+    await window.getByRole('button', { name: 'Preferencias' }).click();
+    await window.getByRole('tab', { name: 'Apariencia' }).click();
+    await window.getByRole('combobox', { name: 'Tema' }).click();
+    await window.getByRole('option', { name: 'Claro' }).click();
+    await window.keyboard.press('Escape');
+    await expect(window.getByRole('dialog')).toHaveCount(0);
+    await expect(window.locator('html')).toHaveAttribute('data-theme', 'light');
 
     await window.getByLabel('URL').fill(server.url);
 

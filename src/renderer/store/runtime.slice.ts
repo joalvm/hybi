@@ -1,39 +1,37 @@
 import type { ActivityRecord, ConnectionState } from '@shared/ipc/activity.js';
 import type { TransportKind } from '@shared/domain/connections/connection.js';
+import { usePreferences } from './preferences.store.js';
 import { without } from './records.js';
 import { accumulate, type ActivityTotals } from './totals.js';
 import type { SliceCreator } from './types.js';
-
-/** How many records a single connection keeps before the oldest fall off. */
-export const ACTIVITY_LIMIT = 2000;
-
-/**
- * How many bytes of frame bodies a single connection keeps. The count above
- * cannot bound memory on its own: `maxMessageBytes` allows a frame far larger
- * than the whole log, so 2000 of them would be gigabytes the user never asked
- * to hold. Whichever limit is reached first decides what falls off.
- */
-export const ACTIVITY_BYTE_LIMIT = 8 * 1024 * 1024;
 
 /**
  * The window the log keeps, counting back from the newest record. Returns the
  * same array when nothing has to go, so an append that changes nothing does not
  * hand zustand a new reference.
  *
- * The newest record always survives, even alone over budget: dropping the frame
- * that just arrived would make the log lie about what the socket did.
+ * Both limits are preferences, read on every batch rather than captured: a
+ * budget the user just lowered has to apply to the log that is already there,
+ * not only to the frames that arrive after it.
+ *
+ * The record count cannot bound memory on its own — `maxMessageBytes` allows a
+ * frame far larger than the whole log — so whichever limit is reached first
+ * decides what falls off. The newest record always survives, even alone over
+ * budget: dropping the frame that just arrived would make the log lie about
+ * what the socket did.
  */
 function withinBudget(records: ActivityRecord[]): ActivityRecord[] {
   if (records.length === 0) return records;
+  const { activityLimit, activityByteLimit } = usePreferences.getState();
 
-  const floor = Math.max(0, records.length - ACTIVITY_LIMIT);
+  const floor = Math.max(0, records.length - activityLimit);
   let start = records.length - 1;
   let bytes = records[start]?.bytes ?? 0;
 
   // Walk backwards from the newest, taking one more record only while it fits.
   while (start > floor) {
     const older = records[start - 1];
-    if (older === undefined || bytes + older.bytes > ACTIVITY_BYTE_LIMIT) break;
+    if (older === undefined || bytes + older.bytes > activityByteLimit) break;
     bytes += older.bytes;
     start -= 1;
   }

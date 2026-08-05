@@ -1,10 +1,10 @@
+import { usePreferencesDialog } from '@/features/preferences/dialog.store.js';
 import { ActiveEnvironmentPicker } from '@/features/workspace/ActiveEnvironmentPicker.js';
 import { WorkspaceMenu } from '@/features/workspace/WorkspaceMenu.js';
-import { BracesIcon } from '@/shared/ui/icons.js';
+import { BracesIcon, SettingsIcon } from '@/shared/ui/icons.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import { useStore } from '@/store/index.js';
 import { AppMenuButton } from './AppMenuButton.js';
-import { ThemeToggle } from './ThemeToggle.js';
 import { WindowControls } from './WindowControls.js';
 
 /**
@@ -16,6 +16,7 @@ import { WindowControls } from './WindowControls.js';
  */
 export function TitleBar() {
   const setDialog = useStore((state) => state.setDialog);
+  const openPreferences = usePreferencesDialog((state) => state.openDialog);
 
   return (
     <div className="flex h-full w-full items-center gap-2">
@@ -38,7 +39,15 @@ export function TitleBar() {
             <BracesIcon />
           </IconButton>
         </div>
-        <ThemeToggle />
+        {/* The menu carries the same entry, but a menu nobody opens is not a
+            way in: this is where a desktop app is looked at for settings. */}
+        <IconButton
+          className="app-no-drag shrink-0 bg-control"
+          label="Preferencias"
+          onClick={openPreferences}
+        >
+          <SettingsIcon />
+        </IconButton>
         <WindowControls />
       </div>
     </div>

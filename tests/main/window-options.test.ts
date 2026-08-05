@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { roleOf, versionOf, workspaceIdOf } from '../../src/shared/ipc/window-args.js';
+import { localeOf, roleOf, versionOf, workspaceIdOf } from '../../src/shared/ipc/window-args.js';
 
 const constructed: Electron.BrowserWindowConstructorOptions[] = [];
 
@@ -17,7 +17,7 @@ class FakeBrowserWindow {
 }
 
 vi.mock('electron', () => ({
-  app: { getVersion: () => '9.9.9' },
+  app: { getVersion: () => '9.9.9', getLocale: () => 'es-PE' },
   BrowserWindow: FakeBrowserWindow,
   shell: { openExternal: vi.fn() },
   session: { defaultSession: { extensions: { loadExtension: vi.fn() } } },
@@ -86,6 +86,19 @@ describe('window sizes and controls', () => {
 
     createWorkbenchWindow('w1');
     expect(versionOf(last().webPreferences?.additionalArguments ?? [])).toBe('9.9.9');
+  });
+
+  /**
+   * `app.getLocale` and not `navigator.language`: on Linux they disagree often
+   * enough that the app would read in one language and the native dialogs in
+   * another.
+   */
+  it('tells both renderers which locale the host is in', () => {
+    createWelcomeWindow();
+    expect(localeOf(last().webPreferences?.additionalArguments ?? [])).toBe('es-PE');
+
+    createWorkbenchWindow('w1');
+    expect(localeOf(last().webPreferences?.additionalArguments ?? [])).toBe('es-PE');
   });
 
   it('keeps the renderer sandboxed and isolated in both windows', () => {

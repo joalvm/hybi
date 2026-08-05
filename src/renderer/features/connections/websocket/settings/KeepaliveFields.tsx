@@ -1,7 +1,6 @@
 import type { KeepalivePolicy } from '@shared/domain/connections/websocket.js';
-import { NumberField } from '../../settings/NumberField.js';
-import { SettingsSection } from '../../settings/SettingsSection.js';
-import { ToggleField } from '../../settings/ToggleField.js';
+import { NumberField } from '@/shared/ui/NumberField.js';
+import { ToggleField } from '@/shared/ui/ToggleField.js';
 
 type Props = {
   keepalive: KeepalivePolicy;
@@ -15,7 +14,7 @@ type Props = {
  */
 export function KeepaliveFields({ keepalive, onChange }: Props) {
   return (
-    <SettingsSection title="Keepalive">
+    <div className="flex flex-col">
       <ToggleField
         label="Enviar ping periódico"
         hint="Si no llega el pong dentro del tiempo de espera, la conexión se da por caída."
@@ -24,28 +23,28 @@ export function KeepaliveFields({ keepalive, onChange }: Props) {
           onChange({ ...keepalive, enabled });
         }}
       />
-      <div className="flex flex-col gap-0">
-        <NumberField
-          label="Intervalo (ms)"
-          value={keepalive.intervalMs}
-          min={1000}
-          max={600000}
-          disabled={!keepalive.enabled}
-          onChange={(intervalMs) => {
-            onChange({ ...keepalive, intervalMs });
-          }}
-        />
-        <NumberField
-          label="Espera del pong (ms)"
-          value={keepalive.timeoutMs}
-          min={500}
-          max={600000}
-          disabled={!keepalive.enabled}
-          onChange={(timeoutMs) => {
-            onChange({ ...keepalive, timeoutMs });
-          }}
-        />
-      </div>
-    </SettingsSection>
+      <NumberField
+        label="Intervalo"
+        value={keepalive.intervalMs}
+        min={1000}
+        max={600000}
+        unit="ms"
+        disabled={!keepalive.enabled}
+        onChange={(intervalMs) => {
+          onChange({ ...keepalive, intervalMs });
+        }}
+      />
+      <NumberField
+        label="Espera del pong"
+        value={keepalive.timeoutMs}
+        min={500}
+        max={600000}
+        unit="ms"
+        disabled={!keepalive.enabled}
+        onChange={(timeoutMs) => {
+          onChange({ ...keepalive, timeoutMs });
+        }}
+      />
+    </div>
   );
 }

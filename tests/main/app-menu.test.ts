@@ -21,7 +21,8 @@ const { buildAppMenu, installAppMenu, popupAppMenu } = await import('../../src/m
 
 const openWelcome = vi.fn();
 const showAbout = vi.fn();
-const actions = { openWelcome, showAbout };
+const showPreferences = vi.fn();
+const actions = { openWelcome, showAbout, showPreferences };
 
 const labels = (template: Template): string[] =>
   template.map((entry) => entry.label ?? String(entry.role));
@@ -39,6 +40,7 @@ describe('application menu', () => {
     popup.mockClear();
     openWelcome.mockClear();
     showAbout.mockClear();
+    showPreferences.mockClear();
   });
 
   it('carries the four blocks the button opens', () => {
@@ -90,6 +92,23 @@ describe('application menu', () => {
     file.find((entry) => entry.label === 'Nueva ventana')?.click?.({} as Electron.MenuItem, undefined, {});
 
     expect(openWelcome).toHaveBeenCalledOnce();
+  });
+
+  /**
+   * Preferences are reachable with no chrome control of their own, and from the
+   * block the host puts them in: the app menu on macOS, File everywhere else.
+   */
+  it('opens preferences from the block its platform expects', () => {
+    buildAppMenu(actions);
+    const owner = process.platform === 'darwin' ? 'Hybi' : 'Archivo';
+    const submenu = built[0]?.find((entry) => entry.label === owner)?.submenu;
+    if (!Array.isArray(submenu)) throw new Error(`no ${owner} submenu`);
+
+    const item = submenu.find((entry) => entry.label === 'Preferencias…');
+    expect(item?.accelerator).toBe('CmdOrCtrl+,');
+    item?.click?.({} as Electron.MenuItem, undefined, {});
+
+    expect(showPreferences).toHaveBeenCalledOnce();
   });
 
   /**

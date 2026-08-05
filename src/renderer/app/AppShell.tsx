@@ -5,6 +5,8 @@ import { ComposerPanel } from '@/features/composer/ComposerPanel.js';
 import { ConnectionBar } from '@/features/connections/ConnectionBar.js';
 import { ConnectionTabs } from '@/features/connections/ConnectionTabs.js';
 import { useConnectionSocket } from '@/features/connections/useConnectionSocket.js';
+import { PreferencesDialog } from '@/features/preferences/PreferencesDialog.js';
+import { usePreferenceRequests } from '@/features/preferences/usePreferenceRequests.js';
 import { VariablesDialog } from '@/features/workspace/VariablesDialog.js';
 import { useStore } from '@/store/index.js';
 import { AppLayout } from './AppLayout.js';
@@ -19,6 +21,7 @@ export function AppShell() {
   useWorkspaceAutosave();
   useConnectionSocket();
   const bootstrap = useWorkspaceBootstrap();
+  const preferences = usePreferenceRequests();
   const workspace = useStore((state) => state.workspace);
   const connectionId = useStore((state) => state.activeConnectionId);
 
@@ -34,6 +37,7 @@ export function AppShell() {
           <p className="p-3 text-muted">Abriendo workspace…</p>
         )}
         <AboutDialog />
+        <PreferencesDialog open={preferences.open} onClose={preferences.close} />
       </ErrorBoundary>
     );
   }
@@ -56,6 +60,7 @@ export function AppShell() {
       />
       <VariablesDialog />
       <AboutDialog />
+      <PreferencesDialog open={preferences.open} onClose={preferences.close} />
     </ErrorBoundary>
   );
 }

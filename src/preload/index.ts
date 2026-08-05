@@ -1,7 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { ActivityRecord, ConnectionStateEvent } from '@shared/ipc/activity.js';
 import { CHANNELS, type HostPlatform, type WorkbenchBridge } from '@shared/ipc/contract.js';
-import { roleOf, versionOf, workspaceIdOf } from '@shared/ipc/window-args.js';
+import { localeOf, roleOf, versionOf, workspaceIdOf } from '@shared/ipc/window-args.js';
+import type { AppPreferences } from '@shared/preferences/types.js';
 
 type ChannelListener = Parameters<typeof ipcRenderer.on>[1];
 
@@ -44,6 +45,14 @@ const bridge: WorkbenchBridge = {
       ipcRenderer.invoke(CHANNELS.workspaceDuplicate, workspaceId, name),
     remove: (workspaceId) => ipcRenderer.invoke(CHANNELS.workspaceDelete, workspaceId),
   },
+  preferences: {
+    load: () => ipcRenderer.invoke(CHANNELS.preferencesLoad),
+    save: (preferences) => ipcRenderer.invoke(CHANNELS.preferencesSave, preferences),
+    onChanged: (listener) =>
+      subscribe(CHANNELS.preferencesChanged, (_event, preferences: AppPreferences) => {
+        listener(preferences);
+      }),
+  },
   asyncapi: {
     import: () => ipcRenderer.invoke(CHANNELS.asyncapiImport),
     export: (workspace) => ipcRenderer.invoke(CHANNELS.asyncapiExport, workspace),
@@ -75,6 +84,11 @@ const bridge: WorkbenchBridge = {
       subscribe(CHANNELS.appAbout, () => {
         listener();
       }),
+    onPreferencesRequested: (listener) =>
+      subscribe(CHANNELS.appPreferences, () => {
+        listener();
+      }),
+    locale: localeOf(process.argv),
   },
   platform: hostPlatform(),
   // Both windows run the same bundle, so what this one is comes from the flags

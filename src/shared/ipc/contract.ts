@@ -15,6 +15,7 @@ import type {
   SendConnectionRequest,
   TransportSendResult,
 } from '../transport/contract.js';
+import type { AppPreferences } from '../preferences/types.js';
 
 export const CHANNELS = {
   connectionOpen: 'connection:open',
@@ -30,6 +31,10 @@ export const CHANNELS = {
   workspaceCreate: 'workspace:create',
   workspaceDuplicate: 'workspace:duplicate',
   workspaceDelete: 'workspace:delete',
+  preferencesLoad: 'preferences:load',
+  preferencesSave: 'preferences:save',
+  /** One installation, two windows: what one changes, the other is told about. */
+  preferencesChanged: 'preferences:changed',
   asyncapiImport: 'asyncapi:import',
   asyncapiExport: 'asyncapi:export',
   activityExport: 'activity:export',
@@ -43,6 +48,7 @@ export const CHANNELS = {
   windowPopupAppMenu: 'window:popup-app-menu',
   shellOpenWorkspace: 'shell:open-workspace',
   appAbout: 'app:about',
+  appPreferences: 'app:preferences',
 } as const;
 
 /** Only the distinction the chrome needs: macOS draws its own controls. */
@@ -104,6 +110,19 @@ export type WorkbenchBridge = {
     remove(workspaceId: string): Promise<Result<Empty>>;
     /** Renaming needs no channel: the name is in the document, so autosave carries it. */
   };
+  /**
+   * Settings of the installation, not of the document. They are answered before
+   * the first paint so the window never opens in the wrong theme, and the main
+   * process is what normalises them — a hand-edited file cannot put a value the
+   * renderer would have to defend itself against on the other side.
+   */
+  preferences: {
+    load(): Promise<AppPreferences>;
+    /** Answers with what was stored, which is not always what was sent. */
+    save(preferences: AppPreferences): Promise<AppPreferences>;
+    /** Fires when the *other* window changed them. */
+    onChanged(listener: (preferences: AppPreferences) => void): () => void;
+  };
   asyncapi: {
     import(): Promise<ImportOutcome>;
     export(workspace: Workspace): Promise<ExportOutcome>;
@@ -152,6 +171,10 @@ export type WorkbenchBridge = {
     version: string;
     /** The Help menu asks; the window that is in front paints the dialog. */
     onAboutRequested(listener: () => void): () => void;
+    /** Same contract for the preferences entry, which is also a menu item. */
+    onPreferencesRequested(listener: () => void): () => void;
+    /** The host locale, for the preferences that defer to the machine. */
+    locale: string;
   };
   /** Decides who owns the controls, so the renderer never guesses the host. */
   platform: HostPlatform;

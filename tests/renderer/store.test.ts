@@ -3,7 +3,8 @@ import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
 import { createWorkspace } from '@shared/domain/factory.js';
 import type { EventItem, Workspace } from '@shared/domain/types.js';
 import type { ActivityRecord } from '@shared/ipc/activity.js';
-import { ACTIVITY_BYTE_LIMIT, ACTIVITY_LIMIT, useStore } from '@/store/index.js';
+import { ACTIVITY_BYTE_LIMIT, ACTIVITY_LIMIT } from '@shared/preferences/defaults.js';
+import { useStore } from '@/store/index.js';
 import {
   selectEffectivePayload,
   selectIsDirty,

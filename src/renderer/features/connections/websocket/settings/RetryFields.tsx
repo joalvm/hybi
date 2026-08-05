@@ -1,7 +1,6 @@
 import type { RetryPolicy } from '@shared/domain/connections/websocket.js';
-import { NumberField } from '../../settings/NumberField.js';
-import { SettingsSection } from '../../settings/SettingsSection.js';
-import { ToggleField } from '../../settings/ToggleField.js';
+import { NumberField } from '@/shared/ui/NumberField.js';
+import { ToggleField } from '@/shared/ui/ToggleField.js';
 
 type Props = {
   retry: RetryPolicy;
@@ -15,7 +14,7 @@ type Props = {
  */
 export function RetryFields({ retry, onChange }: Props) {
   return (
-    <SettingsSection title="Reintentos">
+    <div className="flex flex-col">
       <ToggleField
         label="Reconectar cuando el servidor corta"
         hint="No afecta a un primer intento fallido ni a una desconexión manual."
@@ -24,38 +23,39 @@ export function RetryFields({ retry, onChange }: Props) {
           onChange({ ...retry, enabled });
         }}
       />
-      <div className="flex flex-col gap-0">
-        <NumberField
-          label="Intentos"
-          value={retry.attempts}
-          min={0}
-          max={100}
-          disabled={!retry.enabled}
-          onChange={(attempts) => {
-            onChange({ ...retry, attempts });
-          }}
-        />
-        <NumberField
-          label="Espera inicial (ms)"
-          value={retry.baseMs}
-          min={100}
-          max={60000}
-          disabled={!retry.enabled}
-          onChange={(baseMs) => {
-            onChange({ ...retry, baseMs });
-          }}
-        />
-        <NumberField
-          label="Espera máxima (ms)"
-          value={retry.maxMs}
-          min={100}
-          max={300000}
-          disabled={!retry.enabled}
-          onChange={(maxMs) => {
-            onChange({ ...retry, maxMs });
-          }}
-        />
-      </div>
-    </SettingsSection>
+      <NumberField
+        label="Intentos"
+        value={retry.attempts}
+        min={0}
+        max={100}
+        disabled={!retry.enabled}
+        onChange={(attempts) => {
+          onChange({ ...retry, attempts });
+        }}
+      />
+      <NumberField
+        label="Espera inicial"
+        description="Se duplica en cada intento hasta llegar a la espera máxima."
+        value={retry.baseMs}
+        min={100}
+        max={60000}
+        unit="ms"
+        disabled={!retry.enabled}
+        onChange={(baseMs) => {
+          onChange({ ...retry, baseMs });
+        }}
+      />
+      <NumberField
+        label="Espera máxima"
+        value={retry.maxMs}
+        min={100}
+        max={300000}
+        unit="ms"
+        disabled={!retry.enabled}
+        onChange={(maxMs) => {
+          onChange({ ...retry, maxMs });
+        }}
+      />
+    </div>
   );
 }

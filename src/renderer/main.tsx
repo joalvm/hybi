@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AppShell } from './app/AppShell.js';
+import { bootPreferences } from './app/bootPreferences.js';
 import { WelcomeApp } from './app/WelcomeApp.js';
 import { bridge } from './ipc/bridge.js';
 import './shared/styles/index.css';
@@ -12,6 +13,10 @@ if (container === null) throw new Error('root container missing');
 // still paints: macOS keeps its traffic lights at the top left.
 document.documentElement.dataset.platform = bridge.platform;
 document.documentElement.dataset.role = bridge.role;
+
+// Awaited before the first render: the theme is a preference now, and a window
+// that paints light and then turns dark is a window that looks broken.
+await bootPreferences();
 
 // Both windows load this same bundle. Which one this is was decided by the main
 // process, so the renderer never infers it from what it happens to have loaded.
