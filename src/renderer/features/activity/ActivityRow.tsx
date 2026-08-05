@@ -1,7 +1,14 @@
 import { memo, type KeyboardEvent, type ReactNode } from 'react';
 import type { ActivityRecord } from '@shared/ipc/activity.js';
 import { ContextMenu } from '@/shared/ui/ContextMenu.js';
-import { DuplicateIcon, ErrorIcon, IncomingIcon, OutgoingIcon, StatusIcon } from '@/shared/ui/icons.js';
+import {
+  DuplicateIcon,
+  ErrorIcon,
+  IncomingIcon,
+  OutgoingIcon,
+  SendIcon,
+  StatusIcon,
+} from '@/shared/ui/icons.js';
 import { cn } from '@/shared/utils/cn.js';
 import type { CopyScope } from './copy-text.js';
 import { formatOffset } from './useActivityFilter.js';
@@ -51,6 +58,9 @@ type Props = {
   selected: boolean;
   onSelect: (id: string) => void;
   onCopy: (record: ActivityRecord, scope: CopyScope) => void;
+  onResend: (record: ActivityRecord) => void;
+  /** False while no event is open: the composer would have nowhere to put it. */
+  canResend: boolean;
 };
 
 /**
@@ -66,9 +76,14 @@ export const ActivityRow = memo(function ActivityRow({
   selected,
   onSelect,
   onCopy,
+  onResend,
+  canResend,
 }: Props) {
   const glyph = GLYPH[record.kind];
   const body = preview(record.body, record.label);
+  // A status note or an error is the app talking, not a frame: there is nothing
+  // in either that the composer could put back on the wire.
+  const replayable = record.kind === 'incoming' || record.kind === 'outgoing';
 
   // The log is walked with the keyboard, so the shortcut answers where the focus
   // already is instead of making the user open the menu to reach it.
@@ -96,6 +111,18 @@ export const ActivityRow = memo(function ActivityRow({
             onCopy(record, 'row');
           },
         },
+        ...(replayable
+          ? [
+              {
+                label: 'Reenviar al composer',
+                icon: <SendIcon />,
+                disabled: !canResend,
+                onSelect: () => {
+                  onResend(record);
+                },
+              },
+            ]
+          : []),
       ]}
     >
       <button

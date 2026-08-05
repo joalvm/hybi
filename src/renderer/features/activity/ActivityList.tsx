@@ -13,9 +13,19 @@ type Props = {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onCopy: (record: ActivityRecord, scope: CopyScope) => void;
+  onResend: (record: ActivityRecord) => void;
+  canResend: boolean;
 };
 
-export function ActivityList({ records, origin, selectedId, onSelect, onCopy }: Props) {
+export function ActivityList({
+  records,
+  origin,
+  selectedId,
+  onSelect,
+  onCopy,
+  onResend,
+  canResend,
+}: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   // A ref, not state: this flips on every scroll frame and must never re-render.
   const pinned = useRef(true);
@@ -65,6 +75,8 @@ export function ActivityList({ records, origin, selectedId, onSelect, onCopy }: 
                 selected={record.id === selectedId}
                 onSelect={onSelect}
                 onCopy={onCopy}
+                onResend={onResend}
+                canResend={canResend}
               />
             </div>
           );

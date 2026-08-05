@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import type { ActivityRecord } from '@shared/ipc/activity.js';
 import { bridge } from '@/ipc/bridge.js';
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog.js';
 import { Panel } from '@/shared/ui/Panel.js';
 import { SplitPane } from '@/shared/ui/SplitPane.js';
 import { useStore } from '@/store/index.js';
@@ -11,6 +12,7 @@ import { ActivityList } from './ActivityList.js';
 import { ActivityToolbar } from './ActivityToolbar.js';
 import { copyText, type CopyScope } from './copy-text.js';
 import { useActivityFilter } from './useActivityFilter.js';
+import { useActivityResend } from './useActivityResend.js';
 
 type Props = { connectionId: string };
 
@@ -29,6 +31,7 @@ export function ActivityPanel({ connectionId }: Props) {
   const hidden = useStore((state) => state.hiddenActivityKinds);
   const setActivityQuery = useStore((state) => state.setActivityQuery);
   const toggleActivityKind = useStore((state) => state.toggleActivityKind);
+  const replay = useActivityResend(connectionId);
 
   // Read through `getState()` so the callback identity survives every batch and
   // the memoized rows are not repainted by an unrelated append. Clicking the
@@ -77,6 +80,8 @@ export function ActivityPanel({ connectionId }: Props) {
       selectedId={selectedId}
       onSelect={select}
       onCopy={copy}
+      onResend={replay.resend}
+      canResend={replay.canResend}
     />
   );
 
@@ -107,9 +112,21 @@ export function ActivityPanel({ connectionId }: Props) {
             onCopy={() => {
               copy(selected, 'body');
             }}
+            onResend={() => {
+              replay.resend(selected);
+            }}
+            canResend={replay.canResend}
           />
         </SplitPane>
       )}
+      <ConfirmDialog
+        open={replay.pending !== null}
+        title="Reemplazar el borrador"
+        message="El composer tiene cambios sin guardar. Cargar este frame los descarta."
+        confirmLabel="Reemplazar"
+        onConfirm={replay.confirm}
+        onClose={replay.dismiss}
+      />
     </Panel>
   );
 }

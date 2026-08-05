@@ -2,6 +2,7 @@ import type { ComponentProps } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { createWorkspace } from '@shared/domain/factory.js';
 import type { ActivityKind, ActivityRecord } from '@shared/ipc/activity.js';
 import { ActivityDetail } from '@/features/activity/ActivityDetail.js';
 import { ActivityPanel } from '@/features/activity/ActivityPanel.js';
@@ -100,6 +101,8 @@ describe('ActivityRow', () => {
         selected={false}
         onSelect={() => undefined}
         onCopy={() => undefined}
+        onResend={() => undefined}
+        canResend={false}
       />,
     );
     expect(screen.getByText('DeviceLogin')).toBeTruthy();
@@ -122,6 +125,8 @@ describe('ActivityRow', () => {
         selected={false}
         onSelect={() => undefined}
         onCopy={() => undefined}
+        onResend={() => undefined}
+        canResend={false}
       />,
     );
     expect(screen.queryByText('echo:{ "ok": true }')).toBeNull();
@@ -136,6 +141,8 @@ describe('ActivityRow', () => {
         selected={false}
         onSelect={() => undefined}
         onCopy={() => undefined}
+        onResend={() => undefined}
+        canResend={false}
       />,
     );
     expect(screen.getByText('Cerrado (1000)')).toBeTruthy();
@@ -161,6 +168,8 @@ describe('copying a frame', () => {
         selected={false}
         onSelect={() => undefined}
         onCopy={(_record, scope) => copied.push(scope)}
+        onResend={() => undefined}
+        canResend
       />,
     );
 
@@ -168,6 +177,7 @@ describe('copying a frame', () => {
     expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
       'Copiar cuerpo',
       'Copiar fila',
+      'Reenviar al composer',
     ]);
 
     await user.click(screen.getByRole('menuitem', { name: 'Copiar cuerpo' }));
@@ -185,6 +195,8 @@ describe('copying a frame', () => {
         selected={false}
         onSelect={() => undefined}
         onCopy={(_record, scope) => copied.push(scope)}
+        onResend={() => undefined}
+        canResend
       />,
     );
 
@@ -199,11 +211,73 @@ describe('copying a frame', () => {
         record={record({ body: '{"ok":true}' })}
         onClose={() => undefined}
         onCopy={() => copied.push('body')}
+        onResend={() => undefined}
+        canResend={false}
       />,
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Copiar el frame' }));
     expect(copied).toEqual(['body']);
+  });
+});
+
+describe('resending a frame', () => {
+  const workspaceWithEvent = (): void => {
+    const workspace = createWorkspace('Demo');
+    const [collection] = workspace.catalog.collections;
+    workspace.catalog.items.push({
+      id: 'e1',
+      collectionId: collection?.id ?? '',
+      name: 'Ping',
+      payload: '{"a":1}',
+      source: 'manual',
+    });
+    useStore.getState().setWorkspace(workspace);
+    useStore.getState().setSelectedEvent('c1', 'e1');
+  };
+
+  const openDetail = (): void => {
+    useStore.getState().appendActivity([record({ id: 'c1:1', body: '{"from":"server"}' })]);
+    render(<ActivityPanel connectionId="c1" />);
+    act(() => {
+      useStore.getState().setSelectedActivity('c1', 'c1:1');
+    });
+  };
+
+  beforeEach(() => {
+    useStore.getState().reset();
+  });
+
+  it('loads the frame into the composer when no edit is at risk', () => {
+    workspaceWithEvent();
+    openDetail();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reenviar al composer' }));
+
+    expect(useStore.getState().drafts['c1:e1']).toBe('{"from":"server"}');
+  });
+
+  // Overwriting an unsaved payload without asking is the one way this action
+  // can destroy work the user cannot get back.
+  it('asks before replacing a draft with unsaved changes', async () => {
+    const user = userEvent.setup();
+    workspaceWithEvent();
+    useStore.getState().setDraft('c1', 'e1', '{"a":2}');
+    openDetail();
+
+    await user.click(screen.getByRole('button', { name: 'Reenviar al composer' }));
+    expect(useStore.getState().drafts['c1:e1']).toBe('{"a":2}');
+
+    await user.click(screen.getByRole('button', { name: 'Reemplazar' }));
+    expect(useStore.getState().drafts['c1:e1']).toBe('{"from":"server"}');
+  });
+
+  it('offers nothing to resend into while no event is open', () => {
+    openDetail();
+
+    expect(
+      screen.getByRole('button', { name: 'Reenviar al composer' }).hasAttribute('disabled'),
+    ).toBe(true);
   });
 });
 
