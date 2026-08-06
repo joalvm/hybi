@@ -5,9 +5,11 @@ import { WebSocketServer, type WebSocket } from 'ws';
 import { DEFAULT_WEBSOCKET_SETTINGS } from '@shared/domain/connections/defaults.js';
 import type { ActivityRecord, ConnectionStateEvent } from '@shared/ipc/activity.js';
 import type { ResolvedWebSocketTransport } from '@shared/transport/contract.js';
+import { base64ToBytes } from '@shared/binary/base64.js';
 import { ActivityBuffer } from '../../src/main/connections/activity-buffer.js';
 import { ConnectionManager } from '../../src/main/connections/manager.js';
 import { nextDelay } from '../../src/main/connections/websocket/backoff.js';
+import { frameOf, textFrame } from '../../src/main/connections/websocket/frame.js';
 import { startKeepalive } from '../../src/main/connections/websocket/keepalive.js';
 import { assertWsUrl } from '../../src/main/connections/websocket/url.js';
 
@@ -57,6 +59,37 @@ describe('nextDelay', () => {
   });
 });
 
+describe('frameOf', () => {
+  it('reads a text frame verbatim and weighs it in wire bytes', () => {
+    expect(frameOf(Buffer.from('añ', 'utf8'), false)).toEqual({
+      body: 'añ',
+      encoding: 'text',
+      bytes: 3,
+    });
+  });
+
+  /**
+   * The frame used to collapse to `<binario N bytes>`, which threw the payload
+   * away at the door: nothing downstream could show it, resend it or export it.
+   */
+  it('carries a binary frame as base64 instead of collapsing it', () => {
+    const bytes = Buffer.from([0x00, 0xff, 0x10]);
+    const frame = frameOf(bytes, true);
+
+    expect(frame.encoding).toBe('base64');
+    expect(frame.bytes).toBe(3);
+    expect(base64ToBytes(frame.body)).toEqual(new Uint8Array(bytes));
+  });
+
+  it('joins a fragmented frame before reading it', () => {
+    expect(frameOf([Buffer.from('ab'), Buffer.from('cd')], false).body).toBe('abcd');
+  });
+
+  it('calls a note what it is: text the app wrote, not a frame', () => {
+    expect(textFrame('closed')).toEqual({ body: 'closed', encoding: 'text', bytes: 6 });
+  });
+});
+
 describe('ActivityBuffer', () => {
   const record = (sequence: number): ActivityRecord => ({
     id: `c1:${String(sequence)}`,
@@ -67,6 +100,7 @@ describe('ActivityBuffer', () => {
     at: 0,
     label: 'x',
     body: 'x',
+    encoding: 'text',
     bytes: 1,
   });
 
@@ -361,6 +395,26 @@ describe('ConnectionManager', () => {
       expect(activity.some((item) => item.body.includes('Max payload size exceeded'))).toBe(true);
     });
     expect(activity.some((item) => item.kind === 'incoming')).toBe(false);
+  });
+
+  /** The bytes the peer sent, all of them, reachable from the log. */
+  it('logs an incoming binary frame byte for byte', async () => {
+    const payload = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00, 0xff]);
+    server.on('connection', (socket) => {
+      socket.send(payload, { binary: true });
+    });
+
+    await manager.open({ connectionId: 'c1', transport: transport(url) });
+    await vi.waitFor(() => {
+      expect(activity.filter((item) => item.kind === 'incoming')).toHaveLength(1);
+    });
+
+    const frame = activity.find((item) => item.kind === 'incoming');
+    expect(frame?.encoding).toBe('base64');
+    expect(frame?.bytes).toBe(payload.byteLength);
+    expect(base64ToBytes(frame?.body ?? '')).toEqual(new Uint8Array(payload));
+    // The label is a hint, not the frame: base64 in the label column says nothing.
+    expect(frame?.label).toContain('6');
   });
 
   it('lets a frame under the ceiling through', async () => {

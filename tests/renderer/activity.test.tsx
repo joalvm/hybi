@@ -37,6 +37,7 @@ const record = (over: Partial<ActivityRecord>): ActivityRecord => ({
   at: 1000,
   label: 'DeviceLogin',
   body: '{"ok":true}',
+  encoding: 'text',
   bytes: 11,
   ...over,
 });
@@ -156,6 +157,27 @@ describe('ActivityRow', () => {
     );
     expect(screen.getByText('Closed (1000)')).toBeTruthy();
     expect(screen.getByText('going away')).toBeTruthy();
+  });
+
+  /**
+   * Base64 in the preview column is unreadable and, worse, looks like text that
+   * arrived. Hex is what the detail pane will show, so the row previews the same
+   * thing the frame is about to be opened as.
+   */
+  it('previews a binary frame in hex, not as base64', () => {
+    render(
+      <ActivityRow
+        record={record({ label: 'Binary', encoding: 'base64', body: 'iVBORw==', bytes: 4 })}
+        origin={1000}
+        selected={false}
+        onSelect={() => undefined}
+        onCopy={() => undefined}
+        onResend={() => undefined}
+        canResend={false}
+      />,
+    );
+    expect(screen.getByText('89 50 4e 47')).toBeTruthy();
+    expect(screen.queryByText('iVBORw==')).toBeNull();
   });
 });
 

@@ -23,6 +23,7 @@
     "error": "Errores"
   },
   "bytes": "{count} B",
+  "binaryFrame": "Binario · {count} B",
   "notes": {
     "closed": "Cerrado ({code})",
     "retrying": "Reintentando ({attempt}/{attempts})",

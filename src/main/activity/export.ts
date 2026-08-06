@@ -33,6 +33,11 @@ export function activityDefaultFileName(connectionName: string): string {
  * Longest value first: a secret that contains another would otherwise be left
  * half rewritten. `split`/`join` rather than a pattern, so a value full of
  * regular expression syntax is still matched literally.
+ *
+ * A binary body is left alone. A secret is text and base64 is not: the same
+ * bytes are spelled three ways depending on where the value falls in the frame,
+ * so a hit would be luck and the replacement would corrupt the payload it landed
+ * in. The label is still cleaned — it is text wherever it came from.
  */
 export function redactFrames(
   records: readonly ActivityRecord[],
@@ -52,7 +57,7 @@ export function redactFrames(
   return records.map((record) => ({
     ...record,
     label: hide(record.label),
-    body: hide(record.body),
+    body: record.encoding === 'base64' ? record.body : hide(record.body),
   }));
 }
 
@@ -67,7 +72,10 @@ function asText(records: readonly ActivityRecord[], connectionName: string): str
   const blocks = records.map((record) => {
     const when = new Date(record.at).toISOString();
     const kind = messages.kinds[record.kind];
-    return `\n[${when}] ${kind} ${record.label} (${String(record.bytes)} B)\n${record.body}\n`;
+    // Base64 in a text file is unreadable either way; what the reader must not
+    // do is take it for what the frame said, so the heading names the encoding.
+    const size = `${String(record.bytes)} B${record.encoding === 'base64' ? ', base64' : ''}`;
+    return `\n[${when}] ${kind} ${record.label} (${size})\n${record.body}\n`;
   });
   return `${header}${blocks.join('')}`;
 }

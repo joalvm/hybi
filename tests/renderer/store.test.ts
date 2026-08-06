@@ -37,6 +37,7 @@ function activityRecord(
     at: 0,
     label: 'x',
     body: 'x',
+    encoding: 'text',
     bytes: 1,
     ...overrides,
   };

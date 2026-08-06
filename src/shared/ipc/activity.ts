@@ -1,3 +1,4 @@
+import type { PayloadEncoding } from '../binary/encoding.js';
 import type { TransportKind } from '../domain/connections/connection.js';
 
 /**
@@ -17,8 +18,10 @@ export type ConnectionState =
 export type ActivityKind = 'outgoing' | 'incoming' | 'status' | 'error';
 
 /**
- * One line in the activity log. `body` is the exact text that crossed the
- * socket; `label` is only a display hint derived from it.
+ * One line in the activity log. `body` is exactly what crossed the socket, read
+ * through `encoding`; `label` is only a display hint derived from it. `bytes` is
+ * always the size on the wire, so a binary frame is counted by what it weighed
+ * and not by the length of the base64 that carries it.
  */
 type TransportActivityRecord<TKind extends TransportKind> = {
   id: string;
@@ -29,6 +32,7 @@ type TransportActivityRecord<TKind extends TransportKind> = {
   at: number;
   label: string;
   body: string;
+  encoding: PayloadEncoding;
   bytes: number;
 };
 

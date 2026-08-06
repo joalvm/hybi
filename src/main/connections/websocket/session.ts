@@ -4,8 +4,8 @@ import type { ResolvedTransport, TransportMessage } from '@shared/transport/cont
 import { mainMessages } from '../../lang.js';
 import type { TransportSession, TransportSessionSink } from '../transport.js';
 import { createWebSocketAttempt, disposeWebSocketAttempt, type WebSocketAttempt } from './attempt.js';
-import { bodyOf } from './frame.js';
-import { labelOf } from './label.js';
+import { frameOf, textFrame } from './frame.js';
+import { labelFor, labelOf } from './label.js';
 import { closedNote, retryNote } from './notes.js';
 import { createWebSocketReporter } from './reporter.js';
 import { RetryScheduler } from './retry.js';
@@ -56,7 +56,7 @@ export class WebSocketTransportSession implements TransportSession {
         else reject(cause instanceof Error ? cause : new Error(messages.exceptions.sendFailed));
       });
     });
-    return this.reporter.record('outgoing', labelOf(message.text), message.text);
+    return this.reporter.record('outgoing', labelOf(message.text), textFrame(message.text));
   }
 
   close(): void {
@@ -102,8 +102,8 @@ export class WebSocketTransportSession implements TransportSession {
       },
       message: (attempt, data, isBinary) => {
         if (this.active !== attempt) return;
-        const body = bodyOf(data, isBinary);
-        this.reporter.record('incoming', labelOf(body), body);
+        const frame = frameOf(data, isBinary);
+        this.reporter.record('incoming', labelFor(frame), frame);
       },
       error: (attempt, error) => {
         if (this.active === attempt) this.reporter.failure(error, target.url);
@@ -122,7 +122,7 @@ export class WebSocketTransportSession implements TransportSession {
     if (this.active !== attempt) return;
     this.active = null;
     const dropped = !this.closedByUser && this.wasOpen;
-    this.reporter.record('status', closedNote(code), reason);
+    this.reporter.record('status', closedNote(code), textFrame(reason));
     this.reporter.state(dropped ? 'dropped' : 'closed', String(code));
     if (dropped) this.scheduleRetry();
   }
@@ -138,7 +138,7 @@ export class WebSocketTransportSession implements TransportSession {
     });
     if (delay === null) return;
     const note = retryNote(this.retry.attempts, target.retry.attempts, delay);
-    this.reporter.record('status', note.label, note.body);
+    this.reporter.record('status', note.label, textFrame(note.body));
   }
 
   private releaseActive(): void {
