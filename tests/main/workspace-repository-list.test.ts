@@ -23,12 +23,14 @@ describe('WorkspaceRepository list and creation', () => {
     expect(summaries[0]?.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
-  it('skips unreadable files instead of failing the whole list', async () => {
+  it('reports unreadable files instead of failing the whole list', async () => {
     await repository.save(createWorkspace('good'));
     await writeFile(join(root, 'broken.json'), 'not json at all', 'utf8');
 
     const summaries = await repository.list();
-    expect(summaries.map((item) => item.name)).toEqual(['good']);
+    expect(summaries.filter((item) => item.broken === undefined).map((item) => item.name)).toEqual([
+      'good',
+    ]);
   });
 
   it('creates a default workspace when the directory is empty', async () => {

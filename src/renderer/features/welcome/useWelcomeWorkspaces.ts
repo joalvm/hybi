@@ -10,6 +10,8 @@ type WelcomeWorkspaces = {
   error: string | null;
   open: (workspaceId: string) => void;
   create: (name: string) => void;
+  /** Deletes a file that could not be read, and asks the list again. */
+  discard: (workspaceId: string) => void;
 };
 
 function messageOf(error: unknown): string {
@@ -32,7 +34,7 @@ export function useWelcomeWorkspaces(): WelcomeWorkspaces {
     setStatus('error');
   }, []);
 
-  useEffect(() => {
+  const refresh = useCallback(() => {
     void bridge.workspace
       .list()
       .then((next) => {
@@ -41,6 +43,8 @@ export function useWelcomeWorkspaces(): WelcomeWorkspaces {
       })
       .catch(fail);
   }, [fail]);
+
+  useEffect(refresh, [refresh]);
 
   const open = useCallback(
     (workspaceId: string) => {
@@ -61,5 +65,20 @@ export function useWelcomeWorkspaces(): WelcomeWorkspaces {
     [fail],
   );
 
-  return { summaries, status, error, open, create };
+  // The file is unreadable, so there is nothing to close first and nothing to
+  // recover: the row goes away once disk agrees it did.
+  const discard = useCallback(
+    (workspaceId: string) => {
+      void bridge.workspace
+        .remove(workspaceId)
+        .then((result) => {
+          if (result.ok) refresh();
+          else fail(result.error);
+        })
+        .catch(fail);
+    },
+    [fail, refresh],
+  );
+
+  return { summaries, status, error, open, create, discard };
 }

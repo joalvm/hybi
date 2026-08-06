@@ -57,6 +57,7 @@ export function WelcomeScreen() {
           status={list.status}
           error={list.error}
           onOpen={list.open}
+          onDiscard={list.discard}
         />
       </section>
 

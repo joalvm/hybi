@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { Workspace, WorkspaceSummary } from '@shared/domain/types.js';
+import type { WorkspaceSummary } from '@shared/domain/types.js';
 import { bridge } from '@/ipc/bridge.js';
 import { useStore } from '@/store/index.js';
+import { flush, install, openable } from './workspaceHandover.js';
 type ListStatus = 'loading' | 'ready' | 'error';
 type WorkspaceList = {
   summaries: WorkspaceSummary[];
@@ -16,31 +17,6 @@ type WorkspaceList = {
 
 function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
-}
-
-/**
- * Installs a document before the main editor opens. The store is reset first so no
- * connection id from the previous workspace survives inside the record-shaped
- * slices, and autosave stays quiet: a load is not an edit.
- *
- * Whatever main hands over already has its starter connection, so nothing is
- * added here.
- */
-function install(workspace: Workspace): void {
-  const store = useStore.getState();
-  store.reset();
-  store.setWorkspace(workspace);
-  const first = workspace.connections[0];
-  if (first !== undefined) store.setActiveConnection(first.id);
-}
-
-/**
- * Autosave is debounced, so the file can be up to a moment behind the store.
- * Anything that reads the file — switching away, duplicating — writes first.
- */
-async function flush(): Promise<void> {
-  const current = useStore.getState().workspace;
-  if (current !== null) await bridge.workspace.save(current);
 }
 
 /** The workspaces on disk plus every operation the menu offers over them. */
@@ -60,7 +36,7 @@ export function useWorkspaceList(): WorkspaceList {
     void bridge.workspace
       .list()
       .then((next) => {
-        setSummaries(next);
+        setSummaries(openable(next));
         setError(null);
         setStatus('ready');
       })
@@ -71,7 +47,7 @@ export function useWorkspaceList(): WorkspaceList {
     void bridge.workspace
       .list()
       .then((next) => {
-        setSummaries(next);
+        setSummaries(openable(next));
         setStatus('ready');
       })
       .catch(fail);

@@ -31,7 +31,7 @@ revisión. `S` = 0,5–1 día. `M` = 2–4 días. `L` = 5–10 días. Total apro
 | 5 | Exportar la sesión a un archivo | M | Cosecha rápida | hecho |
 | 6 | Preferencias de aplicación | M | Cimientos | hecho |
 | 7 | Capa de idiomas (español + inglés) | M–L | Cimientos | hecho |
-| 8 | Integridad del workspace | M | Datos | pendiente |
+| 8 | Integridad del workspace | M | Datos | hecho |
 | 9 | Diagnóstico: errores legibles y log en disco | M | Datos | pendiente |
 | 10 | Frames binarios: ver y enviar | L | Protocolo | pendiente |
 | 11 | Socket.IO | L | Protocolo | pendiente |

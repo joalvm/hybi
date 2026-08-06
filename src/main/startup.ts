@@ -22,7 +22,10 @@ export async function openStartupWindow(): Promise<void> {
   }
 
   // `list()` is sorted by `updatedAt`, so the first entry is the last one used.
-  const [last] = await new WorkspaceRepository(workspacesDirectory()).list();
+  // A file that could not be read is not a document to land in: welcome is the
+  // window that reports it, and the one that can discard it.
+  const summaries = await new WorkspaceRepository(workspacesDirectory()).list();
+  const last = summaries.find((entry) => entry.broken === undefined);
   if (last === undefined) {
     openWelcome();
     return;
