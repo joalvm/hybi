@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
+import { format } from '@lang/translate.js';
 import type { ActivitySecret } from '@shared/ipc/activity.js';
 import { bridge } from '@/ipc/bridge.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { useStore } from '@/store/index.js';
 import { selectScopeFor } from '@/store/selectors.js';
 
@@ -15,6 +17,8 @@ import { selectScopeFor } from '@/store/selectors.js';
  * puts `{{name}}` back where each value was.
  */
 export function useActivityExport(connectionId: string): () => void {
+  const failed = useMessages().activity.exportFailed;
+
   return useCallback(() => {
     const state = useStore.getState();
     const connection = state.workspace?.connections.find((entry) => entry.id === connectionId);
@@ -36,8 +40,8 @@ export function useActivityExport(connectionId: string): () => void {
           .appendLocalError(
             connectionId,
             connection.transport.kind,
-            `No se pudo exportar la actividad: ${outcome.error}`,
+            format(failed, { error: outcome.error }),
           );
       });
-  }, [connectionId]);
+  }, [connectionId, failed]);
 }

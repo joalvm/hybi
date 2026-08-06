@@ -1,3 +1,5 @@
+import { format } from '@lang/translate.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import {
   CaretDownIcon,
   CaretRightIcon,
@@ -33,6 +35,7 @@ export function CatalogCollection({
   onSelect,
   actions,
 }: Props) {
+  const messages = useMessages();
   const collection = group.collection;
   const renaming = collection.id === renamingId;
   // A collapsed collection still opens for the row being named: creating an
@@ -47,7 +50,7 @@ export function CatalogCollection({
         <CaretDownIcon className="shrink-0" />
         <InlineNameInput
           value={collection.name}
-          label="Nombre de la colección"
+          label={messages.catalog.collectionName}
           onCommit={(name) => {
             actions.commitRenameCollection(collection.id, name);
           }}
@@ -88,7 +91,7 @@ export function CatalogCollection({
         {actions !== undefined && (
           <IconButton
             className="catalog-action-runtime"
-            label={`Nuevo evento en ${collection.name}`}
+            label={format(messages.catalog.newEventIn, { name: collection.name })}
             onClick={() => {
               actions.createIn(collection.id);
             }}
@@ -98,24 +101,24 @@ export function CatalogCollection({
         )}
         {actions !== undefined && (
           <RowMenu
-            label={`Opciones de ${collection.name}`}
+            label={format(messages.common.optionsFor, { name: collection.name })}
             items={[
               {
-                label: 'Nuevo evento',
+                label: messages.catalog.newEvent,
                 icon: <PlusIcon />,
                 onSelect: () => {
                   actions.createIn(collection.id);
                 },
               },
               {
-                label: 'Renombrar',
+                label: messages.common.rename,
                 icon: <RenameIcon />,
                 onSelect: () => {
                   actions.renameCollection(collection);
                 },
               },
               {
-                label: 'Eliminar',
+                label: messages.common.delete,
                 icon: <TrashIcon />,
                 tone: 'danger',
                 onSelect: () => {

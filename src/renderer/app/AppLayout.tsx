@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { SplitPane } from '@/shared/ui/SplitPane.js';
+import { StatusBar } from './StatusBar.js';
 
 type Props = {
   titleBar: ReactNode;
@@ -18,6 +19,8 @@ type Props = {
  * is what puts the payload and the activity log on the same line.
  */
 export function AppLayout({ titleBar, tabs, catalog, connectionBar, composer, activity }: Props) {
+  const [catalogVisible, setCatalogVisible] = useState(true);
+
   return (
     <div className="flex h-full min-h-0 flex-col bg-app">
       <div
@@ -27,10 +30,12 @@ export function AppLayout({ titleBar, tabs, catalog, connectionBar, composer, ac
         {titleBar}
       </div>
       <div className="min-h-0 flex-1">
-        <SplitPane direction="row" initial={22} min={12}>
+        <SplitPane direction="row" initial={22} min={12} firstCollapsed={!catalogVisible}>
           <aside
             className="h-full min-h-0 min-w-0 overflow-hidden bg-chrome"
+            id="catalog-rail"
             data-part="catalog-rail"
+            hidden={!catalogVisible}
           >
             {catalog}
           </aside>
@@ -49,6 +54,12 @@ export function AppLayout({ titleBar, tabs, catalog, connectionBar, composer, ac
           </main>
         </SplitPane>
       </div>
+      <StatusBar
+        catalogVisible={catalogVisible}
+        onToggleCatalog={() => {
+          setCatalogVisible((visible) => !visible);
+        }}
+      />
     </div>
   );
 }

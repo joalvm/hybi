@@ -10,6 +10,7 @@ import type { Result } from '@shared/ipc/contract.js';
 import { ConnectButton } from '@/features/connections/ConnectButton.js';
 import { ConnectionBar } from '@/features/connections/ConnectionBar.js';
 import { ConnectionTabs } from '@/features/connections/ConnectionTabs.js';
+import { EN } from '@lang/en/index.js';
 import { stateLabel } from '@/features/connections/state-label.js';
 import { useStore } from '@/store/index.js';
 
@@ -35,13 +36,13 @@ function loadWorkspace(url: string, environmentId: string | null = null): void {
   workspace.connections.push(
     {
       id: 'c1',
-      name: 'Conexión A',
+      name: 'Connection A',
       environmentId,
       transport: { kind: 'websocket', url, settings: cloneWebSocketSettings() },
     },
     {
       id: 'c2',
-      name: 'Conexión B',
+      name: 'Connection B',
       environmentId: null,
       transport: {
         kind: 'websocket',
@@ -78,14 +79,14 @@ beforeEach(() => {
 });
 
 describe('stateLabel', () => {
-  it('maps every state to Spanish copy and a tone', () => {
-    expect(stateLabel('idle')).toEqual({ text: 'Desconectado', tone: 'neutral' });
-    expect(stateLabel('connecting')).toEqual({ text: 'Conectando', tone: 'warn' });
-    expect(stateLabel('open')).toEqual({ text: 'Conectado', tone: 'ok' });
-    expect(stateLabel('closing')).toEqual({ text: 'Cerrando', tone: 'warn' });
-    expect(stateLabel('closed')).toEqual({ text: 'Desconectado', tone: 'neutral' });
-    expect(stateLabel('dropped')).toEqual({ text: 'Desconectado', tone: 'warn' });
-    expect(stateLabel('error')).toEqual({ text: 'Error', tone: 'error' });
+  it('maps every state to its label and a tone', () => {
+    expect(stateLabel('idle', EN.connections.states)).toEqual({ text: 'Disconnected', tone: 'neutral' });
+    expect(stateLabel('connecting', EN.connections.states)).toEqual({ text: 'Connecting', tone: 'warn' });
+    expect(stateLabel('open', EN.connections.states)).toEqual({ text: 'Connected', tone: 'ok' });
+    expect(stateLabel('closing', EN.connections.states)).toEqual({ text: 'Closing', tone: 'warn' });
+    expect(stateLabel('closed', EN.connections.states)).toEqual({ text: 'Disconnected', tone: 'neutral' });
+    expect(stateLabel('dropped', EN.connections.states)).toEqual({ text: 'Disconnected', tone: 'warn' });
+    expect(stateLabel('error', EN.connections.states)).toEqual({ text: 'Error', tone: 'error' });
   });
 });
 
@@ -95,7 +96,7 @@ describe('ConnectButton', () => {
     render(
       <ConnectButton state="idle" canConnect onConnect={onConnect} onDisconnect={() => undefined} />,
     );
-    fireEvent.click(screen.getByRole('button', { name: /conectar/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^connect$/i }));
     expect(onConnect).toHaveBeenCalledOnce();
   });
 
@@ -109,7 +110,7 @@ describe('ConnectButton', () => {
         onDisconnect={onDisconnect}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: /desconectar/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^disconnect$/i }));
     expect(onDisconnect).toHaveBeenCalledOnce();
   });
 
@@ -122,7 +123,7 @@ describe('ConnectButton', () => {
         onDisconnect={() => undefined}
       />,
     );
-    expect(screen.getByRole('button', { name: /conectar/i })).toHaveProperty('disabled', true);
+    expect(screen.getByRole('button', { name: /^connect$/i })).toHaveProperty('disabled', true);
   });
 });
 
@@ -131,7 +132,7 @@ describe('ConnectionBar', () => {
     loadWorkspace('ws://{{host}}/socket', 'env1');
     render(<ConnectionBar connectionId="c1" />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Conectar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Connect' }));
 
     expect(connectionBridge.open).toHaveBeenCalledWith({
       connectionId: 'c1',
@@ -154,7 +155,7 @@ describe('ConnectionBar', () => {
     loadWorkspace('ws://127.0.0.1:3000', null);
     render(<ConnectionBar connectionId="c1" />);
 
-    expect(screen.getByLabelText('Recibido: 0 mensajes, 0 B')).toBeTruthy();
+    expect(screen.getByLabelText('Received: 0 messages, 0 B')).toBeTruthy();
 
     act(() => {
       useStore.getState().appendActivity([
@@ -183,15 +184,15 @@ describe('ConnectionBar', () => {
       ]);
     });
 
-    expect(screen.getByLabelText('Recibido: 1 mensaje, 2,4 kB')).toBeTruthy();
-    expect(screen.getByLabelText('Enviado: 1 mensaje, 12 B')).toBeTruthy();
+    expect(screen.getByLabelText('Received: 1 message, 2,4 kB')).toBeTruthy();
+    expect(screen.getByLabelText('Sent: 1 message, 12 B')).toBeTruthy();
   });
 
   it('refuses to open while a variable is unresolved', () => {
     loadWorkspace('ws://{{host}}/socket', null);
     render(<ConnectionBar connectionId="c1" />);
 
-    expect(screen.getByRole('button', { name: 'Conectar' })).toHaveProperty('disabled', true);
+    expect(screen.getByRole('button', { name: 'Connect' })).toHaveProperty('disabled', true);
     expect(connectionBridge.open).not.toHaveBeenCalled();
   });
 
@@ -203,7 +204,7 @@ describe('ConnectionBar', () => {
     loadWorkspace('ws://127.0.0.1:3000', null);
     render(<ConnectionBar connectionId="c1" />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Conectar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Connect' }));
 
     await waitFor(() => {
       expect(useStore.getState().states.c1).toBe('error');
@@ -217,7 +218,7 @@ describe('ConnectionBar', () => {
     loadWorkspace('ws://127.0.0.1:3000', null);
     render(<ConnectionBar connectionId="c1" />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Conectar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Connect' }));
 
     await waitFor(() => {
       expect(useStore.getState().states.c1).toBe('error');
@@ -234,7 +235,7 @@ describe('ConnectionBar', () => {
     useStore.getState().setConnectionState('c1', 'dropped');
     render(<ConnectionBar connectionId="c1" />);
 
-    expect(screen.queryByText('Desconectado')).toBeNull();
+    expect(screen.queryByText('Disconnected')).toBeNull();
   });
 
   it('writes the URL back to the connection', () => {
@@ -251,7 +252,7 @@ describe('ConnectionBar', () => {
     loadWorkspace('ws://127.0.0.1:3000', null);
     render(<ConnectionBar connectionId="c1" />);
 
-    expect(screen.queryByLabelText('Entorno')).toBeNull();
+    expect(screen.queryByLabelText('Environment')).toBeNull();
   });
 
   it('closes an open socket instead of reopening it', () => {
@@ -259,7 +260,7 @@ describe('ConnectionBar', () => {
     useStore.getState().setConnectionState('c1', 'open');
     render(<ConnectionBar connectionId="c1" />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Desconectar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
 
     expect(connectionBridge.close).toHaveBeenCalledWith({ connectionId: 'c1' });
     expect(connectionBridge.open).not.toHaveBeenCalled();
@@ -272,14 +273,14 @@ describe('ConnectionBar', () => {
       render(<ConnectionBar connectionId="c1" />);
 
       fireEvent.pointerOver(screen.getByText('{{host}}'));
-      expect(screen.queryByLabelText('Valor de host')).toBeNull();
+      expect(screen.queryByLabelText('Value of host')).toBeNull();
 
       act(() => {
         vi.advanceTimersByTime(400);
       });
 
-      expect(screen.getByLabelText('Valor de host')).toHaveProperty('value', '127.0.0.1:9001');
-      expect(screen.queryByRole('button', { name: 'Entorno local' })).not.toBeNull();
+      expect(screen.getByLabelText('Value of host')).toHaveProperty('value', '127.0.0.1:9001');
+      expect(screen.queryByRole('button', { name: 'Environment local' })).not.toBeNull();
     } finally {
       vi.useRealTimers();
     }
@@ -307,15 +308,15 @@ describe('ConnectionBar', () => {
       act(() => {
         vi.advanceTimersByTime(500);
       });
-      expect(screen.queryByLabelText('Valor de host')).not.toBeNull();
+      expect(screen.queryByLabelText('Value of host')).not.toBeNull();
 
       // And once the caret is in the field, the pointer is free to wander off.
-      screen.getByLabelText('Valor de host').focus();
+      screen.getByLabelText('Value of host').focus();
       fireEvent.pointerLeave(panel);
       act(() => {
         vi.advanceTimersByTime(500);
       });
-      expect(screen.queryByLabelText('Valor de host')).not.toBeNull();
+      expect(screen.queryByLabelText('Value of host')).not.toBeNull();
     } finally {
       vi.useRealTimers();
     }
@@ -332,7 +333,7 @@ describe('ConnectionBar', () => {
         vi.advanceTimersByTime(400);
       });
 
-      const field = screen.getByLabelText('Valor de host');
+      const field = screen.getByLabelText('Value of host');
       fireEvent.change(field, { target: { value: '10.0.0.2:9001' } });
       fireEvent.blur(field);
 
@@ -355,7 +356,7 @@ describe('ConnectionBar', () => {
 
     typeUrl('ws://{{to');
 
-    expect(screen.queryByRole('listbox', { name: 'Variables de entorno' })).not.toBeNull();
+    expect(screen.queryByRole('listbox', { name: 'Environment variables' })).not.toBeNull();
     expect(screen.queryByRole('option', { name: /token/ })).not.toBeNull();
     expect(screen.queryByRole('option', { name: /host/ })).toBeNull();
     expect(screen.queryByText('abc')).not.toBeNull();
@@ -370,7 +371,7 @@ describe('ConnectionBar', () => {
     expect(screen.queryByRole('option', { name: /host/ })).not.toBeNull();
     fireEvent.keyDown(field, { key: 'Escape' });
 
-    expect(screen.queryByRole('listbox', { name: 'Variables de entorno' })).toBeNull();
+    expect(screen.queryByRole('listbox', { name: 'Environment variables' })).toBeNull();
     expect(urlOf('c1')).toBe('ws://{{ho');
   });
 
@@ -432,7 +433,7 @@ describe('ConnectionTabs', () => {
     loadWorkspace('ws://127.0.0.1:3000', null);
     render(<ConnectionTabs />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Conexión B' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Connection B' }));
 
     expect(useStore.getState().activeConnectionId).toBe('c2');
   });
@@ -441,7 +442,7 @@ describe('ConnectionTabs', () => {
     loadWorkspace('ws://127.0.0.1:3000', null);
     render(<ConnectionTabs />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Nueva conexión' }));
+    fireEvent.click(screen.getByRole('button', { name: 'New connection' }));
 
     const connections = useStore.getState().workspace?.connections ?? [];
     expect(connections).toHaveLength(3);
@@ -452,21 +453,21 @@ describe('ConnectionTabs', () => {
     loadWorkspace('ws://127.0.0.1:3000', null);
     render(<ConnectionTabs />);
 
-    fireEvent.doubleClick(screen.getByRole('button', { name: 'Conexión A' }));
-    const field = screen.getByLabelText('Nombre de la conexión');
+    fireEvent.doubleClick(screen.getByRole('button', { name: 'Connection A' }));
+    const field = screen.getByLabelText('Connection name');
     fireEvent.change(field, { target: { value: 'Staging' } });
     fireEvent.keyDown(field, { key: 'Enter' });
 
     expect(useStore.getState().workspace?.connections[0]?.name).toBe('Staging');
-    expect(screen.queryByLabelText('Nombre de la conexión')).toBeNull();
+    expect(screen.queryByLabelText('Connection name')).toBeNull();
   });
 
   it('opens a new connection straight into its name', () => {
     loadWorkspace('ws://127.0.0.1:3000', null);
     render(<ConnectionTabs />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Nueva conexión' }));
-    const field = screen.getByLabelText('Nombre de la conexión');
+    fireEvent.click(screen.getByRole('button', { name: 'New connection' }));
+    const field = screen.getByLabelText('Connection name');
     fireEvent.change(field, { target: { value: 'Producción' } });
     fireEvent.keyDown(field, { key: 'Enter' });
 
@@ -480,11 +481,11 @@ describe('ConnectionTabs', () => {
     useStore.getState().setDraft('c1', 'e1', '{"a":1}');
     render(<ConnectionTabs />);
 
-    await user.click(screen.getByRole('button', { name: 'Opciones de Conexión A' }));
-    await user.click(screen.getByRole('menuitem', { name: 'Eliminar' }));
+    await user.click(screen.getByRole('button', { name: 'Options for Connection A' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Delete' }));
     // The confirm dialog is modal, so the tab strip behind it is aria-hidden
     // and this query resolves to the dialog's own action, uniquely.
-    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     // `dispose`, not `close`: the connection is gone, so the main process has no
     // session left to keep either.
@@ -526,24 +527,24 @@ describe('connection tab menu', () => {
 
     render(<ConnectionTabs />);
 
-    expect(screen.queryByRole('button', { name: 'Cerrar echo' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Close echo' })).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: 'Opciones de echo' }));
+    await user.click(screen.getByRole('button', { name: 'Options for echo' }));
     expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
-      'Renombrar',
-      'Duplicar',
-      'Configuración',
-      'Eliminar',
+      'Rename',
+      'Duplicate',
+      'Settings',
+      'Delete',
     ]);
 
-    await user.click(screen.getByRole('menuitem', { name: 'Eliminar' }));
-    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Delete' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(useStore.getState().workspace?.connections).toHaveLength(1);
 
-    await user.click(screen.getByRole('button', { name: 'Opciones de echo' }));
-    await user.click(screen.getByRole('menuitem', { name: 'Eliminar' }));
-    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+    await user.click(screen.getByRole('button', { name: 'Options for echo' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Delete' }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(useStore.getState().workspace?.connections).toHaveLength(0);
   });

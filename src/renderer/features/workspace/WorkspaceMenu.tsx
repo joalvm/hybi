@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import {
   CaretDownIcon,
   CheckIcon,
@@ -19,10 +20,11 @@ import { useWorkspaceList } from './useWorkspaceList.js';
 
 /** The pill top-left: which workspace is open, and everything you can do to it. */
 export function WorkspaceMenu() {
+  const messages = useMessages();
   const { id, name } = useStore(
     useShallow((state) => ({
       id: state.workspace?.id ?? null,
-      name: state.workspace?.name ?? 'Sin workspace',
+      name: state.workspace?.name ?? messages.workspace.none,
     })),
   );
   const setWorkspaceName = useStore((state) => state.setWorkspaceName);
@@ -34,33 +36,33 @@ export function WorkspaceMenu() {
 
   const actions: MenuItem[] = [
     {
-      label: 'Nuevo workspace',
+      label: messages.workspace.new,
       icon: <PlusIcon />,
       onSelect: () => {
         setDialog('create');
       },
     },
     {
-      label: 'Renombrar',
+      label: messages.common.rename,
       icon: <RenameIcon />,
       onSelect: () => {
         setRenaming(true);
       },
     },
     {
-      label: 'Duplicar',
+      label: messages.common.duplicate,
       icon: <DuplicateIcon />,
       onSelect: () => {
         setDialog('duplicate');
       },
     },
     {
-      label: 'Export',
+      label: messages.workspace.export,
       icon: <ExportIcon />,
       onSelect: exportAsyncApi,
     },
     {
-      label: 'Eliminar',
+      label: messages.common.delete,
       icon: <TrashIcon />,
       tone: 'danger',
       onSelect: () => {
@@ -72,7 +74,7 @@ export function WorkspaceMenu() {
   // The open workspace is marked with a tick in the slot every item reserves,
   // rather than by a radio role: one item type keeps the arrow keys uniform.
   const workspaces: MenuGroup = {
-    label: 'Workspaces',
+    label: messages.workspace.group,
     items: list.summaries.map((summary) => ({
       label: summary.name,
       icon: summary.id === id ? <CheckIcon /> : undefined,
@@ -87,7 +89,7 @@ export function WorkspaceMenu() {
       {renaming ? (
         <InlineNameInput
           value={name}
-          label="Nombre del workspace"
+          label={messages.workspace.name}
           onCommit={(value) => {
             setWorkspaceName(value);
             setRenaming(false);
@@ -98,7 +100,7 @@ export function WorkspaceMenu() {
         />
       ) : (
         <Menu
-          label="Workspace"
+          label={messages.workspace.label}
           align="start"
           // Both blocks use groups so the switcher reads before admin actions.
           items={[]}
@@ -108,7 +110,7 @@ export function WorkspaceMenu() {
             if (open) list.refresh();
           }}
           trigger={
-            <Button className="max-w-72 gap-2 bg-control px-2" aria-label="Workspace">
+            <Button className="max-w-72 gap-2 bg-control px-2" aria-label={messages.workspace.label}>
               <span className="overflow-hidden text-ellipsis whitespace-nowrap">{name}</span>
               <CaretDownIcon />
             </Button>

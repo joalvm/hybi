@@ -1,0 +1,46 @@
+{
+  "label": "Workspace",
+  "none": "Sin workspace",
+  "name": "Nombre del workspace",
+  "group": "Workspaces",
+  "new": "Nuevo workspace",
+  "export": "Exportar",
+  "duplicate": {
+    "title": "Duplicar workspace",
+    "copySuffix": "{name} (copia)"
+  },
+  "delete": {
+    "title": "Eliminar workspace",
+    "message": "¿Eliminar «{name}» con sus entornos, conexiones y catálogo? No se puede deshacer."
+  },
+  "environments": {
+    "picker": "Entorno",
+    "initial": "E",
+    "none": "Sin entorno",
+    "list": "Entornos",
+    "empty": "Sin entornos",
+    "new": "Nuevo entorno",
+    "created": "Entorno {number}",
+    "name": "Nombre del entorno",
+    "delete": {
+      "title": "Eliminar entorno",
+      "message": "¿Eliminar «{name}»? Las conexiones que lo usaban se quedan sin entorno."
+    }
+  },
+  "variables": {
+    "title": "Variables de entorno",
+    "noEnvironment": "Crea un entorno para añadir variables.",
+    "secretNote": "Los valores marcados como secretos no se guardan en disco.",
+    "add": "Añadir variable",
+    "secret": "secreto",
+    "name": "Nombre de la variable {position}",
+    "value": "Valor de la variable {position}",
+    "remove": "Eliminar la variable {position}",
+    "valueOf": "Valor de {name}",
+    "seeAll": "Ver todas las variables",
+    "withoutEnvironment": "Esta conexión no tiene entorno. Elige uno para definir variables.",
+    "undefined": "No está definida en {name}.",
+    "createIn": "Crear en {name}",
+    "environmentOf": "Entorno {name}"
+  }
+}

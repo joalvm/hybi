@@ -1,5 +1,7 @@
 import { WebSocket } from 'ws';
+import { format } from '@lang/translate.js';
 import type { ResolvedTransport, TransportMessage } from '@shared/transport/contract.js';
+import { mainMessages } from '../../lang.js';
 import type { TransportSession, TransportSessionSink } from '../transport.js';
 import { createWebSocketAttempt, disposeWebSocketAttempt, type WebSocketAttempt } from './attempt.js';
 import { bodyOf } from './frame.js';
@@ -35,19 +37,22 @@ export class WebSocketTransportSession implements TransportSession {
   async send(message: TransportMessage): Promise<number> {
     const attempt = this.active;
     const target = this.target;
+    const messages = mainMessages();
     if (attempt?.socket.readyState !== WebSocket.OPEN || target === null) {
-      throw new Error('Connection is not open');
+      throw new Error(messages.exceptions.connectionNotOpen);
     }
     const bytes = Buffer.byteLength(message.text, 'utf8');
     if (bytes > target.maxMessageBytes) {
-      throw new Error(`Message exceeds the ${String(target.maxMessageBytes)} byte limit`);
+      throw new Error(
+        format(messages.validation.messageTooLarge, { bytes: target.maxMessageBytes }),
+      );
     }
 
     await new Promise<void>((resolve, reject) => {
       attempt.socket.send(message.text, (error) => {
         const cause: unknown = error;
         if (cause === undefined || cause === null) resolve();
-        else reject(cause instanceof Error ? cause : new Error('WebSocket send failed'));
+        else reject(cause instanceof Error ? cause : new Error(messages.exceptions.sendFailed));
       });
     });
     return this.reporter.record('outgoing', labelOf(message.text), message.text);

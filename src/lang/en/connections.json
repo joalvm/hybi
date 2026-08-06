@@ -1,0 +1,94 @@
+{
+  "newConnection": "New connection",
+  "connectionName": "Connection name",
+  "connect": "Connect",
+  "disconnect": "Disconnect",
+  "url": "URL",
+  "settings": "Connection settings",
+  "configure": "Settings",
+  "tabTitle": "{name} — {state} (double click to rename)",
+  "copySuffix": "{name} (copy)",
+  "delete": {
+    "title": "Delete connection",
+    "message": "Delete \"{name}\"? The socket is closed and the connection disappears from the workspace. This cannot be undone."
+  },
+  "states": {
+    "idle": "Disconnected",
+    "connecting": "Connecting",
+    "open": "Connected",
+    "closing": "Closing",
+    "closed": "Disconnected",
+    "dropped": "Disconnected",
+    "error": "Error"
+  },
+  "traffic": {
+    "incoming": "Received",
+    "outgoing": "Sent",
+    "summary": {
+      "one": "{side}: {messages} message, {bytes}",
+      "other": "{side}: {messages} messages, {bytes}"
+    }
+  },
+  "suggestions": {
+    "label": "Environment variables",
+    "secret": "secret",
+    "empty": "No value"
+  },
+  "settingsTitle": "Settings · {name}",
+  "liveNotice": "The socket is still open: what you change here applies the next time it connects.",
+  "tabs": {
+    "connection": "Connection",
+    "headers": "Headers",
+    "retry": "Retry",
+    "keepalive": "Keepalive"
+  },
+  "protocols": {
+    "label": "Subprotocols",
+    "description": "Comma separated, in order of preference.",
+    "placeholder": "graphql-ws, wamp.2.json"
+  },
+  "maxMessage": {
+    "label": "Maximum message size",
+    "description": "A larger frame closes the connection instead of reserving memory for it."
+  },
+  "verifyCertificate": {
+    "label": "Verify the server certificate",
+    "hint": "Only affects wss://.",
+    "warning": "Without verification any certificate is accepted, including one from a third party sitting in the middle: the traffic of this connection can be read and modified unnoticed. Use it only against a development server under your control."
+  },
+  "headers": {
+    "hint": {
+      "before": "Values accept ",
+      "token": "{{variables}}",
+      "after": ". A token belongs in a secret variable of the environment: written here it would be saved in the workspace file."
+    },
+    "namePlaceholder": "Authorization",
+    "valuePlaceholder": "Bearer {{token}}",
+    "add": "Add header",
+    "name": "Header name",
+    "value": "Header value",
+    "unnamed": "the unnamed header",
+    "send": "Send {name}",
+    "remove": "Remove {name}"
+  },
+  "retry": {
+    "enabled": {
+      "label": "Reconnect when the server hangs up",
+      "hint": "Does not affect a failed first attempt or a manual disconnection."
+    },
+    "attempts": "Attempts",
+    "base": {
+      "label": "Initial wait",
+      "description": "Doubles on every attempt until it reaches the maximum wait."
+    },
+    "max": "Maximum wait"
+  },
+  "keepalive": {
+    "enabled": {
+      "label": "Send a periodic ping",
+      "hint": "If the pong does not arrive within the timeout, the connection is taken as dropped."
+    },
+    "interval": "Interval",
+    "timeout": "Pong timeout"
+  }
+}

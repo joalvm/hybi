@@ -1,0 +1,46 @@
+{
+  "title": "Activity",
+  "dropped": "Disconnected",
+  "search": "Search the activity",
+  "export": "Export the activity",
+  "clear": "Clear activity",
+  "kinds": {
+    "outgoing": "Outgoing",
+    "incoming": "Incoming",
+    "status": "Status",
+    "error": "Error"
+  },
+  "glyphs": {
+    "outgoing": "outgoing",
+    "incoming": "incoming",
+    "status": "status",
+    "error": "error"
+  },
+  "filters": {
+    "outgoing": "Outgoing frames",
+    "incoming": "Incoming frames",
+    "status": "Status notes",
+    "error": "Errors"
+  },
+  "bytes": "{count} B",
+  "rowActions": "Frame actions",
+  "copyBody": "Copy body",
+  "copyRow": "Copy row",
+  "resend": "Send to the composer",
+  "copyFrame": "Copy the frame",
+  "closeDetail": "Close detail",
+  "replaceDraft": {
+    "title": "Replace the draft",
+    "message": "The composer has unsaved changes. Loading this frame discards them.",
+    "confirm": "Replace"
+  },
+  "exportFailed": "The activity could not be exported: {error}",
+  "file": {
+    "name": "activity",
+    "title": "{app} — activity for «{connection}»",
+    "summary": {
+      "one": "{at} — {count} record",
+      "other": "{at} — {count} records"
+    }
+  }
+}

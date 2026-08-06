@@ -15,10 +15,17 @@ beforeEach(async () => {
 });
 
 describe('WorkspaceRepository', () => {
-  it('round-trips a workspace', async () => {
+  /**
+   * The starter connection is added on the way out, not on the way in: the
+   * editor has no empty state, and the window should not have to name one.
+   */
+  it('round-trips a workspace and hands it back with a connection', async () => {
     const workspace = createWorkspace('Demo');
     await repository.save(workspace);
-    expect(await repository.load(workspace.id)).toEqual(workspace);
+    const loaded = await repository.load(workspace.id);
+
+    expect(loaded.connections).toHaveLength(1);
+    expect({ ...loaded, connections: [] }).toEqual(workspace);
   });
 
   it('never writes secret values to disk', async () => {

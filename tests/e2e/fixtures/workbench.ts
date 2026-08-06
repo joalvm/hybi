@@ -47,7 +47,7 @@ export async function openWorkspace(app: ElectronApplication, name: string): Pro
   const welcome = await app.firstWindow();
   const opened = app.waitForEvent('window');
 
-  await welcome.getByRole('button', { name: `Abrir ${name}` }).click();
+  await welcome.getByRole('button', { name: `Open ${name}` }).click();
 
   const workbench = await opened;
   await workbench.waitForLoadState('domcontentloaded');

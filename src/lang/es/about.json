@@ -1,0 +1,7 @@
+{
+  "title": "Acerca de {app}",
+  "tagline": "Cliente de escritorio para conexiones en tiempo real.",
+  "prerelease": "Esta es una versión de prueba: la aplicación sigue en construcción, así que faltan funciones y algunas cosas cambiarán de una versión a otra.",
+  "updates": "El aviso de actualizaciones llegará en una versión próxima.",
+  "license": "Publicado bajo licencia GPL-3.0."
+}

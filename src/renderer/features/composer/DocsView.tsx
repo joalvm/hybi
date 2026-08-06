@@ -1,3 +1,4 @@
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { cn } from '@/shared/utils/cn.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import { CloseIcon, RenameIcon } from '@/shared/ui/icons.js';
@@ -25,11 +26,13 @@ export function DocsView({
   onClose,
   onChange,
 }: Props) {
+  const messages = useMessages().composer.docs;
+
   return (
-    <section className="flex h-full min-h-0 flex-col" aria-label="Documentación del evento">
+    <section className="flex h-full min-h-0 flex-col" aria-label={messages.label}>
       <div className={cn('min-h-0 flex-1 overflow-auto px-4 py-3', editing && 'hidden')}>
         {description === undefined || description.trim() === '' ? (
-          <p className="text-muted">Este evento no tiene descripción.</p>
+          <p className="text-muted">{messages.empty}</p>
         ) : (
           <Markdown source={description} />
         )}
@@ -39,7 +42,7 @@ export function DocsView({
         {editing && (
           <div className="absolute top-0 right-2 z-10 pt-2">
             <IconButton
-              label="Cerrar editor"
+              label={messages.closeEditor}
               className="min-h-5 min-w-5 bg-panel shadow-sm"
               onClick={onClose}
             >
@@ -50,7 +53,7 @@ export function DocsView({
       </div>
       {!editing && (
         <div className="flex min-h-9 items-center justify-end px-2">
-          <IconButton label="Editar documentación" onClick={onEdit}>
+          <IconButton label={messages.edit} onClick={onEdit}>
             <RenameIcon />
           </IconButton>
         </div>

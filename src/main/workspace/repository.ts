@@ -5,8 +5,10 @@ import {
   duplicateWorkspace,
   ensureStarterConnection,
 } from '@shared/domain/factory.js';
-import { parseWorkspace } from '@shared/domain/schema.js';
+import { format } from '@lang/translate.js';
+import { parseWorkspace, WorkspaceFormatError } from '@shared/domain/schema.js';
 import type { Workspace, WorkspaceSummary } from '@shared/domain/types.js';
+import { mainMessages } from '../lang.js';
 import { redactSecrets } from './redact.js';
 
 /** `updatedAt` is repository bookkeeping, so it is not part of the domain type. */
@@ -38,14 +40,16 @@ export class WorkspaceRepository {
     const raw = await readFile(this.filePath(workspaceId), 'utf8');
     const { updatedAt: _updatedAt, ...rest } = JSON.parse(raw) as StoredWorkspace;
     // Validated here and not in the renderer: a file that does not match the
-    // current format never crosses the bridge.
-    return parseWorkspace(rest);
+    // current format never crosses the bridge. The starter connection is added
+    // here too, so the window never has to name one and every document reaches
+    // it with the surface the editor needs.
+    return ensureStarterConnection(this.parse(rest), mainMessages().connections.newConnection);
   }
 
   async save(workspace: Workspace): Promise<string> {
     await mkdir(this.rootDir, { recursive: true });
     const updatedAt = new Date().toISOString();
-    const stored: StoredWorkspace = { ...redactSecrets(parseWorkspace(workspace)), updatedAt };
+    const stored: StoredWorkspace = { ...redactSecrets(this.parse(workspace)), updatedAt };
 
     // Write then rename so a crash mid-write cannot truncate the live file.
     const target = this.filePath(workspace.id);
@@ -63,7 +67,10 @@ export class WorkspaceRepository {
   }
 
   async create(name: string): Promise<Workspace> {
-    const workspace = ensureStarterConnection(createWorkspace(name));
+    const workspace = ensureStarterConnection(
+      createWorkspace(name),
+      mainMessages().connections.newConnection,
+    );
     await this.save(workspace);
     return workspace;
   }
@@ -89,10 +96,26 @@ export class WorkspaceRepository {
     }
   }
 
+  /**
+   * The wrapper is the sentence the user reads, so it comes from the catalog;
+   * the issues stay verbatim because they name fields, not prose.
+   */
+  private parse(input: unknown): Workspace {
+    try {
+      return parseWorkspace(input);
+    } catch (error) {
+      if (!(error instanceof WorkspaceFormatError)) throw error;
+      const issues = error.issues.join('; ');
+      throw new Error(format(mainMessages().validation.workspaceFile, { issues }), {
+        cause: error,
+      });
+    }
+  }
+
   /** Keeps a crafted id from walking out of the workspaces directory. */
   private filePath(workspaceId: string): string {
     if (!/^[A-Za-z0-9-]+$/.test(workspaceId)) {
-      throw new Error(`Invalid workspace id: ${workspaceId}`);
+      throw new Error(format(mainMessages().validation.workspaceId, { id: workspaceId }));
     }
     return join(this.rootDir, `${workspaceId}.json`);
   }

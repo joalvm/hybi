@@ -9,26 +9,26 @@ test('keeps catalog controls outside the tree scroll area', async () => {
     const welcome = await app.firstWindow();
     const opened = app.waitForEvent('window');
 
-    await welcome.getByRole('button', { name: 'Crear workspace' }).click();
-    await welcome.getByRole('textbox', { name: 'Nombre' }).fill('Catálogo');
-    await welcome.getByRole('button', { name: 'Guardar' }).click();
+    await welcome.getByRole('button', { name: 'Create workspace' }).click();
+    await welcome.getByRole('textbox', { name: 'Name' }).fill('Catálogo');
+    await welcome.getByRole('button', { name: 'Save' }).click();
 
     const workbench = await opened;
     await workbench.waitForLoadState('domcontentloaded');
 
-    const tree = workbench.getByRole('tree', { name: 'Colecciones' });
-    const filter = workbench.getByRole('searchbox', { name: 'Filtrar' });
+    const tree = workbench.getByRole('tree', { name: 'Collections' });
+    const filter = workbench.getByRole('searchbox', { name: 'Filter' });
     await expect(filter).toBeVisible();
 
     const filterBefore = await filter.boundingBox();
     for (let index = 0; index < 40; index += 1) {
-      await workbench.getByRole('button', { name: 'Opciones de General' }).click();
-      await workbench.getByRole('menuitem', { name: 'Nuevo evento' }).click();
-      await workbench.getByLabel('Nombre del evento').press('Enter');
+      await workbench.getByRole('button', { name: 'Options for General' }).click();
+      await workbench.getByRole('menuitem', { name: 'New event' }).click();
+      await workbench.getByLabel('Event name').press('Enter');
     }
 
-    const firstEvent = tree.getByRole('treeitem', { name: 'Nuevo Evento 1', exact: true });
-    const lastEvent = tree.getByRole('treeitem', { name: 'Nuevo Evento 40', exact: true });
+    const firstEvent = tree.getByRole('treeitem', { name: 'New Event 1', exact: true });
+    const lastEvent = tree.getByRole('treeitem', { name: 'New Event 40', exact: true });
     await firstEvent.scrollIntoViewIfNeeded();
     await expect(firstEvent).toBeInViewport();
     await lastEvent.scrollIntoViewIfNeeded();

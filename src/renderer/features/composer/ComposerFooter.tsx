@@ -1,3 +1,4 @@
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { BeautifyIcon } from '@/shared/ui/icons.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import { Select } from '@/shared/ui/Select.js';
@@ -17,10 +18,12 @@ type Props = {
  * so nothing in this app judges the structure of a frame.
  */
 export function ComposerFooter({ format, formattable, onFormatChange, onBeautify }: Props) {
+  const messages = useMessages().composer.format;
+
   return (
     <div className="flex min-h-9 items-center gap-1 bg-panel px-2">
       <Select
-        label="Formato del payload"
+        label={messages.label}
         className="h-control border-border bg-panel px-1 text-label text-muted"
         value={format}
         options={PAYLOAD_FORMATS.map((entry) => ({ value: entry.id, label: entry.label }))}
@@ -28,7 +31,7 @@ export function ComposerFooter({ format, formattable, onFormatChange, onBeautify
           onFormatChange(next as PayloadFormat);
         }}
       />
-      <IconButton label="Formatear" disabled={!formattable} onClick={onBeautify}>
+      <IconButton label={messages.beautify} disabled={!formattable} onClick={onBeautify}>
         <BeautifyIcon />
       </IconButton>
     </div>

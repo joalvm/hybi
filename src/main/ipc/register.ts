@@ -3,6 +3,7 @@ import { registerActivityHandlers } from './activity.handlers.js';
 import { registerAsyncApiHandlers } from './asyncapi.handlers.js';
 import { registerClipboardHandlers } from './clipboard.handlers.js';
 import { registerConnectionHandlers } from './connection.handlers.js';
+import { registerPreferencesHandlers } from './preferences.handlers.js';
 import { registerShellHandlers } from './shell.handlers.js';
 import { registerWindowHandlers } from './window.handlers.js';
 import { registerWorkspaceHandlers } from './workspace.handlers.js';
@@ -20,6 +21,7 @@ type AppActions = {
 export function registerAppIpc(actions: AppActions): () => void {
   const disposers = [
     registerWorkspaceHandlers(),
+    registerPreferencesHandlers(),
     registerClipboardHandlers(),
     registerWindowHandlers(actions.menu),
     registerShellHandlers(actions),

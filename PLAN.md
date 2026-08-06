@@ -29,8 +29,8 @@ revisión. `S` = 0,5–1 día. `M` = 2–4 días. `L` = 5–10 días. Total apro
 | 3 | Copiar un frame | S | Cosecha rápida | hecho |
 | 4 | Reenviar un frame recibido | S | Cosecha rápida | hecho |
 | 5 | Exportar la sesión a un archivo | M | Cosecha rápida | hecho |
-| 6 | Preferencias de aplicación | M | Cimientos | pendiente |
-| 7 | Capa de idiomas (español + inglés) | M–L | Cimientos | pendiente |
+| 6 | Preferencias de aplicación | M | Cimientos | hecho |
+| 7 | Capa de idiomas (español + inglés) | M–L | Cimientos | hecho |
 | 8 | Integridad del workspace | M | Datos | pendiente |
 | 9 | Diagnóstico: errores legibles y log en disco | M | Datos | pendiente |
 | 10 | Frames binarios: ver y enviar | L | Protocolo | pendiente |
@@ -233,14 +233,13 @@ menos historia hay que reconstruir.
 ### 13. Deuda del repositorio — `S`
 
 Los tres archivos que rompen la regla de 150 líneas del propio repo
-—`useCatalogActions.ts` (215), `asyncapi/importer.ts` (180),
-`CatalogPanel.tsx` (155)—: o se parten o se cambia la regla, pero no se quedan
-donde están. Y el índice duplicado de Codebase Memory que
-[CLAUDE.md](CLAUDE.md) manda borrar.
+—`useCatalogActions.ts` (221), `asyncapi/importer.ts` (186),
+`CatalogPanel.tsx` (157)—: o se parten o se cambia la regla, pero no se quedan
+donde están.
 
 ### 14. Umbral de cobertura, carga y accesibilidad — `M`
 
-- Cobertura medida con umbral en CI: hay 326 pruebas y ningún número que impida
+- Cobertura medida con umbral en CI: hay 371 pruebas y ningún número que impida
   que bajen.
 - Prueba de carga con 10 000 msg/s sostenidos, con el resultado escrito:
   memoria estable, interfaz sin bloquear, presupuesto del log respetado.

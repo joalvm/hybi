@@ -8,6 +8,7 @@ import type { ActivityKind, ActivityRecord } from '@shared/ipc/activity.js';
 import { ActivityDetail } from '@/features/activity/ActivityDetail.js';
 import { ActivityPanel } from '@/features/activity/ActivityPanel.js';
 import { ActivityRow } from '@/features/activity/ActivityRow.js';
+import { EN } from '@lang/en/index.js';
 import { rowText } from '@/features/activity/copy-text.js';
 import { ActivityToolbar } from '@/features/activity/ActivityToolbar.js';
 import { formatOffset, newestFirstMatching } from '@/features/activity/useActivityFilter.js';
@@ -65,7 +66,7 @@ describe('newestFirstMatching', () => {
   it('combines the query with the kinds that are hidden', () => {
     const records = [
       record({ id: 'a', kind: 'incoming', label: 'DeviceLogin', body: '{}' }),
-      record({ id: 'b', kind: 'status', label: 'Conectado', body: 'device' }),
+      record({ id: 'b', kind: 'status', label: 'Connected', body: 'device' }),
       record({ id: 'c', kind: 'outgoing', label: 'DeviceLogin', body: '{}' }),
     ];
 
@@ -118,7 +119,7 @@ describe('ActivityRow', () => {
     // the frame gets to breathe.
     expect(screen.getByText('{ "event": "DeviceLogin" }')).toBeTruthy();
     expect(screen.getByText('00:02.8')).toBeTruthy();
-    expect(screen.getByLabelText('saliente')).toBeTruthy();
+    expect(screen.getByLabelText('outgoing')).toBeTruthy();
   });
 
   /**
@@ -161,8 +162,8 @@ describe('ActivityRow', () => {
 describe('copying a frame', () => {
   it('writes the row as one line, with the offset and the direction', () => {
     expect(
-      rowText(record({ kind: 'outgoing', label: 'DeviceLogin', body: '{\n  "a": 1\n}', at: 3800 }), 1000),
-    ).toBe('00:02.8\tSaliente\tDeviceLogin\t{ "a": 1 }');
+      rowText(record({ kind: 'outgoing', label: 'DeviceLogin', body: '{\n  "a": 1\n}', at: 3800 }), 1000, EN.activity.kinds),
+    ).toBe('00:02.8\tOutgoing\tDeviceLogin\t{ "a": 1 }');
   });
 
   it('offers both scopes and reports which one was picked', async () => {
@@ -183,12 +184,12 @@ describe('copying a frame', () => {
 
     await user.pointer({ keys: '[MouseRight]', target: screen.getByRole('button') });
     expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
-      'Copiar cuerpo',
-      'Copiar fila',
-      'Reenviar al composer',
+      'Copy body',
+      'Copy row',
+      'Send to the composer',
     ]);
 
-    await user.click(screen.getByRole('menuitem', { name: 'Copiar cuerpo' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Copy body' }));
     expect(copied).toEqual(['body']);
   });
 
@@ -224,7 +225,7 @@ describe('copying a frame', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Copiar el frame' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Copy the frame' }));
     expect(copied).toEqual(['body']);
   });
 });
@@ -260,7 +261,7 @@ describe('resending a frame', () => {
     workspaceWithEvent();
     openDetail();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Reenviar al composer' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Send to the composer' }));
 
     expect(useStore.getState().drafts['c1:e1']).toBe('{"from":"server"}');
   });
@@ -273,10 +274,10 @@ describe('resending a frame', () => {
     useStore.getState().setDraft('c1', 'e1', '{"a":2}');
     openDetail();
 
-    await user.click(screen.getByRole('button', { name: 'Reenviar al composer' }));
+    await user.click(screen.getByRole('button', { name: 'Send to the composer' }));
     expect(useStore.getState().drafts['c1:e1']).toBe('{"a":2}');
 
-    await user.click(screen.getByRole('button', { name: 'Reemplazar' }));
+    await user.click(screen.getByRole('button', { name: 'Replace' }));
     expect(useStore.getState().drafts['c1:e1']).toBe('{"from":"server"}');
   });
 
@@ -284,7 +285,7 @@ describe('resending a frame', () => {
     openDetail();
 
     expect(
-      screen.getByRole('button', { name: 'Reenviar al composer' }).hasAttribute('disabled'),
+      screen.getByRole('button', { name: 'Send to the composer' }).hasAttribute('disabled'),
     ).toBe(true);
   });
 });
@@ -317,7 +318,7 @@ describe('exporting the session', () => {
     useStore.getState().appendActivity([record({ id: 'c1:1', body: 'auth=s3cr3t' })]);
 
     render(<ActivityPanel connectionId="c1" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Exportar la actividad' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Export the activity' }));
 
     expect(bridgeMock.activity.export).toHaveBeenCalledWith({
       connectionName: 'echo',
@@ -330,7 +331,7 @@ describe('exporting the session', () => {
     render(<ActivityPanel connectionId="c1" />);
 
     expect(
-      screen.getByRole('button', { name: 'Exportar la actividad' }).hasAttribute('disabled'),
+      screen.getByRole('button', { name: 'Export the activity' }).hasAttribute('disabled'),
     ).toBe(true);
   });
 });
@@ -352,10 +353,10 @@ describe('ActivityToolbar', () => {
 
   it('warns only when the peer closed the socket', () => {
     const { rerender } = render(toolbar());
-    expect(screen.queryByText('Desconectado')).toBeNull();
+    expect(screen.queryByText('Disconnected')).toBeNull();
 
     rerender(toolbar({ dropped: true }));
-    expect(screen.getByText('Desconectado')).toBeTruthy();
+    expect(screen.getByText('Disconnected')).toBeTruthy();
   });
 
   it('marks each kind as shown or hidden and reports the change', () => {
@@ -368,13 +369,13 @@ describe('ActivityToolbar', () => {
       }),
     );
 
-    const status = screen.getByRole('button', { name: 'Estado' });
+    const status = screen.getByRole('button', { name: 'Status notes' });
     expect(status.getAttribute('aria-pressed')).toBe('true');
     fireEvent.click(status);
     expect(toggled).toEqual(['status']);
 
     rerender(toolbar({ hidden: { status: true } }));
-    expect(screen.getByRole('button', { name: 'Estado' }).getAttribute('aria-pressed')).toBe(
+    expect(screen.getByRole('button', { name: 'Status notes' }).getAttribute('aria-pressed')).toBe(
       'false',
     );
   });
@@ -407,7 +408,7 @@ describe('ActivityPanel', () => {
       useStore.getState().setSelectedActivity('c1', 'c1:1');
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Cerrar detalle' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close detail' }));
 
     expect(screen.queryByTestId('activity-detail')).toBeNull();
     expect(useStore.getState().selectedActivityByConnection.c1 ?? null).toBeNull();
@@ -417,6 +418,6 @@ describe('ActivityPanel', () => {
     useStore.getState().setConnectionState('c1', 'dropped');
     render(<ActivityPanel connectionId="c1" />);
 
-    expect(screen.getByText('Desconectado')).toBeTruthy();
+    expect(screen.getByText('Disconnected')).toBeTruthy();
   });
 });

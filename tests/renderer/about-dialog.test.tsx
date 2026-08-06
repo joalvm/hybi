@@ -57,7 +57,7 @@ describe('AboutDialog', () => {
     render(<AboutDialog />);
 
     request?.();
-    await user.click(await screen.findByRole('button', { name: 'Cerrar' }));
+    await user.click(await screen.findByRole('button', { name: 'Close' }));
 
     expect(screen.queryByRole('dialog')).toBeNull();
   });

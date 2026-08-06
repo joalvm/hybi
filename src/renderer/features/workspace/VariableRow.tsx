@@ -1,4 +1,6 @@
+import { format } from '@lang/translate.js';
 import type { Variable } from '@shared/domain/types.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import { Input } from '@/shared/ui/Input.js';
 
@@ -11,11 +13,13 @@ type Props = {
 
 /** Secret values render as a password field so a shared screen never leaks one. */
 export function VariableRow({ variable, index, onChange, onRemove }: Props) {
+  const messages = useMessages().workspace.variables;
   const position = String(index + 1);
+
   return (
     <div className="variable-row-grid grid items-center gap-2">
       <Input
-        aria-label={`Nombre de la variable ${position}`}
+        aria-label={format(messages.name, { position })}
         value={variable.name}
         onChange={(event) => {
           onChange({ ...variable, name: event.target.value });
@@ -23,7 +27,7 @@ export function VariableRow({ variable, index, onChange, onRemove }: Props) {
       />
       <Input
         type={variable.secret ? 'password' : 'text'}
-        aria-label={`Valor de la variable ${position}`}
+        aria-label={format(messages.value, { position })}
         value={variable.value}
         onChange={(event) => {
           onChange({ ...variable, value: event.target.value });
@@ -37,9 +41,13 @@ export function VariableRow({ variable, index, onChange, onRemove }: Props) {
             onChange({ ...variable, secret: event.target.checked });
           }}
         />
-        secreto
+        {messages.secret}
       </label>
-      <IconButton label={`Eliminar la variable ${position}`} tone="danger" onClick={onRemove}>
+      <IconButton
+        label={format(messages.remove, { position })}
+        tone="danger"
+        onClick={onRemove}
+      >
         ✕
       </IconButton>
     </div>

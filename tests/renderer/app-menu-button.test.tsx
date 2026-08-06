@@ -24,7 +24,7 @@ describe('AppMenuButton', () => {
     const user = userEvent.setup();
     render(<AppMenuButton />);
 
-    const button = screen.getByRole('button', { name: 'Menú' });
+    const button = screen.getByRole('button', { name: 'Menu' });
     vi.spyOn(button, 'getBoundingClientRect').mockReturnValue({
       left: 8,
       bottom: 36,
@@ -39,6 +39,6 @@ describe('AppMenuButton', () => {
     bridge.platform = 'darwin';
     render(<AppMenuButton />);
 
-    expect(screen.queryByRole('button', { name: 'Menú' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Menu' })).toBeNull();
   });
 });

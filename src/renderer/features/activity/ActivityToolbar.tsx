@@ -1,4 +1,5 @@
 import type { ActivityKind } from '@shared/ipc/activity.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { Badge } from '@/shared/ui/Badge.js';
 import { Input } from '@/shared/ui/Input.js';
 import { ExportIcon, TrashIcon } from '@/shared/ui/icons.js';
@@ -33,24 +34,26 @@ export function ActivityToolbar({
   onExport,
   onClear,
 }: Props) {
+  const messages = useMessages();
+
   return (
     <>
-      {dropped && <Badge tone="warn">Desconectado</Badge>}
+      {dropped && <Badge tone="warn">{messages.activity.dropped}</Badge>}
       <ActivityKindFilter hidden={hidden} onToggle={onToggleKind} />
       <Input
         className="w-33"
         type="search"
-        aria-label="Buscar en la actividad"
-        placeholder="Buscar…"
+        aria-label={messages.activity.search}
+        placeholder={messages.common.search}
         value={query}
         onChange={(event) => {
           onQueryChange(event.target.value);
         }}
       />
-      <IconButton label="Exportar la actividad" disabled={!exportable} onClick={onExport}>
+      <IconButton label={messages.activity.export} disabled={!exportable} onClick={onExport}>
         <ExportIcon />
       </IconButton>
-      <IconButton label="Limpiar actividad" tone="danger" onClick={onClear}>
+      <IconButton label={messages.activity.clear} tone="danger" onClick={onClear}>
         <TrashIcon />
       </IconButton>
     </>

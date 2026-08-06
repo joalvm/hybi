@@ -36,12 +36,16 @@ export function createEnvironment(name: string): Environment {
   return { id: newId(), name, variables: [] };
 }
 
-/** The editor always needs one active surface, while environments stay optional. */
-export function ensureStarterConnection(workspace: Workspace): Workspace {
+/**
+ * The editor always needs one active surface, while environments stay optional.
+ * The name is passed in because both processes call this and neither catalog
+ * reaches here: `shared` answers for the shape, not for the wording.
+ */
+export function ensureStarterConnection(workspace: Workspace, name: string): Workspace {
   if (workspace.connections.length > 0) return workspace;
   return {
     ...workspace,
-    connections: [createConnection({ name: 'Nueva conexión' })],
+    connections: [createConnection({ name })],
   };
 }
 

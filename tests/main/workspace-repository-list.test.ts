@@ -51,7 +51,7 @@ describe('WorkspaceRepository list and creation', () => {
     expect(loaded.environments).toEqual([]);
     expect(loaded.connections).toHaveLength(1);
     expect(loaded.connections[0]).toMatchObject({
-      name: 'Nueva conexión',
+      name: 'New connection',
       environmentId: null,
     });
   });

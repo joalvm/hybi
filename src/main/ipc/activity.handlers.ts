@@ -3,6 +3,7 @@ import { dialog, ipcMain, type BrowserWindow } from 'electron';
 import type { ActivityExportRequest } from '@shared/ipc/activity.js';
 import { CHANNELS, type ExportOutcome } from '@shared/ipc/contract.js';
 import { activityDefaultFileName, redactFrames, serializeActivity } from '../activity/export.js';
+import { mainMessages } from '../lang.js';
 
 /**
  * Dumping one connection's log to a file. The native dialog and the write live
@@ -14,12 +15,13 @@ export function registerActivityHandlers(window: BrowserWindow): () => void {
     CHANNELS.activityExport,
     async (_event, request: ActivityExportRequest): Promise<ExportOutcome> => {
       try {
+        const messages = mainMessages().menu;
         const picked = await dialog.showSaveDialog(window, {
-          title: 'Exportar la actividad',
+          title: messages.exportActivity,
           defaultPath: activityDefaultFileName(request.connectionName),
           filters: [
-            { name: 'JSON', extensions: ['json'] },
-            { name: 'Texto plano', extensions: ['txt'] },
+            { name: messages.fileJson, extensions: ['json'] },
+            { name: messages.filePlainText, extensions: ['txt'] },
           ],
         });
         if (picked.canceled || picked.filePath === '') {

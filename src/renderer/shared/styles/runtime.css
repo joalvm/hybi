@@ -75,10 +75,6 @@
   color: var(--text-dim);
 }
 
-.select-panel-runtime {
-  min-width: var(--radix-select-trigger-width);
-}
-
 .menu-item-runtime[data-highlighted] {
   background: var(--bg-hover);
 }

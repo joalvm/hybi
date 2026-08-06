@@ -1,10 +1,11 @@
+import { usePreferencesDialog } from '@/features/preferences/dialog.store.js';
 import { ActiveEnvironmentPicker } from '@/features/workspace/ActiveEnvironmentPicker.js';
 import { WorkspaceMenu } from '@/features/workspace/WorkspaceMenu.js';
-import { BracesIcon } from '@/shared/ui/icons.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
+import { BracesIcon, SettingsIcon } from '@/shared/ui/icons.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import { useStore } from '@/store/index.js';
 import { AppMenuButton } from './AppMenuButton.js';
-import { ThemeToggle } from './ThemeToggle.js';
 import { WindowControls } from './WindowControls.js';
 
 /**
@@ -15,7 +16,9 @@ import { WindowControls } from './WindowControls.js';
  * space drags the window and the controls close it.
  */
 export function TitleBar() {
+  const messages = useMessages().chrome;
   const setDialog = useStore((state) => state.setDialog);
+  const openPreferences = usePreferencesDialog((state) => state.openDialog);
 
   return (
     <div className="flex h-full w-full items-center gap-2">
@@ -30,7 +33,7 @@ export function TitleBar() {
               share one bounded control instead of reading as two controls. */}
           <IconButton
             className="min-h-control min-w-control rounded-none border-0 border-l border-l-border bg-transparent"
-            label="Variables"
+            label={messages.variables}
             onClick={() => {
               setDialog('variables');
             }}
@@ -38,7 +41,15 @@ export function TitleBar() {
             <BracesIcon />
           </IconButton>
         </div>
-        <ThemeToggle />
+        {/* The menu carries the same entry, but a menu nobody opens is not a
+            way in: this is where a desktop app is looked at for settings. */}
+        <IconButton
+          className="app-no-drag shrink-0 bg-control"
+          label={messages.preferences}
+          onClick={openPreferences}
+        >
+          <SettingsIcon />
+        </IconButton>
         <WindowControls />
       </div>
     </div>

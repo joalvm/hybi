@@ -7,10 +7,21 @@ type Props = {
   className?: string;
   disabled?: boolean;
   tone?: 'default' | 'danger';
+  controls?: string | undefined;
+  expanded?: boolean | undefined;
   children: ReactNode;
 };
 
-export function IconButton({ label, onClick, className, disabled = false, tone = 'default', children }: Props) {
+export function IconButton({
+  label,
+  onClick,
+  className,
+  disabled = false,
+  tone = 'default',
+  controls,
+  expanded,
+  children,
+}: Props) {
   return (
     <button
       type="button"
@@ -22,6 +33,8 @@ export function IconButton({ label, onClick, className, disabled = false, tone =
       data-part="icon-button"
       data-tone={tone}
       aria-label={label}
+      aria-controls={controls}
+      aria-expanded={expanded}
       title={label}
       disabled={disabled}
       onClick={onClick}

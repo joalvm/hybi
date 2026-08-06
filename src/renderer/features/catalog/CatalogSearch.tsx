@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { FilterIcon } from '@/shared/ui/icons.js';
 
 type Props = {
@@ -12,6 +13,8 @@ const FIELD = clsx(
 );
 
 export function CatalogSearch({ value, onChange }: Props) {
+  const label = useMessages().catalog.filter;
+
   return (
     <label className={FIELD}>
       <FilterIcon className="shrink-0 text-muted" />
@@ -19,8 +22,8 @@ export function CatalogSearch({ value, onChange }: Props) {
         type="search"
         className="min-w-0 flex-1 border-0 bg-transparent outline-none"
         value={value}
-        placeholder="Filtrar"
-        aria-label="Filtrar"
+        placeholder={label}
+        aria-label={label}
         onChange={(event) => {
           onChange(event.target.value);
         }}

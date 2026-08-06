@@ -16,14 +16,6 @@ export type ConnectionState =
 
 export type ActivityKind = 'outgoing' | 'incoming' | 'status' | 'error';
 
-/** What each kind is called wherever a frame is named in words. */
-export const ACTIVITY_KIND_LABEL: Record<ActivityKind, string> = {
-  outgoing: 'Saliente',
-  incoming: 'Entrante',
-  status: 'Estado',
-  error: 'Error',
-};
-
 /**
  * One line in the activity log. `body` is the exact text that crossed the
  * socket; `label` is only a display hint derived from it.

@@ -1,5 +1,6 @@
 import { memo, type KeyboardEvent, type ReactNode } from 'react';
 import type { ActivityRecord } from '@shared/ipc/activity.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { ContextMenu } from '@/shared/ui/ContextMenu.js';
 import {
   DuplicateIcon,
@@ -13,11 +14,11 @@ import { cn } from '@/shared/utils/cn.js';
 import type { CopyScope } from './copy-text.js';
 import { formatOffset } from './useActivityFilter.js';
 
-const GLYPH: Record<ActivityRecord['kind'], { icon: ReactNode; label: string }> = {
-  outgoing: { icon: <OutgoingIcon />, label: 'saliente' },
-  incoming: { icon: <IncomingIcon />, label: 'entrante' },
-  status: { icon: <StatusIcon />, label: 'estado' },
-  error: { icon: <ErrorIcon />, label: 'error' },
+const GLYPH: Record<ActivityRecord['kind'], ReactNode> = {
+  outgoing: <OutgoingIcon />,
+  incoming: <IncomingIcon />,
+  status: <StatusIcon />,
+  error: <ErrorIcon />,
 };
 
 /**
@@ -79,7 +80,7 @@ export const ActivityRow = memo(function ActivityRow({
   onResend,
   canResend,
 }: Props) {
-  const glyph = GLYPH[record.kind];
+  const messages = useMessages();
   const body = preview(record.body, record.label);
   // A status note or an error is the app talking, not a frame: there is nothing
   // in either that the composer could put back on the wire.
@@ -95,17 +96,17 @@ export const ActivityRow = memo(function ActivityRow({
 
   return (
     <ContextMenu
-      label="Acciones del frame"
+      label={messages.activity.rowActions}
       items={[
         {
-          label: 'Copiar cuerpo',
+          label: messages.activity.copyBody,
           icon: <DuplicateIcon />,
           onSelect: () => {
             onCopy(record, 'body');
           },
         },
         {
-          label: 'Copiar fila',
+          label: messages.activity.copyRow,
           icon: <DuplicateIcon />,
           onSelect: () => {
             onCopy(record, 'row');
@@ -114,7 +115,7 @@ export const ActivityRow = memo(function ActivityRow({
         ...(replayable
           ? [
               {
-                label: 'Reenviar al composer',
+                label: messages.activity.resend,
                 icon: <SendIcon />,
                 disabled: !canResend,
                 onSelect: () => {
@@ -137,8 +138,11 @@ export const ActivityRow = memo(function ActivityRow({
         }}
         onKeyDown={shortcut}
       >
-        <span className={cn('inline-flex shrink-0 items-center', TONE[record.kind])} aria-label={glyph.label}>
-          {glyph.icon}
+        <span
+          className={cn('inline-flex shrink-0 items-center', TONE[record.kind])}
+          aria-label={messages.activity.glyphs[record.kind]}
+        >
+          {GLYPH[record.kind]}
         </span>
         <span className="max-w-activity-label min-w-24 shrink overflow-hidden font-semibold text-ellipsis whitespace-nowrap">
           {record.label}

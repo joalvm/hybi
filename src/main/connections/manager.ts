@@ -1,8 +1,10 @@
+import { format } from '@lang/translate.js';
 import type { ActivityRecord, ConnectionStateEvent } from '@shared/ipc/activity.js';
 import type {
   OpenConnectionRequest,
   TransportMessage,
 } from '@shared/transport/contract.js';
+import { mainMessages } from '../lang.js';
 import {
   createTransportSession,
   type TransportSession,
@@ -33,7 +35,7 @@ export class ConnectionManager {
   async send(connectionId: string, message: TransportMessage): Promise<number> {
     const owned = this.sessions.get(connectionId);
     if (owned === undefined) {
-      throw new Error(`Connection ${connectionId} is not open`);
+      throw new Error(format(mainMessages().exceptions.connectionMissing, { id: connectionId }));
     }
     return owned.session.send(message);
   }

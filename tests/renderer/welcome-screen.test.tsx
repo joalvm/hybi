@@ -34,7 +34,11 @@ vi.mock('@/ipc/bridge.js', () => ({
     platform: 'win32',
     role: 'welcome',
     workspaceId: null,
-    app: { version: '0.3.0-alpha.1', onAboutRequested: () => () => undefined },
+    app: {
+      version: '0.3.0-alpha.1',
+      onAboutRequested: () => () => undefined,
+      onPreferencesRequested: () => () => undefined,
+    },
   },
 }));
 
@@ -48,8 +52,8 @@ describe('Welcome window', () => {
   it('lists saved workspaces without opening one', async () => {
     render(<WelcomeApp />);
 
-    expect(await screen.findByRole('button', { name: 'Abrir Demo vacío' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Crear workspace' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Open Demo vacío' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Create workspace' })).toBeTruthy();
     expect(shellBridge.openWorkspace).not.toHaveBeenCalled();
     expect(workspaceBridge.load).not.toHaveBeenCalled();
   });
@@ -62,7 +66,7 @@ describe('Welcome window', () => {
     const user = userEvent.setup();
     render(<WelcomeApp />);
 
-    await user.click(await screen.findByRole('button', { name: 'Abrir Demo vacío' }));
+    await user.click(await screen.findByRole('button', { name: 'Open Demo vacío' }));
 
     expect(shellBridge.openWorkspace).toHaveBeenCalledWith('w1');
   });
@@ -71,9 +75,9 @@ describe('Welcome window', () => {
     const user = userEvent.setup();
     render(<WelcomeApp />);
 
-    await user.click(await screen.findByRole('button', { name: 'Crear workspace' }));
-    await user.type(await screen.findByRole('textbox', { name: 'Nombre' }), 'Proyecto nuevo');
-    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+    await user.click(await screen.findByRole('button', { name: 'Create workspace' }));
+    await user.type(await screen.findByRole('textbox', { name: 'Name' }), 'Proyecto nuevo');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(workspaceBridge.create).toHaveBeenCalledWith('Proyecto nuevo');
     await waitFor(() => {
@@ -84,8 +88,8 @@ describe('Welcome window', () => {
   it('places the workspace list before the left-bound Hybi flight', async () => {
     render(<WelcomeApp />);
 
-    const workspaces = await screen.findByRole('region', { name: 'Tus workspaces' });
-    const flight = screen.getByRole('figure', { name: 'Hybi viajando hacia la izquierda' });
+    const workspaces = await screen.findByRole('region', { name: 'Your workspaces' });
+    const flight = screen.getByRole('figure', { name: 'Hybi travelling to the left' });
 
     expect(workspaces.compareDocumentPosition(flight) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(
       0,
@@ -96,9 +100,9 @@ describe('Welcome window', () => {
   it('carries close and nothing else', async () => {
     render(<WelcomeApp />);
 
-    expect(await screen.findByRole('button', { name: 'Cerrar' })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Minimizar' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Maximizar' })).toBeNull();
+    expect(await screen.findByRole('button', { name: 'Close' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Minimise' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Maximise' })).toBeNull();
   });
 
   it('says why the list is empty when it could not be read', async () => {

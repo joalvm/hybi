@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import type { VariableScope } from '@shared/variables/resolve.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { registerVariableProviders } from '@/shared/monaco/setup.js';
 import { Panel } from '@/shared/ui/Panel.js';
 import { useStore } from '@/store/index.js';
@@ -25,6 +26,7 @@ type Props = { connectionId: string };
 
 /** The only file in this feature that reads the store. Children take props. */
 export function ComposerPanel({ connectionId }: Props) {
+  const messages = useMessages().composer;
   const draft = useComposerDraft(connectionId);
   const event = useStore(selectSelectedEvent(connectionId));
   const docs = useDocsDraft(event);
@@ -81,8 +83,8 @@ export function ComposerPanel({ connectionId }: Props) {
 
   if (event === null) {
     return (
-      <Panel title="Payload">
-        <p className="p-3 text-muted">Selecciona un evento del catálogo.</p>
+      <Panel title={messages.title}>
+        <p className="p-3 text-muted">{messages.noEvent}</p>
       </Panel>
     );
   }

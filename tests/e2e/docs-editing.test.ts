@@ -51,15 +51,15 @@ test('edits, previews and persists event documentation', async () => {
     const window = await openWorkspace(app, 'Docs');
     await window.getByText('Ping', { exact: true }).click();
     await window.getByRole('tab', { name: 'Docs' }).click();
-    await window.getByRole('button', { name: 'Editar documentación' }).click();
+    await window.getByRole('button', { name: 'Edit documentation' }).click();
 
     const editor = window.locator('[data-part="markdown-editor"]');
     await expect(editor).toHaveAttribute('data-mode-id', 'markdown');
     await editor.click({ button: 'right' });
     await expect(window.getByRole('menuitem').allTextContents()).resolves.toEqual([
-      'Cortar',
-      'Copiar',
-      'Pegar',
+      'Cut',
+      'Copy',
+      'Paste',
     ]);
     await window.keyboard.press('Escape');
     await editor.locator('.view-lines').click();
@@ -86,8 +86,8 @@ test('edits, previews and persists event documentation', async () => {
     await window.keyboard.press('Control+s');
 
     await expect(editor).toBeVisible();
-    const closeEditor = window.getByRole('button', { name: 'Cerrar editor' });
-    const send = window.getByRole('button', { name: 'Enviar' });
+    const closeEditor = window.getByRole('button', { name: 'Close editor' });
+    const send = window.getByRole('button', { name: 'Send' });
     const closeBox = await closeEditor.boundingBox();
     const sendBox = await send.boundingBox();
     expect(closeBox?.width).toBeLessThanOrEqual(24);

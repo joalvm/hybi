@@ -1,7 +1,9 @@
 import { useCallback, useState } from 'react';
+import { format } from '@lang/translate.js';
 import { createConnection, duplicateConnection } from '@shared/domain/factory.js';
 import type { Connection } from '@shared/domain/types.js';
 import { bridge } from '@/ipc/bridge.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { useStore } from '@/store/index.js';
 
 /** A module constant so an unloaded workspace keeps a stable empty list. */
@@ -23,6 +25,7 @@ function connectionById(connectionId: string): Connection | undefined {
  * neighbouring connection is edited.
  */
 export function useConnectionTabActions() {
+  const messages = useMessages().connections;
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [closingId, setClosingId] = useState<string | null>(null);
 
@@ -53,18 +56,24 @@ export function useConnectionTabActions() {
     setClosingId(null);
   }, []);
 
-  const duplicate = useCallback((connectionId: string) => {
-    const connection = connectionById(connectionId);
-    if (connection === undefined) return;
+  const duplicate = useCallback(
+    (connectionId: string) => {
+      const connection = connectionById(connectionId);
+      if (connection === undefined) return;
     // A copy points at the same endpoint through the same environment and opens
     // the same way; only identity and name change. Through the factory so the
     // settings are copied rather than shared — a header added to one would
     // otherwise appear on the other. It carries no socket: it was never opened.
-    const copy = duplicateConnection(connection, `${connection.name} (copia)`);
-    const store = useStore.getState();
-    store.upsertConnection(copy);
-    store.setActiveConnection(copy.id);
-  }, []);
+      const copy = duplicateConnection(
+        connection,
+        format(messages.copySuffix, { name: connection.name }),
+      );
+      const store = useStore.getState();
+      store.upsertConnection(copy);
+      store.setActiveConnection(copy.id);
+    },
+    [messages.copySuffix],
+  );
 
   const configure = useCallback((connectionId: string) => {
     useStore.getState().openConnectionSettings(connectionId);
@@ -97,14 +106,14 @@ export function useConnectionTabActions() {
   }, []);
 
   const create = useCallback(() => {
-    const connection = createConnection({ name: 'Nueva conexión' });
+    const connection = createConnection({ name: messages.newConnection });
     const store = useStore.getState();
     store.upsertConnection(connection);
     store.setActiveConnection(connection.id);
     // Opened straight into its name: the placeholder is never what the tab is
     // meant to be called.
     setRenamingId(connection.id);
-  }, []);
+  }, [messages.newConnection]);
 
   return {
     renamingId,

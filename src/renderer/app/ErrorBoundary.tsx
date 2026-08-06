@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { currentMessages } from '@/shared/i18n/useMessages.js';
 import { Button } from '@/shared/ui/Button.js';
 
 type Props = { children: ReactNode };
@@ -29,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
             window.location.reload();
           }}
         >
-          Recargar
+          {currentMessages().common.reload}
         </Button>
       </div>
     );

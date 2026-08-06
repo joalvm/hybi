@@ -1,5 +1,7 @@
+import { format } from '@lang/translate.js';
 import type { Connection } from '@shared/domain/types.js';
 import { useStore } from '@/store/index.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog.js';
 import { PlusIcon } from '@/shared/ui/icons.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
@@ -15,6 +17,7 @@ const EMPTY_CONNECTIONS: Connection[] = [];
  * in `useConnectionTabActions`, which is what keeps this file about layout.
  */
 export function ConnectionTabs() {
+  const messages = useMessages().connections;
   const connections = useStore((state) => state.workspace?.connections ?? EMPTY_CONNECTIONS);
   const states = useStore((state) => state.states);
   const activeConnectionId = useStore((state) => state.activeConnectionId);
@@ -49,7 +52,7 @@ export function ConnectionTabs() {
       </div>
       {/* Outside the strip: the tabs scroll, the button that adds one does not. */}
       <div className="shrink-0 pr-1">
-        <IconButton label="Nueva conexión" onClick={actions.create}>
+        <IconButton label={messages.newConnection} onClick={actions.create}>
           <PlusIcon />
         </IconButton>
       </div>
@@ -68,8 +71,8 @@ export function ConnectionTabs() {
       {closing !== null && (
         <ConfirmDialog
           open
-          title="Eliminar conexión"
-          message={`¿Eliminar "${closing.name}"? Se cierra el socket y la conexión desaparece del workspace. No se puede deshacer.`}
+          title={messages.delete.title}
+          message={format(messages.delete.message, { name: closing.name })}
           onConfirm={() => {
             actions.remove(closing.id);
           }}

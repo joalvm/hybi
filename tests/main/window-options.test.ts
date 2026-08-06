@@ -17,7 +17,7 @@ class FakeBrowserWindow {
 }
 
 vi.mock('electron', () => ({
-  app: { getVersion: () => '9.9.9' },
+  app: { getVersion: () => '9.9.9', getLocale: () => 'es-PE' },
   BrowserWindow: FakeBrowserWindow,
   shell: { openExternal: vi.fn() },
   session: { defaultSession: { extensions: { loadExtension: vi.fn() } } },
@@ -87,6 +87,7 @@ describe('window sizes and controls', () => {
     createWorkbenchWindow('w1');
     expect(versionOf(last().webPreferences?.additionalArguments ?? [])).toBe('9.9.9');
   });
+
 
   it('keeps the renderer sandboxed and isolated in both windows', () => {
     createWelcomeWindow();

@@ -1,3 +1,4 @@
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import {
   CollapseAllIcon,
   ExpandAllIcon,
@@ -37,6 +38,8 @@ export function CatalogToolbar({
   onImport,
   onToggleAll,
 }: Props) {
+  const messages = useMessages().catalog;
+
   return (
     <div className="flex shrink-0 items-center gap-1.5 self-stretch pt-1">
       <div className="flex min-w-0 flex-1 items-center pl-1">
@@ -45,17 +48,17 @@ export function CatalogToolbar({
       <div className="flex min-w-0 items-center justify-end gap-0.5">
         <IconButton
           className={ACTION}
-          label={allCollapsed ? 'Expandir todo' : 'Contraer todo'}
+          label={allCollapsed ? messages.expandAll : messages.collapseAll}
           onClick={onToggleAll}
         >
           {allCollapsed ? <ExpandAllIcon /> : <CollapseAllIcon />}
         </IconButton>
-        <IconButton className={ACTION} label="Nueva colección" onClick={onCreateCollection}>
+        <IconButton className={ACTION} label={messages.newCollection} onClick={onCreateCollection}>
           <NewCollectionIcon />
         </IconButton>
         <IconButton
           className={ACTION}
-          label={importing ? 'Importando AsyncAPI…' : 'Importar AsyncAPI'}
+          label={importing ? messages.importing : messages.import}
           disabled={importing}
           onClick={onImport}
         >

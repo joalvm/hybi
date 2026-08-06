@@ -62,14 +62,14 @@ describe('WorkspaceMenu', () => {
 
     expect(screen.getByText('Workspaces')).toBeTruthy();
     expect(screen.getByRole('menuitem', { name: /Demo/ })).toBeTruthy();
-    expect(screen.getByRole('menuitem', { name: 'Nuevo workspace' })).toBeTruthy();
-    expect(screen.getByRole('menuitem', { name: 'Eliminar' })).toBeTruthy();
+    expect(screen.getByRole('menuitem', { name: 'New workspace' })).toBeTruthy();
+    expect(screen.getByRole('menuitem', { name: 'Delete' })).toBeTruthy();
   });
 
   /**
    * The switcher reads first and the admin actions sit below it, behind a
    * divider — regression coverage for the order, not just the presence, of
-   * the two blocks: a menu that puts "Nuevo workspace" back on top would pass
+   * the two blocks: a menu that puts "New workspace" back on top would pass
    * every other assertion here but must fail this one.
    */
   it('lists the switcher above the admin actions', async () => {
@@ -79,7 +79,7 @@ describe('WorkspaceMenu', () => {
 
     const names = screen.getAllByRole('menuitem').map((item) => item.textContent);
     const lastWorkspace = names.indexOf('Otro');
-    const firstAction = names.indexOf('Nuevo workspace');
+    const firstAction = names.indexOf('New workspace');
 
     expect(lastWorkspace).toBeGreaterThanOrEqual(0);
     expect(firstAction).toBeGreaterThan(lastWorkspace);
@@ -100,8 +100,8 @@ describe('WorkspaceMenu', () => {
 
   it('renames through the store, not through a channel of its own', async () => {
     await openMenu();
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Renombrar' }));
-    const field = screen.getByLabelText('Nombre del workspace');
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Rename' }));
+    const field = screen.getByLabelText('Workspace name');
     fireEvent.change(field, { target: { value: 'Producción' } });
     fireEvent.keyDown(field, { key: 'Enter' });
 
@@ -111,9 +111,9 @@ describe('WorkspaceMenu', () => {
 
   it('creates a workspace and opens it', async () => {
     await openMenu();
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Nuevo workspace' }));
-    fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Staging' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'New workspace' }));
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Staging' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
       expect(useStore.getState().workspace?.id).toBe('w3');
@@ -123,10 +123,10 @@ describe('WorkspaceMenu', () => {
 
   it('asks before deleting and then opens what is left', async () => {
     await openMenu();
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Eliminar' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
     expect(workspaceBridge.remove).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Eliminar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
 
     await waitFor(() => {
       expect(useStore.getState().workspace?.id).toBe('w2');

@@ -1,4 +1,5 @@
 import { AlertDialog } from 'radix-ui';
+import { useMessages } from '../i18n/useMessages.js';
 import { Button } from './Button.js';
 import { CloseIcon } from './icons.js';
 import { IconButton } from './IconButton.js';
@@ -7,7 +8,8 @@ type Props = {
   open: boolean;
   title: string;
   message: string;
-  confirmLabel?: string;
+  /** Defaults to the word for deleting: destruction is what this dialog is for. */
+  confirmLabel?: string | undefined;
   onConfirm: () => void;
   onClose: () => void;
 };
@@ -25,10 +27,12 @@ export function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = 'Eliminar',
+  confirmLabel,
   onConfirm,
   onClose,
 }: Props) {
+  const messages = useMessages().common;
+
   return (
     <AlertDialog.Root
       open={open}
@@ -50,7 +54,11 @@ export function ConfirmDialog({
             <AlertDialog.Title className="flex-1 text-dialog-title leading-6 font-semibold">
               {title}
             </AlertDialog.Title>
-            <IconButton label="Cerrar" className="-mr-1 min-h-6 min-w-6 p-0" onClick={onClose}>
+            <IconButton
+              label={messages.close}
+              className="-mr-1 min-h-6 min-w-6 p-0"
+              onClick={onClose}
+            >
               <CloseIcon />
             </IconButton>
           </header>
@@ -59,11 +67,11 @@ export function ConfirmDialog({
           </div>
           <footer className="flex justify-end gap-2 rounded-b-dialog bg-panel px-4 pt-3 pb-4">
             <AlertDialog.Cancel asChild>
-              <Button size="sm">Cancelar</Button>
+              <Button size="sm">{messages.cancel}</Button>
             </AlertDialog.Cancel>
             <AlertDialog.Action asChild>
               <Button tone="danger" size="sm" onClick={onConfirm}>
-                {confirmLabel}
+                {confirmLabel ?? messages.delete}
               </Button>
             </AlertDialog.Action>
           </footer>

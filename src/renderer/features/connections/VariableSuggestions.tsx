@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import type { Variable } from '@shared/domain/types.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { Button } from '@/shared/ui/Button.js';
 
 type Props = {
@@ -18,12 +19,15 @@ export function VariableSuggestions({
   onActiveIndexChange,
   onSelect,
 }: Props) {
+  const catalog = useMessages();
+  const messages = catalog.connections.suggestions;
+
   if (variables.length === 0) return null;
 
   return (
     <div
       id={id}
-      aria-label="Variables de entorno"
+      aria-label={messages.label}
       className="absolute top-full left-0 z-30 mt-1 max-h-58 w-64 overflow-y-auto rounded-ui border border-border bg-panel p-1 shadow-overlay"
       role="listbox"
     >
@@ -52,14 +56,18 @@ export function VariableSuggestions({
               aria-hidden="true"
               className="flex h-4 w-4 shrink-0 items-center justify-center rounded-ui bg-accent-soft text-label font-semibold text-accent-text"
             >
-              E
+              {catalog.workspace.environments.initial}
             </span>
             <span className="overflow-hidden text-ellipsis whitespace-nowrap">
               {variable.name}
             </span>
           </span>
           <span className="max-w-32 overflow-hidden text-ellipsis whitespace-nowrap text-label text-muted">
-            {variable.secret ? 'secreto' : variable.value === '' ? 'Sin valor' : variable.value}
+            {variable.secret
+              ? messages.secret
+              : variable.value === ''
+                ? messages.empty
+                : variable.value}
           </span>
         </Button>
       ))}

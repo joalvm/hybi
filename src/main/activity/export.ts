@@ -1,5 +1,8 @@
 import { extname } from 'node:path';
-import { ACTIVITY_KIND_LABEL, type ActivityRecord, type ActivitySecret } from '@shared/ipc/activity.js';
+import { format, plural } from '@lang/translate.js';
+import { APP_NAME } from '@shared/brand.js';
+import type { ActivityRecord, ActivitySecret } from '@shared/ipc/activity.js';
+import { mainMessages } from '../lang.js';
 
 const INVALID_FILE_NAME = /[<>:"/\\|?*]/g;
 
@@ -18,7 +21,7 @@ export function activityDefaultFileName(connectionName: string): string {
     .replace(INVALID_FILE_NAME, '-')
     .trim()
     .replace(/[ .]+$/g, '');
-  return `${safe === '' ? 'actividad' : safe}.json`;
+  return `${safe === '' ? mainMessages().activity.file.name : safe}.json`;
 }
 
 /**
@@ -55,10 +58,15 @@ export function redactFrames(
 
 /** One block per frame, with the body verbatim under its own heading. */
 function asText(records: readonly ActivityRecord[], connectionName: string): string {
-  const header = `# Hybi — actividad de «${connectionName}»\n# ${new Date().toISOString()} — ${String(records.length)} registros\n`;
+  const messages = mainMessages().activity;
+  const title = format(messages.file.title, { app: APP_NAME, connection: connectionName });
+  const summary = plural(messages.file.summary, records.length, {
+    at: new Date().toISOString(),
+  });
+  const header = `# ${title}\n# ${summary}\n`;
   const blocks = records.map((record) => {
     const when = new Date(record.at).toISOString();
-    const kind = ACTIVITY_KIND_LABEL[record.kind];
+    const kind = messages.kinds[record.kind];
     return `\n[${when}] ${kind} ${record.label} (${String(record.bytes)} B)\n${record.body}\n`;
   });
   return `${header}${blocks.join('')}`;

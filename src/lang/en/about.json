@@ -1,0 +1,7 @@
+{
+  "title": "About {app}",
+  "tagline": "Desktop client for real-time connections.",
+  "prerelease": "This is a preview build: the app is still being built, so features are missing and some things will change from one version to the next.",
+  "updates": "Update notifications are coming in a future version.",
+  "license": "Released under the GPL-3.0 licence."
+}

@@ -1,0 +1,46 @@
+{
+  "title": "Actividad",
+  "dropped": "Desconectado",
+  "search": "Buscar en la actividad",
+  "export": "Exportar la actividad",
+  "clear": "Limpiar actividad",
+  "kinds": {
+    "outgoing": "Saliente",
+    "incoming": "Entrante",
+    "status": "Estado",
+    "error": "Error"
+  },
+  "glyphs": {
+    "outgoing": "saliente",
+    "incoming": "entrante",
+    "status": "estado",
+    "error": "error"
+  },
+  "filters": {
+    "outgoing": "Frames salientes",
+    "incoming": "Frames entrantes",
+    "status": "Notas de estado",
+    "error": "Errores"
+  },
+  "bytes": "{count} B",
+  "rowActions": "Acciones del frame",
+  "copyBody": "Copiar cuerpo",
+  "copyRow": "Copiar fila",
+  "resend": "Reenviar al composer",
+  "copyFrame": "Copiar el frame",
+  "closeDetail": "Cerrar detalle",
+  "replaceDraft": {
+    "title": "Reemplazar el borrador",
+    "message": "El composer tiene cambios sin guardar. Cargar este frame los descarta.",
+    "confirm": "Reemplazar"
+  },
+  "exportFailed": "No se pudo exportar la actividad: {error}",
+  "file": {
+    "name": "actividad",
+    "title": "{app} — actividad de «{connection}»",
+    "summary": {
+      "one": "{at} — {count} registro",
+      "other": "{at} — {count} registros"
+    }
+  }
+}

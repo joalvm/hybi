@@ -71,7 +71,7 @@ describe('serializeActivity', () => {
   it('writes plain text with each frame under its own heading', () => {
     const text = serializeActivity(records, 'local', 'session.txt');
 
-    expect(text).toContain('[2026-08-04T21:00:00.000Z] Saliente DeviceLogin (18 B)');
+    expect(text).toContain('[2026-08-04T21:00:00.000Z] Outgoing DeviceLogin (18 B)');
     // The body is written as it arrived: a text export that flattens the frame
     // is no longer a copy of what crossed the socket.
     expect(text).toContain('plain\ntext');
@@ -81,6 +81,6 @@ describe('serializeActivity', () => {
 describe('activityDefaultFileName', () => {
   it('never lets a connection name become a path', () => {
     expect(activityDefaultFileName('a/b:c')).toBe('a-b-c.json');
-    expect(activityDefaultFileName('   ')).toBe('actividad.json');
+    expect(activityDefaultFileName('   ')).toBe('activity.json');
   });
 });

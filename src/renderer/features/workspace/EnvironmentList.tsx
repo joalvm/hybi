@@ -1,4 +1,5 @@
 import type { Environment } from '@shared/domain/types.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { Button } from '@/shared/ui/Button.js';
 import { cn } from '@/shared/utils/cn.js';
 
@@ -11,9 +12,11 @@ type Props = {
 
 /** The master half of the variables dialog: which environment is being edited. */
 export function EnvironmentList({ environments, selectedId, onSelect, onCreate }: Props) {
+  const messages = useMessages().workspace.environments;
+
   return (
     <aside className="flex flex-col gap-2 border-r border-border pr-3">
-      <div className="flex flex-1 flex-col gap-px" role="listbox" aria-label="Entornos">
+      <div className="flex flex-1 flex-col gap-px" role="listbox" aria-label={messages.list}>
         {environments.map((environment) => (
           <button
             key={environment.id}
@@ -31,9 +34,9 @@ export function EnvironmentList({ environments, selectedId, onSelect, onCreate }
             {environment.name}
           </button>
         ))}
-        {environments.length === 0 && <p className="text-label text-muted">Sin entornos</p>}
+        {environments.length === 0 && <p className="text-label text-muted">{messages.empty}</p>}
       </div>
-      <Button onClick={onCreate}>Nuevo entorno</Button>
+      <Button onClick={onCreate}>{messages.new}</Button>
     </aside>
   );
 }

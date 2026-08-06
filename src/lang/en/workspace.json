@@ -1,0 +1,46 @@
+{
+  "label": "Workspace",
+  "none": "No workspace",
+  "name": "Workspace name",
+  "group": "Workspaces",
+  "new": "New workspace",
+  "export": "Export",
+  "duplicate": {
+    "title": "Duplicate workspace",
+    "copySuffix": "{name} (copy)"
+  },
+  "delete": {
+    "title": "Delete workspace",
+    "message": "Delete \"{name}\" with its environments, connections and catalog? This cannot be undone."
+  },
+  "environments": {
+    "picker": "Environment",
+    "initial": "E",
+    "none": "No environment",
+    "list": "Environments",
+    "empty": "No environments",
+    "new": "New environment",
+    "created": "Environment {number}",
+    "name": "Environment name",
+    "delete": {
+      "title": "Delete environment",
+      "message": "Delete \"{name}\"? The connections that used it are left without one."
+    }
+  },
+  "variables": {
+    "title": "Environment variables",
+    "noEnvironment": "Create an environment to add variables.",
+    "secretNote": "Values marked as secret are not saved to disk.",
+    "add": "Add variable",
+    "secret": "secret",
+    "name": "Name of variable {position}",
+    "value": "Value of variable {position}",
+    "remove": "Delete variable {position}",
+    "valueOf": "Value of {name}",
+    "seeAll": "See every variable",
+    "withoutEnvironment": "This connection has no environment. Choose one to define variables.",
+    "undefined": "It is not defined in {name}.",
+    "createIn": "Create it in {name}",
+    "environmentOf": "Environment {name}"
+  }
+}

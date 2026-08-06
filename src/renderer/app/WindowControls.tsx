@@ -1,4 +1,5 @@
 import { bridge } from '@/ipc/bridge.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import {
   CloseIcon,
   WindowMaximizeIcon,
@@ -22,6 +23,7 @@ type Props = {
  * lights are still drawn by the system over the drag region.
  */
 export function WindowControls({ resizable = true }: Props) {
+  const messages = useMessages().chrome;
   const maximized = useWindowMaximized();
 
   if (bridge.platform === 'darwin') return null;
@@ -32,7 +34,7 @@ export function WindowControls({ resizable = true }: Props) {
         <>
           <IconButton
             className="h-full min-h-0 w-12 rounded-none border-0 text-foreground focus-visible:-outline-offset-3"
-            label="Minimizar"
+            label={messages.minimize}
             onClick={() => {
               void bridge.window.minimize();
             }}
@@ -41,7 +43,7 @@ export function WindowControls({ resizable = true }: Props) {
           </IconButton>
           <IconButton
             className="h-full min-h-0 w-12 rounded-none border-0 text-foreground focus-visible:-outline-offset-3"
-            label={maximized ? 'Restaurar' : 'Maximizar'}
+            label={maximized ? messages.restore : messages.maximize}
             onClick={() => {
               void bridge.window.toggleMaximize();
             }}
@@ -52,7 +54,7 @@ export function WindowControls({ resizable = true }: Props) {
       )}
       <IconButton
         className="h-full min-h-0 w-12 rounded-none border-0 text-foreground enabled:hover:bg-window-close enabled:hover:text-on-danger focus-visible:-outline-offset-3"
-        label="Cerrar"
+        label={messages.close}
         onClick={() => {
           void bridge.window.close();
         }}

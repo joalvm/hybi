@@ -1,0 +1,14 @@
+{
+  "kicker": "WebSocket client",
+  "title": "Your workspaces",
+  "intro": "Open a recent workspace or create one to get started.",
+  "create": "Create workspace",
+  "newWorkspace": "New workspace",
+  "recent": "Recent",
+  "recentNav": "Recent workspaces",
+  "loading": "Loading workspaces…",
+  "loadFailed": "The workspaces could not be loaded: {error}",
+  "empty": "No workspaces yet.",
+  "open": "Open {name}",
+  "flight": "{app} travelling to the left"
+}

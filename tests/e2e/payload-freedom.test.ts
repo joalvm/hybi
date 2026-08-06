@@ -73,7 +73,7 @@ test('opens an event with a schema without validating it, and beautifies on dema
     // The row's own text, not the row: its `…` menu answers to the name too.
     await window.getByText('Ping', { exact: true }).click();
     // The panel title became a breadcrumb in phase 2: collection, then event.
-    await expect(window.getByLabel('Ubicación del evento')).toContainText('Ping');
+    await expect(window.getByLabel('Event location')).toContainText('Ping');
     expect(violations).toEqual([]);
 
     // The payload breaks the schema and the app says nothing at all about it.
@@ -81,15 +81,15 @@ test('opens an event with a schema without validating it, and beautifies on dema
     await expect(window.getByText('Aviso', { exact: true })).toHaveCount(0);
 
     // Only the socket keeps the send button down.
-    await expect(window.getByRole('button', { name: 'Enviar' })).toHaveAttribute(
+    await expect(window.getByRole('button', { name: 'Send' })).toHaveAttribute(
       'title',
-      'Conecta el socket para enviar',
+      'Connect the socket to send',
     );
 
     // One line in, six out: what the footer replaced the validator with.
     const lines = window.locator('[data-part="payload-editor"] .view-line');
     await expect(lines).toHaveCount(1);
-    await window.getByRole('button', { name: 'Formatear' }).click();
+    await window.getByRole('button', { name: 'Format' }).click();
     await expect(lines).toHaveCount(6);
   } finally {
     await app.close();

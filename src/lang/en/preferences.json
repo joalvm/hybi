@@ -1,0 +1,41 @@
+{
+  "title": "Preferences",
+  "sections": "Preference groups",
+  "tabs": {
+    "general": "General",
+    "appearance": "Appearance",
+    "log": "Activity log"
+  },
+  "language": {
+    "label": "Language",
+    "description": "System reads the language the machine is set to, and falls back to English.",
+    "system": "System",
+    "en": "English",
+    "es": "Spanish"
+  },
+  "startup": {
+    "label": "On startup",
+    "description": "The welcome window is where a workspace is chosen, created and duplicated.",
+    "welcome": "Welcome window",
+    "lastWorkspace": "Last workspace"
+  },
+  "theme": {
+    "label": "Theme",
+    "description": "System follows the light or dark mode of the desktop.",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "editorFontSize": {
+    "label": "Editor font size",
+    "description": "Applies to the composer, the documentation and the log detail."
+  },
+  "activityLimit": {
+    "label": "Maximum messages per connection",
+    "description": "Past it, the oldest are dropped. The traffic counter is not reset."
+  },
+  "activityByteLimit": {
+    "label": "Maximum log memory",
+    "description": "Ceiling for the bodies of the messages kept. Whichever limit is reached first wins."
+  }
+}

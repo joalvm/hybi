@@ -1,0 +1,41 @@
+{
+  "title": "Preferencias",
+  "sections": "Secciones de preferencias",
+  "tabs": {
+    "general": "General",
+    "appearance": "Apariencia",
+    "log": "Log de actividad"
+  },
+  "language": {
+    "label": "Idioma",
+    "description": "Sistema lee el idioma de la máquina y, si no lo tiene, usa inglés.",
+    "system": "Sistema",
+    "en": "Inglés",
+    "es": "Español"
+  },
+  "startup": {
+    "label": "Al arrancar",
+    "description": "La bienvenida es donde se elige, se crea y se duplica un workspace.",
+    "welcome": "Bienvenida",
+    "lastWorkspace": "Último workspace"
+  },
+  "theme": {
+    "label": "Tema",
+    "description": "Sistema sigue el modo claro u oscuro del escritorio.",
+    "system": "Sistema",
+    "light": "Claro",
+    "dark": "Oscuro"
+  },
+  "editorFontSize": {
+    "label": "Tamaño de fuente del editor",
+    "description": "Se aplica al composer, a la documentación y al detalle del log."
+  },
+  "activityLimit": {
+    "label": "Mensajes máximos por conexión",
+    "description": "Al superarlo, se descartan los más antiguos. El contador de tráfico no se reinicia."
+  },
+  "activityByteLimit": {
+    "label": "Memoria máxima del log",
+    "description": "Techo del cuerpo de los mensajes guardados. Manda el límite que se alcance primero."
+  }
+}

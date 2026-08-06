@@ -5,6 +5,7 @@ type Props = {
   direction: 'row' | 'column';
   initial: number;
   min: number;
+  firstCollapsed?: boolean;
   children: [ReactNode, ReactNode];
 };
 
@@ -23,7 +24,7 @@ const HANDLE_CLASSES: Record<Props['direction'], string> = {
   column: 'cursor-row-resize',
 };
 
-export function SplitPane({ direction, initial, min, children }: Props) {
+export function SplitPane({ direction, initial, min, firstCollapsed = false, children }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState(initial);
   const clamp = (value: number) => Math.min(Math.max(value, min), 100 - min);
@@ -55,7 +56,8 @@ export function SplitPane({ direction, initial, min, children }: Props) {
     >
       <div
         className="split-pane-runtime min-h-0 min-w-0 shrink overflow-hidden"
-        data-size={`${String(size)}%`}
+        data-size={firstCollapsed ? '0%' : `${String(size)}%`}
+        hidden={firstCollapsed}
       >
         {children[0]}
       </div>
@@ -63,6 +65,7 @@ export function SplitPane({ direction, initial, min, children }: Props) {
         className={cn(
           'split-handle-runtime relative shrink-0 basis-px bg-border p-0 hover:bg-accent focus-visible:bg-accent focus-visible:outline-none',
           HANDLE_CLASSES[direction],
+          firstCollapsed && 'hidden',
         )}
         role="separator"
         aria-orientation={direction === 'row' ? 'vertical' : 'horizontal'}
@@ -79,7 +82,7 @@ export function SplitPane({ direction, initial, min, children }: Props) {
       />
       <div
         className="split-pane-runtime min-h-0 min-w-0 shrink overflow-hidden"
-        data-size={`${String(100 - size)}%`}
+        data-size={firstCollapsed ? '100%' : `${String(100 - size)}%`}
       >
         {children[1]}
       </div>

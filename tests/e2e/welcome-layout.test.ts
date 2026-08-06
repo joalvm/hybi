@@ -42,12 +42,12 @@ test('opens welcome as a fixed 1294x807 window with the flight to its right', as
     }
 
     // Close is the only control it can honestly offer.
-    await expect(window.getByRole('button', { name: 'Cerrar' })).toBeVisible();
-    await expect(window.getByRole('button', { name: 'Minimizar' })).toHaveCount(0);
-    await expect(window.getByRole('button', { name: 'Maximizar' })).toHaveCount(0);
+    await expect(window.getByRole('button', { name: 'Close' })).toBeVisible();
+    await expect(window.getByRole('button', { name: 'Minimise' })).toHaveCount(0);
+    await expect(window.getByRole('button', { name: 'Maximise' })).toHaveCount(0);
 
-    const workspaces = window.getByRole('region', { name: 'Tus workspaces' });
-    const flight = window.getByRole('figure', { name: 'Hybi viajando hacia la izquierda' });
+    const workspaces = window.getByRole('region', { name: 'Your workspaces' });
+    const flight = window.getByRole('figure', { name: 'Hybi travelling to the left' });
 
     await expect(workspaces).toBeVisible();
     await expect(flight).toBeVisible();
@@ -74,9 +74,9 @@ test('opens the workbench in a second window that can resize and minimise', asyn
     const welcome = await app.firstWindow();
     const opened = app.waitForEvent('window');
 
-    await welcome.getByRole('button', { name: 'Crear workspace' }).click();
-    await welcome.getByRole('textbox', { name: 'Nombre' }).fill('Ventanas');
-    await welcome.getByRole('button', { name: 'Guardar' }).click();
+    await welcome.getByRole('button', { name: 'Create workspace' }).click();
+    await welcome.getByRole('textbox', { name: 'Name' }).fill('Ventanas');
+    await welcome.getByRole('button', { name: 'Save' }).click();
 
     const workbench = await opened;
     await workbench.waitForLoadState('domcontentloaded');
@@ -105,8 +105,8 @@ test('opens the workbench in a second window that can resize and minimise', asyn
       height: 807,
     });
 
-    await expect(workbench.getByRole('button', { name: 'Minimizar' })).toBeVisible();
-    await expect(workbench.getByRole('button', { name: 'Menú' })).toBeVisible();
+    await expect(workbench.getByRole('button', { name: 'Minimise' })).toBeVisible();
+    await expect(workbench.getByRole('button', { name: 'Menu' })).toBeVisible();
   } finally {
     await app.close();
   }
