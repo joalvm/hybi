@@ -67,6 +67,11 @@ está viajando por una línea que normalmente es invisible.
   disco: viven solo mientras la aplicación está abierta.
 - **Separar tus proyectos.** Cada proyecto vive en su propio espacio de trabajo,
   con sus conexiones y su catálogo.
+- **Dejar la aplicación como te gusta.** Tema claro u oscuro, tamaño del texto
+  del editor, cuánta conversación se guarda y qué abre al arrancar. Se recuerda
+  para la próxima vez.
+- **Trabajar en inglés o en español.** De fábrica sigue el idioma del sistema, y
+  se cambia en preferencias sin reiniciar.
 
 ## Cómo se usa, en cuatro pasos
 
@@ -143,10 +148,10 @@ lo usa.
 
 - **Ver los mensajes que no son texto.** Hoy, cuando llega algo que no son
   letras, Hybi solo dice cuánto ocupa. Va a poder abrirse y mirarse por dentro.
-- **Que la aplicación recuerde cómo la dejaste**, empezando por el tema claro u
-  oscuro.
 - **Avisar cuando un espacio de trabajo no se puede leer**, en vez de dejarlo
   fuera de la lista sin decir nada.
+- **Explicar los fallos de conexión con palabras**, en vez de dejar el código
+  del error a la vista.
 
 ### Camino a la primera versión estable
 
@@ -154,12 +159,9 @@ lo usa.
   programa viene de un origen desconocido. Es lo más importante de esta lista.
 - **Aviso de versión nueva** desde la propia aplicación, sin tener que pasar por
   la web.
-- **Interfaz también en inglés**, manteniendo el español.
 - **Más tipos de conexión.** Hoy Hybi habla WebSocket a secas; falta lo que se
   monta encima, empezando por Socket.IO, que es lo que usa mucha gente sin
   saberlo.
-- **Pantalla de preferencias**, para ajustar la aplicación a tu gusto en lugar
-  de aceptar lo que viene puesto.
 - **Llevarte un espacio de trabajo a otro equipo**, o pasárselo a un compañero,
   en un solo archivo.
 - **Ayuda con la autenticación**, para no tener que armar a mano la cabecera del

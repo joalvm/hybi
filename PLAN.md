@@ -233,14 +233,13 @@ menos historia hay que reconstruir.
 ### 13. Deuda del repositorio — `S`
 
 Los tres archivos que rompen la regla de 150 líneas del propio repo
-—`useCatalogActions.ts` (215), `asyncapi/importer.ts` (180),
-`CatalogPanel.tsx` (155)—: o se parten o se cambia la regla, pero no se quedan
-donde están. Y el índice duplicado de Codebase Memory que
-[CLAUDE.md](CLAUDE.md) manda borrar.
+—`useCatalogActions.ts` (221), `asyncapi/importer.ts` (186),
+`CatalogPanel.tsx` (157)—: o se parten o se cambia la regla, pero no se quedan
+donde están.
 
 ### 14. Umbral de cobertura, carga y accesibilidad — `M`
 
-- Cobertura medida con umbral en CI: hay 326 pruebas y ningún número que impida
+- Cobertura medida con umbral en CI: hay 371 pruebas y ningún número que impida
   que bajen.
 - Prueba de carga con 10 000 msg/s sostenidos, con el resultado escrito:
   memoria estable, interfaz sin bloquear, presupuesto del log respetado.

@@ -11,8 +11,8 @@ significa hecho y verificado, no hecho a medias.
 
 ## 1. Dónde está hoy
 
-**Métrica cruda.** 12 900 líneas en `src/`, 6 276 en `tests/`, 43 archivos de
-prueba con 326 casos en verde, 8 pruebas E2E reales sobre la app empaquetada.
+**Métrica cruda.** 15 291 líneas en `src/`, 7 232 en `tests/`, 48 archivos de
+prueba con 371 casos en verde, 9 pruebas E2E reales sobre la app empaquetada.
 CI en Linux, Windows y macOS, más CodeQL, Dependency review y Dependabot.
 Release automatizado por tag, con checksums SHA-256 y firma condicionada a que
 existan los secretos.
@@ -50,8 +50,8 @@ distribución y mercado. Eso es lo que ordena las dos listas de abajo.
 ### Deuda detectada en la auditoría
 
 - [ ] **Tres archivos rompen la regla de 150 líneas del propio repo**:
-      `useCatalogActions.ts` (215), `asyncapi/importer.ts` (180),
-      `CatalogPanel.tsx` (155). La regla o se cumple o se cambia; hoy está en
+      `useCatalogActions.ts` (221), `asyncapi/importer.ts` (186),
+      `CatalogPanel.tsx` (157). La regla o se cumple o se cambia; hoy está en
       tierra de nadie.
 - [x] **`ThemeToggle` está marcado `data-temporary="true"` y en producción.** Un
       control de QA no debe viajar en un instalador. Retirado: el tema es una
@@ -59,10 +59,9 @@ distribución y mercado. Eso es lo que ordena las dos listas de abajo.
 - [ ] **Un workspace corrupto desaparece en silencio.** `summarize()` devuelve
       `null` y el archivo deja de aparecer sin decir nada. El usuario cree que
       perdió el trabajo.
-- [ ] **Índice de Codebase Memory duplicado otra vez.** Existen
-      `websocket-workbench` (1 607 nodos) y
-      `C-Users-joalv-Documents-invian-websocket-workbench` (1 781 nodos). El
-      segundo es el que CLAUDE.md manda borrar.
+- [x] **Índice de Codebase Memory duplicado otra vez.** El proyecto derivado de
+      la ruta, `C-Users-joalv-Documents-invian-websocket-workbench`, quedó
+      borrado; el único índice vivo es `websocket-workbench`.
 - [ ] **No hay `CHANGELOG.md`.** Las notas se generan de los PR; sirve para la
       alpha, no para una 1.0.
 
@@ -187,7 +186,7 @@ ningún flujo que la app ya promete**, con el formato de datos congelado.
       temporal, índice duplicado).
 - [ ] **`CHANGELOG.md`** siguiendo Keep a Changelog, alimentado por los títulos
       de los PR que ya son Conventional Commits.
-- [ ] **Cobertura medida y con umbral en CI.** Hoy hay 326 pruebas, pero ningún
+- [ ] **Cobertura medida y con umbral en CI.** Hoy hay 371 pruebas, pero ningún
       número que impida que la cobertura baje.
 - [ ] **Revisión de accesibilidad de teclado.** El árbol del catálogo ya la
       tiene; falta verificar diálogos, popovers y el recorrido de foco completo.
