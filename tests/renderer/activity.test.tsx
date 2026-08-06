@@ -252,6 +252,47 @@ describe('copying a frame', () => {
   });
 });
 
+describe('the detail pane of a binary frame', () => {
+  const props = (over: Partial<ActivityRecord>): ComponentProps<typeof ActivityDetail> => ({
+    record: record(over),
+    onClose: () => undefined,
+    onCopy: () => undefined,
+    onResend: () => undefined,
+    canResend: false,
+  });
+
+  /** Text goes to Monaco; bytes have no text to colour, so they go to the dump. */
+  it('reads a text frame in the editor and a binary one in the dump', () => {
+    const { unmount } = render(<ActivityDetail {...props({ body: '{"ok":true}' })} />);
+    expect(screen.queryByTestId('hex-view')).toBeNull();
+    unmount();
+
+    render(<ActivityDetail {...props({ encoding: 'base64', body: 'AAECAw==', bytes: 4 })} />);
+    expect(screen.getByTestId('hex-view')).toBeTruthy();
+  });
+
+  /**
+   * The dump is virtualized on its rows, not on the frame: a megabyte is sixty
+   * five thousand lines, and the pane has to know how many there are without
+   * laying a single one of them out.
+   */
+  it('counts the rows of the frame without drawing them', () => {
+    const megabyte = 'A'.repeat(Math.ceil((1024 * 1024 * 4) / 3));
+    render(
+      <ActivityDetail {...props({ encoding: 'base64', body: megabyte, bytes: 1024 * 1024 })} />,
+    );
+
+    expect(screen.getByTestId('hex-view').getAttribute('data-rows')).toBe('65536');
+  });
+
+  /** A frame the sender said was binary but that is not base64 is still a frame. */
+  it('says so instead of drawing an empty dump for an unreadable body', () => {
+    render(<ActivityDetail {...props({ encoding: 'base64', body: 'not base64!', bytes: 4 })} />);
+
+    expect(screen.getByText('This frame could not be read as binary.')).toBeTruthy();
+  });
+});
+
 describe('resending a frame', () => {
   const workspaceWithEvent = (): void => {
     const workspace = createWorkspace('Demo');

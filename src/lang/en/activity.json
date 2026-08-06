@@ -24,6 +24,7 @@
   },
   "bytes": "{count} B",
   "binaryFrame": "Binary · {count} B",
+  "binaryUnreadable": "This frame could not be read as binary.",
   "notes": {
     "closed": "Closed ({code})",
     "retrying": "Retrying ({attempt}/{attempts})",
