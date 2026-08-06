@@ -239,7 +239,7 @@ donde están.
 
 ### 14. Umbral de cobertura, carga y accesibilidad — `M`
 
-- Cobertura medida con umbral en CI: hay 371 pruebas y ningún número que impida
+- Cobertura medida con umbral en CI: hay 406 pruebas y ningún número que impida
   que bajen.
 - Prueba de carga con 10 000 msg/s sostenidos, con el resultado escrito:
   memoria estable, interfaz sin bloquear, presupuesto del log respetado.

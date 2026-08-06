@@ -11,8 +11,8 @@ significa hecho y verificado, no hecho a medias.
 
 ## 1. Dónde está hoy
 
-**Métrica cruda.** 15 291 líneas en `src/`, 7 232 en `tests/`, 48 archivos de
-prueba con 371 casos en verde, 9 pruebas E2E reales sobre la app empaquetada.
+**Métrica cruda.** 15 676 líneas en `src/`, 7 593 en `tests/`, 60 archivos de
+prueba con 406 casos en verde, 9 pruebas E2E reales sobre la app empaquetada.
 CI en Linux, Windows y macOS, más CodeQL, Dependency review y Dependabot.
 Release automatizado por tag, con checksums SHA-256 y firma condicionada a que
 existan los secretos.
@@ -163,22 +163,24 @@ ningún flujo que la app ya promete**, con el formato de datos congelado.
 
 ### Robustez
 
-- [ ] **Avisar de un workspace ilegible** en vez de esconderlo. Una fila
-      marcada como dañada, con la ruta del archivo y la opción de descartarla.
-- [ ] **Log de la aplicación en disco** (rotado, en `userData`). Sin él, un
-      fallo reportado por un usuario no es diagnosticable.
-- [ ] **Errores de conexión legibles.** Revisar que `ECONNREFUSED`,
-      `ENOTFOUND`, `CERT_HAS_EXPIRED` y el 401 del handshake lleguen como una
-      frase útil y no como el mensaje crudo de `ws`.
+- [x] **Avisar de un workspace ilegible** en vez de esconderlo. Una fila
+      marcada como dañada, con la ruta del archivo, el motivo y la opción de
+      descartarla tras confirmar.
+- [x] **Log de la aplicación en disco**, rotado y en `userData`. Ruta sin
+      query, código de error y estado de la conexión; nunca cabeceras, tokens
+      ni cuerpos. Se abre desde Preferencias → General.
+- [x] **Errores de conexión legibles.** `ECONNREFUSED`, `ENOTFOUND`,
+      `ETIMEDOUT`, `ECONNRESET`, las de ruta y la familia de certificado llegan
+      como una frase que conserva el código, y el estado del handshake se lee
+      del mensaje que lanza `ws`.
 - [ ] **Prueba de carga.** Medir con 10 000 msg/s sostenidos: memoria estable,
       interfaz sin bloquear, presupuesto del log respetado. Dejar el número
       escrito.
-- [ ] **Migración de documentos a partir de la beta.** El formato volvió a v1
-      durante la alpha porque no había nada instalado que conservar; la cadena
-      v1→v4 se borró en lugar de arrastrarla. La primera versión que salga con
-      usuarios reales congela ese contrato: desde ahí, cada cambio de formato
-      necesita su paso de migración y una copia del archivo original antes de
-      tocarlo.
+- [x] **Migración de documentos a partir de la beta.** La cadena vuelve a
+      existir como dato, hoy vacía porque v1 es el único formato publicado, con
+      guarda de versión y copia del archivo original antes de reescribirlo. Un
+      documento guardado por una versión posterior se rechaza en vez de
+      reinterpretarse.
 
 ### Higiene de repositorio
 
@@ -186,7 +188,7 @@ ningún flujo que la app ya promete**, con el formato de datos congelado.
       temporal, índice duplicado).
 - [ ] **`CHANGELOG.md`** siguiendo Keep a Changelog, alimentado por los títulos
       de los PR que ya son Conventional Commits.
-- [ ] **Cobertura medida y con umbral en CI.** Hoy hay 371 pruebas, pero ningún
+- [ ] **Cobertura medida y con umbral en CI.** Hoy hay 406 pruebas, pero ningún
       número que impida que la cobertura baje.
 - [ ] **Revisión de accesibilidad de teclado.** El árbol del catálogo ya la
       tiene; falta verificar diálogos, popovers y el recorrido de foco completo.
