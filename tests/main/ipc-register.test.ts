@@ -72,6 +72,7 @@ describe('IPC registration', () => {
         CHANNELS.clipboardWrite,
         CHANNELS.preferencesLoad,
         CHANNELS.preferencesSave,
+        CHANNELS.shellOpenLogs,
         CHANNELS.shellOpenWorkspace,
         CHANNELS.windowClose,
         CHANNELS.windowIsMaximized,

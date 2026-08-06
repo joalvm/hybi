@@ -145,7 +145,7 @@ describe('ActivityRow', () => {
   it('keeps a status detail beside its label', () => {
     render(
       <ActivityRow
-        record={record({ kind: 'status', label: 'Cerrado (1000)', body: 'going away' })}
+        record={record({ kind: 'status', label: 'Closed (1000)', body: 'going away' })}
         origin={1000}
         selected={false}
         onSelect={() => undefined}
@@ -154,7 +154,7 @@ describe('ActivityRow', () => {
         canResend={false}
       />,
     );
-    expect(screen.getByText('Cerrado (1000)')).toBeTruthy();
+    expect(screen.getByText('Closed (1000)')).toBeTruthy();
     expect(screen.getByText('going away')).toBeTruthy();
   });
 });

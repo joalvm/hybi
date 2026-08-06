@@ -77,6 +77,7 @@ const bridge: WorkbenchBridge = {
   },
   shell: {
     openWorkspace: (workspaceId) => ipcRenderer.invoke(CHANNELS.shellOpenWorkspace, workspaceId),
+    openLogs: () => ipcRenderer.invoke(CHANNELS.shellOpenLogs),
   },
   app: {
     version: versionOf(process.argv),

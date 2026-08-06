@@ -23,6 +23,11 @@
     "error": "Errores"
   },
   "bytes": "{count} B",
+  "notes": {
+    "closed": "Cerrado ({code})",
+    "retrying": "Reintentando ({attempt}/{attempts})",
+    "retryDelay": "en {delay} ms"
+  },
   "rowActions": "Acciones del frame",
   "copyBody": "Copiar cuerpo",
   "copyRow": "Copiar fila",

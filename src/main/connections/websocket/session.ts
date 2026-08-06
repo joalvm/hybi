@@ -6,7 +6,8 @@ import type { TransportSession, TransportSessionSink } from '../transport.js';
 import { createWebSocketAttempt, disposeWebSocketAttempt, type WebSocketAttempt } from './attempt.js';
 import { bodyOf } from './frame.js';
 import { labelOf } from './label.js';
-import { createWebSocketReporter, errorMessage } from './reporter.js';
+import { closedNote, retryNote } from './notes.js';
+import { createWebSocketReporter } from './reporter.js';
 import { RetryScheduler } from './retry.js';
 import { assertWsUrl } from './url.js';
 
@@ -87,7 +88,7 @@ export class WebSocketTransportSession implements TransportSession {
     try {
       parsed = assertWsUrl(target.url);
     } catch (error) {
-      this.reporter.record('error', 'Error', errorMessage(error));
+      this.reporter.failure(error, target.url);
       throw error;
     }
 
@@ -105,7 +106,7 @@ export class WebSocketTransportSession implements TransportSession {
         this.reporter.record('incoming', labelOf(body), body);
       },
       error: (attempt, error) => {
-        if (this.active === attempt) this.reporter.record('error', 'Error', error.message);
+        if (this.active === attempt) this.reporter.failure(error, target.url);
       },
       close: (attempt, code, reason) => {
         this.handleClose(attempt, code, reason);
@@ -121,7 +122,7 @@ export class WebSocketTransportSession implements TransportSession {
     if (this.active !== attempt) return;
     this.active = null;
     const dropped = !this.closedByUser && this.wasOpen;
-    this.reporter.record('status', `Cerrado (${String(code)})`, reason);
+    this.reporter.record('status', closedNote(code), reason);
     this.reporter.state(dropped ? 'dropped' : 'closed', String(code));
     if (dropped) this.scheduleRetry();
   }
@@ -131,16 +132,13 @@ export class WebSocketTransportSession implements TransportSession {
     if (target === null) return;
     const delay = this.retry.schedule(target.retry, () => {
       this.connect().catch((error: unknown) => {
-        this.reporter.record('error', 'Error', errorMessage(error));
+        this.reporter.failure(error, target.url);
         this.scheduleRetry();
       });
     });
     if (delay === null) return;
-    this.reporter.record(
-      'status',
-      `Reintentando (${String(this.retry.attempts)}/${String(target.retry.attempts)})`,
-      `en ${String(delay)} ms`,
-    );
+    const note = retryNote(this.retry.attempts, target.retry.attempts, delay);
+    this.reporter.record('status', note.label, note.body);
   }
 
   private releaseActive(): void {

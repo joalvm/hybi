@@ -196,6 +196,36 @@ describe('ConnectionManager', () => {
     expect(activity[0]?.body).toMatch(/ws:/);
   });
 
+  /**
+   * `ECONNREFUSED` on its own is not a diagnosis. The code stays because it is
+   * what gets searched for, and the sentence around it is what makes the log
+   * usable by someone who is not reading Node documentation.
+   */
+  it('explains a refused connection instead of forwarding the raw code', async () => {
+    const closed = new WebSocketServer({ port: 0 });
+    const port = (closed.address() as AddressInfo).port;
+    await new Promise<void>((resolve) => {
+      closed.close(() => {
+        resolve();
+      });
+    });
+
+    await expect(
+      manager.open({
+        connectionId: 'c1',
+        transport: transport(`ws://127.0.0.1:${String(port)}`),
+      }),
+    ).rejects.toThrow();
+
+    await vi.waitFor(() => {
+      expect(activity.some((item) => item.kind === 'error')).toBe(true);
+    });
+    const failure = activity.find((item) => item.kind === 'error');
+    expect(failure?.body).toContain('ECONNREFUSED');
+    expect(failure?.body).toContain(`ws://127.0.0.1:${String(port)}`);
+    expect(failure?.label).toBe('Error');
+  });
+
   it('refuses to send on a connection that is not open', async () => {
     await expect(
       manager.send('missing', { kind: 'websocket', text: 'x' }),
@@ -259,7 +289,7 @@ describe('ConnectionManager', () => {
       },
       { timeout: 3000 },
     );
-    expect(activity.some((item) => item.label.includes('Reintentando'))).toBe(true);
+    expect(activity.some((item) => item.label.includes('Retrying'))).toBe(true);
   });
 
   it('never retries while the policy is off', async () => {
@@ -275,7 +305,7 @@ describe('ConnectionManager', () => {
       expect(states.at(-1)?.state).toBe('dropped');
     });
     await new Promise((resolve) => setTimeout(resolve, 40));
-    expect(activity.some((item) => item.label.includes('Reintentando'))).toBe(false);
+    expect(activity.some((item) => item.label.includes('Retrying'))).toBe(false);
   });
 
   it('carries the handshake headers it was given', async () => {

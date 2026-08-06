@@ -1,5 +1,7 @@
-import { BrowserWindow, ipcMain } from 'electron';
+import { mkdir } from 'node:fs/promises';
+import { BrowserWindow, ipcMain, shell } from 'electron';
 import { CHANNELS } from '@shared/ipc/contract.js';
+import { logDirectory } from '../log/paths.js';
 
 type Actions = {
   /** Opens the document in the workbench window and retires the caller. */
@@ -16,7 +18,17 @@ export function registerShellHandlers(actions: Actions): () => void {
     actions.openWorkspace(workspaceId, BrowserWindow.fromWebContents(event.sender));
   });
 
+  // Created on the way out: on an installation that has not logged anything yet
+  // the directory does not exist, and opening a path that is not there fails
+  // silently — which reads as a button that does nothing.
+  ipcMain.handle(CHANNELS.shellOpenLogs, async (): Promise<void> => {
+    const directory = logDirectory();
+    await mkdir(directory, { recursive: true });
+    await shell.openPath(directory);
+  });
+
   return () => {
     ipcMain.removeHandler(CHANNELS.shellOpenWorkspace);
+    ipcMain.removeHandler(CHANNELS.shellOpenLogs);
   };
 }

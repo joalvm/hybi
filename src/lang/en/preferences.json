@@ -13,6 +13,11 @@
     "en": "English",
     "es": "Spanish"
   },
+  "diagnostics": {
+    "label": "Application log",
+    "description": "Records the URL without its query, the error code and the connection state. Never headers, tokens or message bodies, so the file can be attached to an issue as it is.",
+    "open": "Open the log folder"
+  },
   "startup": {
     "label": "On startup",
     "description": "The welcome window is where a workspace is chosen, created and duplicated.",

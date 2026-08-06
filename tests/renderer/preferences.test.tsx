@@ -13,7 +13,11 @@ const preferencesBridge = vi.hoisted(() => ({
   onChanged: vi.fn(() => () => undefined),
 }));
 
-vi.mock('@/ipc/bridge.js', () => ({ bridge: { preferences: preferencesBridge } }));
+const shellBridge = vi.hoisted(() => ({ openLogs: vi.fn(() => Promise.resolve()) }));
+
+vi.mock('@/ipc/bridge.js', () => ({
+  bridge: { preferences: preferencesBridge, shell: shellBridge },
+}));
 
 /** The last shape handed to the main process, which is what reaches disk. */
 function lastSaved(): AppPreferences | undefined {
@@ -113,6 +117,19 @@ describe('PreferencesDialog', () => {
 
     expect(screen.queryByRole('combobox', { name: 'On startup' })).toBeNull();
     expect(screen.getByLabelText('Maximum messages per connection')).toBeTruthy();
+  });
+
+  /**
+   * A log nobody can find is a log nobody attaches, and a report with no file
+   * behind it is not diagnosable.
+   */
+  it('opens the log folder without the renderer naming a path', async () => {
+    const user = userEvent.setup();
+    render(<PreferencesDialog open onClose={() => undefined} />);
+
+    await user.click(screen.getByRole('button', { name: 'Open the log folder' }));
+
+    expect(shellBridge.openLogs).toHaveBeenCalledTimes(1);
   });
 });
 

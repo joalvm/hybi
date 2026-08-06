@@ -3,6 +3,16 @@
   "connectionMissing": "La conexión {id} no está abierta",
   "connectionSuperseded": "Otro intento de conexión reemplazó a este",
   "connectionClosedEarly": "La conexión se cerró antes de abrirse",
+  "network": {
+    "refused": "{code}: no hay nada escuchando en {url}",
+    "unknownHost": "{code}: no se pudo resolver el host de {url}",
+    "timedOut": "{code}: {url} no respondió a tiempo",
+    "reset": "{code}: el servidor cerró la conexión con {url} mientras se establecía",
+    "unreachable": "{code}: no hay ruta hacia {url}",
+    "certificate": "{code}: se rechazó el certificado que presentó {url}. Desactiva la verificación de certificado en la configuración de la conexión solo si el servidor es tuyo",
+    "handshakeRejected": "El servidor rechazó el handshake con {status}: no aceptó las credenciales que envió la conexión",
+    "handshakeStatus": "El servidor respondió al handshake con {status} en vez de 101"
+  },
   "sendFailed": "No se pudo enviar por el WebSocket",
   "asyncapi": {
     "unreadable": "No se pudo interpretar {file}",

@@ -3,7 +3,9 @@ import { LogIcon, PaletteIcon, StartupIcon } from '@/shared/ui/icons.js';
 import { SettingsDialog, type SettingsTab } from '@/shared/ui/settings/SettingsDialog.js';
 import { SettingsPane } from '@/shared/ui/settings/SettingsPane.js';
 import { usePreferences } from '@/store/preferences.store.js';
+import { bridge } from '@/ipc/bridge.js';
 import { AppearanceSection } from './AppearanceSection.js';
+import { DiagnosticsSection } from './DiagnosticsSection.js';
 import { LanguageSection } from './LanguageSection.js';
 import { LogSection } from './LogSection.js';
 import { StartupSection } from './StartupSection.js';
@@ -50,6 +52,11 @@ export function PreferencesDialog({ open, onClose }: Props) {
           startup={startup}
           onStartupChange={(next) => {
             update({ startup: next });
+          }}
+        />
+        <DiagnosticsSection
+          onOpenLogs={() => {
+            void bridge.shell.openLogs();
           }}
         />
       </SettingsPane>

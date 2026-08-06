@@ -13,6 +13,11 @@
     "en": "Inglés",
     "es": "Español"
   },
+  "diagnostics": {
+    "label": "Log de la aplicación",
+    "description": "Registra la URL sin su query, el código de error y el estado de la conexión. Nunca cabeceras, tokens ni cuerpos de mensaje, así que el archivo se puede adjuntar a un issue tal cual.",
+    "open": "Abrir la carpeta del log"
+  },
   "startup": {
     "label": "Al arrancar",
     "description": "La bienvenida es donde se elige, se crea y se duplica un workspace.",

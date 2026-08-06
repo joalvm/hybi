@@ -47,6 +47,7 @@ export const CHANNELS = {
   windowState: 'window:state',
   windowPopupAppMenu: 'window:popup-app-menu',
   shellOpenWorkspace: 'shell:open-workspace',
+  shellOpenLogs: 'shell:open-logs',
   appAbout: 'app:about',
   appPreferences: 'app:preferences',
 } as const;
@@ -165,6 +166,11 @@ export type WorkbenchBridge = {
   /** Opens a document in the workbench window, replacing the welcome window. */
   shell: {
     openWorkspace(workspaceId: string): Promise<void>;
+    /**
+     * Shows the log directory in the file manager. The renderer never names a
+     * path: the main process is the only side that knows where `userData` is.
+     */
+    openLogs(): Promise<void>;
   };
   app: {
     /** What the running build is, straight from the main process. */
