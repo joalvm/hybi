@@ -1,4 +1,5 @@
 import type { ConnectionState } from '@shared/ipc/activity.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { Button } from '@/shared/ui/Button.js';
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
  * reading the log, and the dot on the tab already carries the state.
  */
 export function ConnectButton({ state, canConnect, onConnect, onDisconnect }: Props) {
+  const messages = useMessages().connections;
   const connected = state === 'open' || state === 'connecting';
   return (
     <Button
@@ -26,7 +28,7 @@ export function ConnectButton({ state, canConnect, onConnect, onDisconnect }: Pr
       disabled={!connected && !canConnect}
       onClick={connected ? onDisconnect : onConnect}
     >
-      {connected ? 'Desconectar' : 'Conectar'}
+      {connected ? messages.disconnect : messages.connect}
     </Button>
   );
 }

@@ -1,6 +1,7 @@
 import js from "@eslint/js";
 import reactHooks from "eslint-plugin-react-hooks";
 import tseslint from "typescript-eslint";
+import local from "./tools/eslint/index.js";
 
 export default tseslint.config(
   { ignores: ["out/**", "dist/**", "release/**", "coverage/**", ".rescue/**"] },
@@ -28,7 +29,11 @@ export default tseslint.config(
   {
     files: ["src/renderer/**/*.{ts,tsx}"],
     extends: [reactHooks.configs.flat["recommended-latest"]],
+    plugins: { local },
     rules: {
+      // Every visible string comes from `src/lang`, so a second language is a
+      // directory rather than a sweep through the components.
+      "local/no-literal-ui-text": "error",
       "no-restricted-syntax": [
         "error",
         {

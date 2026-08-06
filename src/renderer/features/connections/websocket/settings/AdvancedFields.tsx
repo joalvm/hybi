@@ -1,4 +1,5 @@
 import type { WebSocketTransportSettings } from '@shared/domain/connections/websocket.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { ShieldAlertIcon } from '@/shared/ui/icons.js';
 import { NumberField } from '@/shared/ui/NumberField.js';
 import { ToggleField } from '@/shared/ui/ToggleField.js';
@@ -18,6 +19,8 @@ const KIB = 1024;
  * million of them is not a figure anyone reads off a field.
  */
 export function AdvancedFields({ settings, onChange }: Props) {
+  const messages = useMessages().connections;
+
   return (
     <div className="flex flex-col">
       <ProtocolsField
@@ -27,8 +30,8 @@ export function AdvancedFields({ settings, onChange }: Props) {
         }}
       />
       <NumberField
-        label="Tamaño máximo de mensaje"
-        description="Un frame mayor cierra la conexión en vez de reservar memoria por él."
+        label={messages.maxMessage.label}
+        description={messages.maxMessage.description}
         value={Math.round(settings.maxMessageBytes / KIB)}
         min={1}
         max={102400}
@@ -38,8 +41,8 @@ export function AdvancedFields({ settings, onChange }: Props) {
         }}
       />
       <ToggleField
-        label="Verificar el certificado del servidor"
-        hint="Solo afecta a wss://."
+        label={messages.verifyCertificate.label}
+        hint={messages.verifyCertificate.hint}
         checked={settings.verifyCertificate}
         onChange={(verifyCertificate) => {
           onChange({ verifyCertificate });
@@ -53,11 +56,7 @@ export function AdvancedFields({ settings, onChange }: Props) {
           role="alert"
         >
           <ShieldAlertIcon />
-          <span>
-            Sin verificación se acepta cualquier certificado, incluido el de un tercero que se
-            interponga: el tráfico de esta conexión puede ser leído y modificado sin que se note.
-            Úsalo solo contra un servidor de desarrollo bajo tu control.
-          </span>
+          <span>{messages.verifyCertificate.warning}</span>
         </p>
       )}
     </div>

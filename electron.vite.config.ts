@@ -4,17 +4,18 @@ import { defineConfig } from 'electron-vite';
 
 const shared = resolve(import.meta.dirname, 'src/shared');
 const renderer = resolve(import.meta.dirname, 'src/renderer');
+const lang = resolve(import.meta.dirname, 'src/lang');
 
 export default defineConfig({
   main: {
-    resolve: { alias: { '@shared': shared } },
+    resolve: { alias: { '@shared': shared, '@lang': lang } },
     build: {
       externalizeDeps: true,
       rollupOptions: { input: resolve(import.meta.dirname, 'src/main/index.ts') },
     },
   },
   preload: {
-    resolve: { alias: { '@shared': shared } },
+    resolve: { alias: { '@shared': shared, '@lang': lang } },
     build: {
       externalizeDeps: true,
       // Sandboxed preload scripts cannot use ESM imports, so this bundle stays CommonJS.
@@ -27,7 +28,7 @@ export default defineConfig({
   renderer: {
     root: renderer,
     plugins: [react()],
-    resolve: { alias: { '@shared': shared, '@': renderer } },
+    resolve: { alias: { '@shared': shared, '@lang': lang, '@': renderer } },
     build: {
       minify: 'esbuild',
       rollupOptions: { input: resolve(renderer, 'index.html') },

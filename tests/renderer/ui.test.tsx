@@ -11,21 +11,21 @@ import { ContextMenu } from '@/shared/ui/ContextMenu.js';
 describe('IconButton', () => {
   it('always exposes an accessible name', () => {
     render(
-      <IconButton label="Limpiar actividad" onClick={() => undefined}>
+      <IconButton label="Clear activity" onClick={() => undefined}>
         x
       </IconButton>,
     );
-    expect(screen.getByRole('button', { name: 'Limpiar actividad' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Clear activity' })).toBeTruthy();
   });
 
   it('does not fire when disabled', () => {
     const onClick = vi.fn();
     render(
-      <IconButton label="Enviar" onClick={onClick} disabled>
+      <IconButton label="Send" onClick={onClick} disabled>
         x
       </IconButton>,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
     expect(onClick).not.toHaveBeenCalled();
   });
 });
@@ -56,7 +56,7 @@ describe('Dialog', () => {
         <p>contenido</p>
       </Dialog>,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(onClose).toHaveBeenCalledOnce();
   });
 
@@ -117,7 +117,7 @@ describe('ConfirmDialog', () => {
     render(
       <ConfirmDialog
         open
-        title="Eliminar evento"
+        title="Delete event"
         message="No se puede deshacer."
         onConfirm={() => undefined}
         onClose={onClose}
@@ -125,7 +125,7 @@ describe('ConfirmDialog', () => {
     );
 
     expect(screen.getByRole('alertdialog').dataset.part).toBe('dialog');
-    fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(onClose).toHaveBeenCalledOnce();
   });
 
@@ -137,17 +137,17 @@ describe('ConfirmDialog', () => {
     render(
       <ConfirmDialog
         open
-        title="Eliminar evento"
-        message='¿Eliminar "PcStatus"? No se puede deshacer.'
+        title="Delete event"
+        message='¿Delete "PcStatus"? No se puede deshacer.'
         onConfirm={onConfirm}
         onClose={onClose}
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(onClose).toHaveBeenCalledTimes(1);
 
-    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
     expect(onConfirm).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(2);
   });
@@ -160,17 +160,17 @@ describe('Menu', () => {
 
     render(
       <Menu
-        label="Opciones"
-        trigger={<button type="button">Opciones</button>}
-        items={[{ label: 'Renombrar', onSelect }]}
-        groups={[{ label: 'Mover a', items: [{ label: 'devices', onSelect: vi.fn() }] }]}
+        label="Options"
+        trigger={<button type="button">Options</button>}
+        items={[{ label: 'Rename', onSelect }]}
+        groups={[{ label: 'Move to', items: [{ label: 'devices', onSelect: vi.fn() }] }]}
       />,
     );
 
-    expect(screen.queryByRole('menuitem', { name: 'Renombrar' })).toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Opciones' }));
-    expect(screen.getByText('Mover a')).toBeTruthy();
-    await user.click(screen.getByRole('menuitem', { name: 'Renombrar' }));
+    expect(screen.queryByRole('menuitem', { name: 'Rename' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Options' }));
+    expect(screen.getByText('Move to')).toBeTruthy();
+    await user.click(screen.getByRole('menuitem', { name: 'Rename' }));
 
     expect(onSelect).toHaveBeenCalledTimes(1);
   });
@@ -183,10 +183,10 @@ describe('ContextMenu', () => {
 
     render(
       <ContextMenu
-        label="Acciones del editor"
+        label="Editor actions"
         items={[
-          { label: 'Copiar', disabled: true, onSelect: vi.fn() },
-          { label: 'Pegar', onSelect },
+          { label: 'Copy', disabled: true, onSelect: vi.fn() },
+          { label: 'Paste', onSelect },
         ]}
       >
         <div data-testid="surface">payload</div>
@@ -196,10 +196,10 @@ describe('ContextMenu', () => {
     await user.pointer({ keys: '[MouseRight]', target: screen.getByTestId('surface') });
 
     const items = screen.getAllByRole('menuitem');
-    expect(items.map((item) => item.textContent)).toEqual(['Copiar', 'Pegar']);
+    expect(items.map((item) => item.textContent)).toEqual(['Copy', 'Paste']);
     expect(items[0]?.getAttribute('data-disabled')).not.toBeNull();
 
-    await user.click(screen.getByRole('menuitem', { name: 'Pegar' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Paste' }));
     expect(onSelect).toHaveBeenCalledTimes(1);
   });
 });

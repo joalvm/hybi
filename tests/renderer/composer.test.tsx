@@ -216,17 +216,17 @@ describe('ComposerTabs', () => {
     const { rerender } = render(
       <ComposerTabs tab="message" docsDirty={false} messageDirty={false} onChange={vi.fn()} />,
     );
-    expect(screen.queryByLabelText('Cambios sin guardar')).toBeNull();
+    expect(screen.queryByLabelText('Unsaved changes')).toBeNull();
 
     rerender(<ComposerTabs tab="message" docsDirty={false} messageDirty onChange={vi.fn()} />);
-    const dot = screen.getByLabelText('Cambios sin guardar');
+    const dot = screen.getByLabelText('Unsaved changes');
     expect(screen.getByRole('tab', { name: /Message/ }).contains(dot)).toBe(true);
 
     rerender(<ComposerTabs tab="docs" docsDirty messageDirty={false} onChange={vi.fn()} />);
     expect(
       screen
         .getByRole('tab', { name: /Docs/ })
-        .contains(screen.getByLabelText('Cambios sin guardar')),
+        .contains(screen.getByLabelText('Unsaved changes')),
     ).toBe(true);
   });
 });
@@ -272,14 +272,14 @@ describe('DocsView', () => {
         onChange={vi.fn()}
       />,
     );
-    expect(screen.getByText('Este evento no tiene descripción.')).toBeTruthy();
+    expect(screen.getByText('This event has no description.')).toBeTruthy();
   });
 
   it('edits and saves Markdown into the selected catalog event', () => {
     render(<ComposerPanel connectionId="c1" />);
 
     fireEvent.click(screen.getByRole('tab', { name: 'Docs' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Editar documentación' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Edit documentation' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Editor Markdown' }), {
       target: { value: '# Login\n\nUsa una tabla.' },
     });
@@ -289,7 +289,7 @@ describe('DocsView', () => {
       '# Login\n\nUsa una tabla.',
     );
     expect(screen.getByRole('textbox', { name: 'Editor Markdown' })).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Cerrar editor' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close editor' }));
     expect(screen.getByRole('heading', { name: 'Login' })).toBeTruthy();
   });
 });
@@ -298,16 +298,16 @@ describe('SendButton', () => {
   it('sends whatever is in the box once the socket is up', () => {
     const onSend = vi.fn();
     render(<SendButton connected empty={false} onSend={onSend} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
     expect(onSend).toHaveBeenCalledOnce();
   });
 
   it('stays down without a socket or without a payload', () => {
     const { rerender } = render(<SendButton connected={false} empty={false} onSend={vi.fn()} />);
-    expect(screen.getByRole('button', { name: 'Enviar' })).toHaveProperty('disabled', true);
+    expect(screen.getByRole('button', { name: 'Send' })).toHaveProperty('disabled', true);
 
     rerender(<SendButton connected empty onSend={vi.fn()} />);
-    expect(screen.getByRole('button', { name: 'Enviar' })).toHaveProperty('disabled', true);
+    expect(screen.getByRole('button', { name: 'Send' })).toHaveProperty('disabled', true);
   });
 });
 
@@ -374,7 +374,7 @@ describe('ComposerFooter', () => {
         onBeautify={onBeautify}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Formatear' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Format' }));
     expect(onBeautify).toHaveBeenCalledOnce();
   });
 
@@ -387,7 +387,7 @@ describe('ComposerFooter', () => {
         onBeautify={vi.fn()}
       />,
     );
-    expect(screen.getByRole('button', { name: 'Formatear' })).toHaveProperty('disabled', true);
+    expect(screen.getByRole('button', { name: 'Format' })).toHaveProperty('disabled', true);
   });
 
   it('reports the format the user picked', async () => {
@@ -401,7 +401,7 @@ describe('ComposerFooter', () => {
         onBeautify={vi.fn()}
       />,
     );
-    await user.click(screen.getByRole('combobox', { name: 'Formato del payload' }));
+    await user.click(screen.getByRole('combobox', { name: 'Payload format' }));
     await user.click(screen.getByRole('option', { name: 'XML' }));
     expect(onFormatChange).toHaveBeenCalledWith('xml');
   });
@@ -413,7 +413,7 @@ describe('payload editor context menu', () => {
     useStore.getState().setConnectionState('c1', 'open');
     render(<ComposerPanel connectionId="c1" />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
 
     await waitFor(() => {
       expect(useStore.getState().activity.c1?.at(-1)?.body).toBe('payload too large');
@@ -429,12 +429,12 @@ describe('payload editor context menu', () => {
     await user.pointer({ keys: '[MouseRight]', target: screen.getByTestId('payload-editor') });
 
     expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
-      'Cortar',
-      'Copiar',
-      'Pegar',
+      'Cut',
+      'Copy',
+      'Paste',
     ]);
 
-    await user.click(screen.getByRole('menuitem', { name: 'Pegar' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Paste' }));
     expect(clipboard.readText).toHaveBeenCalledTimes(1);
   });
 });

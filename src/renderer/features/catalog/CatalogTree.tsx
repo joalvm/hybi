@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { CatalogCollection } from './CatalogCollection.js';
 import { flattenRows, type TreeRow } from './treeKeyboard.js';
 import { useTreeKeyboard } from './useTreeKeyboard.js';
@@ -36,6 +37,7 @@ export function CatalogTree({
   onToggleCollection,
   actions,
 }: Props) {
+  const messages = useMessages().catalog;
   const rows = useMemo(() => flattenRows(groups, collapsed), [groups, collapsed]);
 
   const remove = (row: TreeRow): void => {
@@ -66,14 +68,14 @@ export function CatalogTree({
   });
 
   if (groups.length === 0) {
-    return <p className="p-3 text-muted">No hay eventos que coincidan.</p>;
+    return <p className="p-3 text-muted">{messages.noMatches}</p>;
   }
 
   return (
     <div
       ref={containerRef}
       role="tree"
-      aria-label="Colecciones"
+      aria-label={messages.collections}
       onKeyDown={onKeyDown}
       className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto"
     >

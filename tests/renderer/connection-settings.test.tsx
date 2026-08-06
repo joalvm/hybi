@@ -127,7 +127,7 @@ describe('ConnectionBar with settings', () => {
     );
     render(<ConnectionBar connectionId="c1" />);
 
-    screen.getByRole('button', { name: 'Conectar' }).click();
+    screen.getByRole('button', { name: 'Connect' }).click();
 
     expect(connectionBridge.open.mock.calls[0]?.[0].transport.headers).toEqual({
       Authorization: 'Bearer abc',
@@ -138,7 +138,7 @@ describe('ConnectionBar with settings', () => {
     loadWorkspace(settings({ headers: [{ name: 'X-Key', value: '{{nope}}', enabled: true }] }));
     render(<ConnectionBar connectionId="c1" />);
 
-    expect(screen.getByRole('button', { name: 'Conectar' })).toHaveProperty('disabled', true);
+    expect(screen.getByRole('button', { name: 'Connect' })).toHaveProperty('disabled', true);
   });
 
   it('opens the settings dialog from the gear', async () => {
@@ -146,7 +146,7 @@ describe('ConnectionBar with settings', () => {
     loadWorkspace();
     render(<ConnectionBar connectionId="c1" />);
 
-    await user.click(screen.getByRole('button', { name: 'Configuración de la conexión' }));
+    await user.click(screen.getByRole('button', { name: 'Connection settings' }));
 
     expect(useStore.getState().settingsConnectionId).toBe('c1');
   });
@@ -164,37 +164,56 @@ describe('ConnectionSettingsDialog', () => {
 
     expect(screen.getByRole('dialog').dataset.size).toBe('xl');
     expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
-      'Conexión',
-      'Cabeceras',
-      'Reintentos',
+      'Connection',
+      'Headers',
+      'Retry',
       'Keepalive',
     ]);
     // Only the first pane is mounted, which is the point of the rail.
-    expect(screen.queryByLabelText('Intentos')).toBeNull();
-    expect(screen.getByLabelText('Subprotocolos')).toBeTruthy();
+    expect(screen.queryByLabelText('Attempts')).toBeNull();
+    expect(screen.getByLabelText('Subprotocols')).toBeTruthy();
   });
 
-  it('adds a header from the pane that lists them', async () => {
+  it('adds another header after the preloaded draft row', async () => {
     const user = userEvent.setup();
     loadWorkspace();
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
-    await openTab(user, 'Cabeceras');
+    await openTab(user, 'Headers');
 
-    await user.click(screen.getByRole('button', { name: 'Añadir cabecera' }));
+    await user.click(screen.getByRole('button', { name: 'Add header' }));
 
-    expect(storedSettings()?.headers).toEqual([{ name: '', value: '', enabled: true }]);
+    expect(storedSettings()?.headers).toEqual([
+      { name: '', value: '', enabled: true },
+      { name: '', value: '', enabled: true },
+    ]);
+  });
+
+  /** An empty list still offers the row where the first header is written. */
+  it('starts the header pane with one empty draft row', async () => {
+    const user = userEvent.setup();
+    loadWorkspace();
+    render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
+    await openTab(user, 'Headers');
+
+    const name = screen.getByLabelText('Header name');
+    expect(storedSettings()?.headers).toEqual([]);
+
+    await user.type(name, 'X-Trace');
+
+    expect(storedSettings()?.headers).toEqual([
+      { name: 'X-Trace', value: '', enabled: true },
+    ]);
   });
 
   it('writes a header into the connection as it is typed', async () => {
     const user = userEvent.setup();
     loadWorkspace();
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
-    await openTab(user, 'Cabeceras');
+    await openTab(user, 'Headers');
 
-    await user.click(screen.getByRole('button', { name: 'Añadir cabecera' }));
-    await user.type(screen.getByLabelText('Nombre de la cabecera'), 'X-Key');
+    await user.type(screen.getByLabelText('Header name'), 'X-Key');
     // `{{` is how userEvent types one literal brace; `}` needs no escape.
-    await user.type(screen.getByLabelText('Valor de la cabecera'), '{{{{token}}');
+    await user.type(screen.getByLabelText('Header value'), '{{{{token}}');
 
     expect(storedSettings()?.headers).toEqual([
       { name: 'X-Key', value: '{{token}}', enabled: true },
@@ -205,9 +224,9 @@ describe('ConnectionSettingsDialog', () => {
     const user = userEvent.setup();
     loadWorkspace(settings({ headers: [{ name: 'X-Key', value: '1', enabled: true }] }));
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
-    await openTab(user, 'Cabeceras');
+    await openTab(user, 'Headers');
 
-    await user.click(screen.getByRole('button', { name: 'Quitar X-Key' }));
+    await user.click(screen.getByRole('button', { name: 'Remove X-Key' }));
 
     expect(storedSettings()?.headers).toEqual([]);
   });
@@ -220,19 +239,21 @@ describe('ConnectionSettingsDialog', () => {
 
     expect(screen.queryByRole('alert')).toBeNull();
 
-    await user.click(screen.getByRole('checkbox', { name: /Verificar el certificado/ }));
+    await user.click(screen.getByRole('checkbox', { name: /Verify the server/ }));
 
     expect(storedSettings()?.verifyCertificate).toBe(false);
-    expect(screen.getByRole('alert').textContent).toMatch(/interponga/);
+    expect(screen.getByRole('alert').textContent).toMatch(/sitting in the middle/);
   });
 
   it('commits a number only once the field is left', async () => {
     const user = userEvent.setup();
     loadWorkspace();
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
-    await openTab(user, 'Reintentos');
+    await openTab(user, 'Retry');
 
-    const attempts = screen.getByLabelText('Intentos');
+    const attempts = screen.getByLabelText('Attempts');
+    expect(attempts).toHaveProperty('type', 'text');
+    expect(attempts).toHaveProperty('inputMode', 'numeric');
     await user.clear(attempts);
     await user.type(attempts, '9');
     expect(storedSettings()?.retry.attempts).toBe(5);
@@ -245,9 +266,9 @@ describe('ConnectionSettingsDialog', () => {
     const user = userEvent.setup();
     loadWorkspace();
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
-    await openTab(user, 'Reintentos');
+    await openTab(user, 'Retry');
 
-    const attempts = screen.getByLabelText('Intentos');
+    const attempts = screen.getByLabelText('Attempts');
     await user.clear(attempts);
     await user.type(attempts, '9999');
     await user.tab();
@@ -260,7 +281,7 @@ describe('ConnectionSettingsDialog', () => {
     loadWorkspace();
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
 
-    await user.type(screen.getByLabelText('Subprotocolos'), 'graphql-ws, wamp');
+    await user.type(screen.getByLabelText('Subprotocols'), 'graphql-ws, wamp');
     await user.tab();
 
     expect(storedSettings()?.protocols).toEqual(['graphql-ws', 'wamp']);
@@ -271,20 +292,20 @@ describe('ConnectionSettingsDialog', () => {
     useStore.getState().setConnectionState('c1', 'open');
     render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
 
-    expect(screen.getByText(/al volver a conectar/)).toBeTruthy();
+    expect(screen.getByText(/applies the next time it connects/)).toBeTruthy();
   });
 });
 
 describe('connection tab menu', () => {
-  it('opens the settings dialog from Configuración', async () => {
+  it('opens the settings dialog from Settings', async () => {
     const user = userEvent.setup();
     loadWorkspace();
     render(<ConnectionTabs />);
 
-    await user.click(screen.getByRole('button', { name: 'Opciones de echo' }));
-    await user.click(screen.getByRole('menuitem', { name: 'Configuración' }));
+    await user.click(screen.getByRole('button', { name: 'Options for echo' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Settings' }));
 
-    expect(screen.getByRole('dialog').textContent).toMatch(/Cabeceras/);
+    expect(screen.getByRole('dialog').textContent).toMatch(/Headers/);
   });
 
   it('gives a duplicated connection its own header list', async () => {
@@ -292,8 +313,8 @@ describe('connection tab menu', () => {
     loadWorkspace(settings({ headers: [{ name: 'X-Key', value: '1', enabled: true }] }));
     render(<ConnectionTabs />);
 
-    await user.click(screen.getByRole('button', { name: 'Opciones de echo' }));
-    await user.click(screen.getByRole('menuitem', { name: 'Duplicar' }));
+    await user.click(screen.getByRole('button', { name: 'Options for echo' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Duplicate' }));
 
     const connections = useStore.getState().workspace?.connections ?? [];
     expect(connections).toHaveLength(2);

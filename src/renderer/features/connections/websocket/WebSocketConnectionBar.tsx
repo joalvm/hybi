@@ -5,6 +5,7 @@ import type { VariableScope } from '@shared/variables/resolve.js';
 import type { ActivityTotals } from '@/store/totals.js';
 import { bridge } from '@/ipc/bridge.js';
 import { VariablePopover } from '@/features/workspace/VariablePopover.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import { SettingsIcon } from '@/shared/ui/icons.js';
 import { useHoverIntent } from '@/shared/ui/useHoverIntent.js';
@@ -28,6 +29,7 @@ type Props = {
 
 /** WebSocket-specific endpoint controls and IPC translation. */
 export function WebSocketConnectionBar(props: Props) {
+  const messages = useMessages().connections;
   const { connectionId, environmentId, transport, scope, state } = props;
   const resolution = useMemo(() => resolveWebSocketTransport(transport, scope), [transport, scope]);
   // Same open/close timing as the Monaco editor's variable hover: one panel,
@@ -73,7 +75,7 @@ export function WebSocketConnectionBar(props: Props) {
         }}
       />
       <TrafficCounter totals={props.totals} />
-      <IconButton label="Configuración de la conexión" onClick={props.onOpenSettings}>
+      <IconButton label={messages.settings} onClick={props.onOpenSettings}>
         <SettingsIcon />
       </IconButton>
       <ConnectButton

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { localeOf, roleOf, versionOf, workspaceIdOf } from '../../src/shared/ipc/window-args.js';
+import { roleOf, versionOf, workspaceIdOf } from '../../src/shared/ipc/window-args.js';
 
 const constructed: Electron.BrowserWindowConstructorOptions[] = [];
 
@@ -88,18 +88,6 @@ describe('window sizes and controls', () => {
     expect(versionOf(last().webPreferences?.additionalArguments ?? [])).toBe('9.9.9');
   });
 
-  /**
-   * `app.getLocale` and not `navigator.language`: on Linux they disagree often
-   * enough that the app would read in one language and the native dialogs in
-   * another.
-   */
-  it('tells both renderers which locale the host is in', () => {
-    createWelcomeWindow();
-    expect(localeOf(last().webPreferences?.additionalArguments ?? [])).toBe('es-PE');
-
-    createWorkbenchWindow('w1');
-    expect(localeOf(last().webPreferences?.additionalArguments ?? [])).toBe('es-PE');
-  });
 
   it('keeps the renderer sandboxed and isolated in both windows', () => {
     createWelcomeWindow();

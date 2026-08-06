@@ -65,14 +65,17 @@ export function Menu({
     <DropdownMenu.Item
       key={key}
       className={cn(
-        'menu-item-runtime flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-ui px-2 py-1 text-left select-none outline-none',
+        'menu-item-runtime flex max-w-72 min-w-0 cursor-pointer items-center gap-2 overflow-hidden rounded-ui px-2 py-1 text-left whitespace-nowrap select-none outline-none',
         item.tone === 'danger' && 'text-error',
       )}
+      title={item.label}
       disabled={item.disabled ?? false}
       onSelect={item.onSelect}
     >
-      <span className="inline-flex basis-3.5 items-center justify-center text-muted">{item.icon}</span>
-      {item.label}
+      <span className="inline-flex shrink-0 basis-3.5 items-center justify-center text-muted">
+        {item.icon}
+      </span>
+      <span className="min-w-0 flex-1 truncate">{item.label}</span>
     </DropdownMenu.Item>
   );
 
@@ -86,7 +89,7 @@ export function Menu({
       <DropdownMenu.Trigger asChild>{trigger}</DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content
-          className="z-20 flex flex-col rounded-lg border border-border bg-panel p-1 shadow-overlay"
+          className="z-20 flex max-w-72 flex-col overflow-hidden rounded-lg border border-border bg-panel p-1 shadow-overlay"
           aria-label={label}
           align={align}
           sideOffset={4}
@@ -104,7 +107,7 @@ export function Menu({
               className="menu-group-runtime flex flex-col"
             >
               {group.label !== undefined && (
-                <DropdownMenu.Label className="px-2 text-label text-muted">
+                <DropdownMenu.Label className="max-w-72 truncate px-2 whitespace-nowrap text-label text-muted">
                   {group.label}
                 </DropdownMenu.Label>
               )}

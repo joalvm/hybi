@@ -1,6 +1,7 @@
 import { cva } from 'class-variance-authority';
 import { Dialog as Primitive } from 'radix-ui';
 import type { ReactNode } from 'react';
+import { useMessages } from '../i18n/useMessages.js';
 import { cn } from '../utils/cn.js';
 import { CloseIcon } from './icons.js';
 import { IconButton } from './IconButton.js';
@@ -9,7 +10,7 @@ import { IconButton } from './IconButton.js';
 export type DialogSize = 'sm' | 'md' | 'settings' | 'lg' | 'xl';
 
 const dialogVariants = cva(
-  'dialog-motion fixed top-1/2 left-1/2 z-11 flex max-h-screen-safe max-w-dialog -translate-x-1/2 -translate-y-1/2 flex-col rounded-dialog border-0 bg-panel shadow-modal focus-visible:outline-none',
+  'dialog-motion fixed top-1/2 left-1/2 z-11 flex max-h-screen-safe max-w-dialog -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-dialog border-0 bg-panel shadow-modal focus-visible:outline-none',
   {
     variants: {
       size: {
@@ -56,6 +57,8 @@ export function Dialog({
   onClose,
   children,
 }: Props) {
+  const messages = useMessages().common;
+
   return (
     <Primitive.Root
       open={open}
@@ -81,7 +84,11 @@ export function Dialog({
               </Primitive.Title>
               {/* Escape closes too, but a dialog with no visible way out reads as
                   a trap — this is the button the user looks for first. */}
-              <IconButton label="Cerrar" className="-mr-1 min-h-6 min-w-6 p-0" onClick={onClose}>
+              <IconButton
+                label={messages.close}
+                className="-mr-1 min-h-6 min-w-6 p-0"
+                onClick={onClose}
+              >
                 <CloseIcon />
               </IconButton>
             </header>

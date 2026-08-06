@@ -1,4 +1,5 @@
 import type { RetryPolicy } from '@shared/domain/connections/websocket.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { NumberField } from '@/shared/ui/NumberField.js';
 import { ToggleField } from '@/shared/ui/ToggleField.js';
 
@@ -13,18 +14,20 @@ type Props = {
  * the user asked for is final — neither is affected by anything here.
  */
 export function RetryFields({ retry, onChange }: Props) {
+  const messages = useMessages().connections.retry;
+
   return (
     <div className="flex flex-col">
       <ToggleField
-        label="Reconectar cuando el servidor corta"
-        hint="No afecta a un primer intento fallido ni a una desconexión manual."
+        label={messages.enabled.label}
+        hint={messages.enabled.hint}
         checked={retry.enabled}
         onChange={(enabled) => {
           onChange({ ...retry, enabled });
         }}
       />
       <NumberField
-        label="Intentos"
+        label={messages.attempts}
         value={retry.attempts}
         min={0}
         max={100}
@@ -34,8 +37,8 @@ export function RetryFields({ retry, onChange }: Props) {
         }}
       />
       <NumberField
-        label="Espera inicial"
-        description="Se duplica en cada intento hasta llegar a la espera máxima."
+        label={messages.base.label}
+        description={messages.base.description}
         value={retry.baseMs}
         min={100}
         max={60000}
@@ -46,7 +49,7 @@ export function RetryFields({ retry, onChange }: Props) {
         }}
       />
       <NumberField
-        label="Espera máxima"
+        label={messages.max}
         value={retry.maxMs}
         min={100}
         max={300000}

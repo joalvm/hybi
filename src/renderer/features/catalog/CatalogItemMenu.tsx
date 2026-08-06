@@ -1,4 +1,6 @@
+import { format } from '@lang/translate.js';
 import type { EventItem } from '@shared/domain/types.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import {
   CollectionIcon,
   DuplicateIcon,
@@ -16,13 +18,14 @@ type Props = { item: EventItem; actions: CatalogRowActions };
  * cannot be walked with the arrow keys alone.
  */
 export function CatalogItemMenu({ item, actions }: Props) {
+  const messages = useMessages().common;
   const targets = actions.collections.filter((entry) => entry.id !== item.collectionId);
   const groups: RowMenuGroup[] =
     targets.length === 0
       ? []
       : [
           {
-            label: 'Mover a',
+            label: messages.moveTo,
             items: targets.map((collection) => ({
               label: collection.name,
               icon: <CollectionIcon />,
@@ -35,24 +38,24 @@ export function CatalogItemMenu({ item, actions }: Props) {
 
   return (
     <RowMenu
-      label={`Opciones de ${item.name}`}
+      label={format(messages.optionsFor, { name: item.name })}
       items={[
         {
-          label: 'Renombrar',
+          label: messages.rename,
           icon: <RenameIcon />,
           onSelect: () => {
             actions.rename(item.id);
           },
         },
         {
-          label: 'Duplicar',
+          label: messages.duplicate,
           icon: <DuplicateIcon />,
           onSelect: () => {
             actions.duplicate(item);
           },
         },
         {
-          label: 'Eliminar',
+          label: messages.delete,
           icon: <TrashIcon />,
           tone: 'danger',
           onSelect: () => {

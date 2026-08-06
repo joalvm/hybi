@@ -21,7 +21,13 @@ export function SelectField({ label, description, value, options, onChange }: Pr
       label={label}
       description={description}
       control={
-        <Select label={label} value={value} options={options} className="w-52" onChange={onChange} />
+        <Select
+          label={label}
+          value={value}
+          options={options}
+          className="justify-between"
+          onChange={onChange}
+        />
       }
     />
   );

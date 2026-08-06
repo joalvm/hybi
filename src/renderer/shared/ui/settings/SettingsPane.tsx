@@ -16,7 +16,7 @@ type Props = { value: string; title: string; children: ReactNode };
 export function SettingsPane({ value, title, children }: Props) {
   return (
     <Tabs.Content value={value}>
-      <div className="flex flex-col gap-5 px-6 pt-5 pb-6">
+      <div className="flex flex-col gap-4 px-6 pt-4 pb-5">
         <h2 className="text-dialog-title leading-6 font-semibold text-foreground">{title}</h2>
         {children}
       </div>

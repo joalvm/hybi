@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { format } from '@lang/translate.js';
 import type { Variable } from '@shared/domain/types.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { HideIcon, RevealIcon } from '@/shared/ui/icons.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import { Input } from '@/shared/ui/Input.js';
@@ -22,6 +24,7 @@ export function VariablePopoverEditor({
   onSave,
   onClose,
 }: Props) {
+  const messages = useMessages();
   const [revealed, setRevealed] = useState(false);
 
   return (
@@ -29,7 +32,7 @@ export function VariablePopoverEditor({
       <Input
         // A secret is never printed by default, here or in the log.
         type={variable.secret && !revealed ? 'password' : 'text'}
-        aria-label={`Valor de ${name}`}
+        aria-label={format(messages.workspace.variables.valueOf, { name })}
         className="h-variable-input rounded-ui bg-panel px-3 font-ui text-ui font-normal"
         value={draft}
         onChange={(event) => {
@@ -49,7 +52,7 @@ export function VariablePopoverEditor({
       />
       {variable.secret && (
         <IconButton
-          label={revealed ? 'Ocultar valor' : 'Mostrar valor'}
+          label={revealed ? messages.common.hideValue : messages.common.showValue}
           onClick={() => {
             setRevealed((current) => !current);
           }}

@@ -28,13 +28,14 @@ export const ACTIVITY_BYTE_LIMIT_RANGE: PreferenceRange = {
 
 /**
  * What a fresh install runs with, and what any field the file cannot answer for
- * falls back to. `system` on both theme and language so the app arrives looking
- * and reading like the machine it was installed on.
+ * falls back to. The theme follows the desktop, because a light app on a dark
+ * machine is jarring; the language does not, because English is what the app is
+ * written in and `system` is one selection away for anyone who wants it.
  */
 export const DEFAULT_PREFERENCES: AppPreferences = {
   version: 1,
   theme: 'system',
-  language: 'system',
+  language: 'en',
   editorFontSize: 12,
   activityLimit: ACTIVITY_LIMIT,
   activityByteLimit: ACTIVITY_BYTE_LIMIT,

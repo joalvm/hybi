@@ -75,10 +75,6 @@
   color: var(--text-dim);
 }
 
-.select-panel-runtime {
-  min-width: var(--radix-select-trigger-width);
-}
-
 .menu-item-runtime[data-highlighted] {
   background: var(--bg-hover);
 }
@@ -86,25 +82,6 @@
 .menu-item-runtime[data-disabled] {
   color: var(--text-dim);
   pointer-events: none;
-}
-
-/* Radix writes the selected row's state; the rail only renders it. */
-.settings-tab-runtime[data-state='active'],
-.settings-tab-runtime[data-state='active']:hover {
-  background: var(--bg-selected);
-  border-color: var(--border);
-  color: var(--text);
-  font-weight: 600;
-}
-
-.settings-tab-runtime[data-state='active'] > span {
-  color: var(--text);
-}
-
-.settings-tab-runtime:focus-visible {
-  border-color: var(--accent);
-  outline: 1px solid var(--accent);
-  outline-offset: -2px;
 }
 
 .menu-group-runtime:not(:first-child) {

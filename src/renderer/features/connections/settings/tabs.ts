@@ -1,6 +1,7 @@
+import type { Messages } from '@lang/translate.js';
 import type { ConnectionTransport } from '@shared/domain/connections/connection.js';
 import type { SettingsTab } from '@/shared/ui/settings/SettingsDialog.js';
-import { WEBSOCKET_SETTINGS_TABS } from '../websocket/settings/tabs.js';
+import { webSocketSettingsTabs } from '../websocket/settings/tabs.js';
 
 /**
  * Which groups the settings dialog shows for a transport. There is no dispatch
@@ -10,6 +11,9 @@ import { WEBSOCKET_SETTINGS_TABS } from '../websocket/settings/tabs.js';
  * legal, and `TransportFactoryMap` is what will refuse to compile until it
  * exists.
  */
-export function settingsTabsFor(_transport: ConnectionTransport): SettingsTab[] {
-  return WEBSOCKET_SETTINGS_TABS;
+export function settingsTabsFor(
+  _transport: ConnectionTransport,
+  messages: Messages,
+): SettingsTab[] {
+  return webSocketSettingsTabs(messages);
 }

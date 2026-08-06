@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ensureStarterConnection } from '@shared/domain/factory.js';
 import type { Workspace, WorkspaceSummary } from '@shared/domain/types.js';
 import { bridge } from '@/ipc/bridge.js';
 import { useStore } from '@/store/index.js';
@@ -23,15 +22,16 @@ function messageOf(error: unknown): string {
  * Installs a document before the main editor opens. The store is reset first so no
  * connection id from the previous workspace survives inside the record-shaped
  * slices, and autosave stays quiet: a load is not an edit.
+ *
+ * Whatever main hands over already has its starter connection, so nothing is
+ * added here.
  */
-function install(workspace: Workspace): Workspace {
-  const ready = ensureStarterConnection(workspace);
+function install(workspace: Workspace): void {
   const store = useStore.getState();
   store.reset();
-  store.setWorkspace(ready);
-  const first = ready.connections[0];
+  store.setWorkspace(workspace);
+  const first = workspace.connections[0];
   if (first !== undefined) store.setActiveConnection(first.id);
-  return ready;
 }
 
 /**
@@ -81,9 +81,7 @@ export function useWorkspaceList(): WorkspaceList {
     async (workspaceId: string): Promise<boolean> => {
       try {
         await flush();
-        const workspace = await bridge.workspace.load(workspaceId);
-        const ready = install(workspace);
-        if (ready !== workspace) await bridge.workspace.save(ready);
+        install(await bridge.workspace.load(workspaceId));
         refresh();
         return true;
       } catch (cause: unknown) {

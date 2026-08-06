@@ -3,6 +3,7 @@ import {
   ACTIVITY_LIMIT_RANGE,
   MEGABYTE,
 } from '@shared/preferences/defaults.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { NumberField } from '@/shared/ui/NumberField.js';
 
 type Props = {
@@ -26,19 +27,21 @@ export function LogSection({
   onActivityLimitChange,
   onActivityByteLimitChange,
 }: Props) {
+  const messages = useMessages().preferences;
+
   return (
     <div className="flex flex-col">
       <NumberField
-        label="Mensajes máximos por conexión"
-        description="Al superarlo, se descartan los más antiguos. El contador de tráfico no se reinicia."
+        label={messages.activityLimit.label}
+        description={messages.activityLimit.description}
         value={activityLimit}
         min={ACTIVITY_LIMIT_RANGE.min}
         max={ACTIVITY_LIMIT_RANGE.max}
         onChange={onActivityLimitChange}
       />
       <NumberField
-        label="Memoria máxima del log"
-        description="Techo del cuerpo de los mensajes guardados. Manda el límite que se alcance primero."
+        label={messages.activityByteLimit.label}
+        description={messages.activityByteLimit.description}
         value={Math.round(activityByteLimit / MEGABYTE)}
         min={Math.round(ACTIVITY_BYTE_LIMIT_RANGE.min / MEGABYTE)}
         max={Math.round(ACTIVITY_BYTE_LIMIT_RANGE.max / MEGABYTE)}

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import type { EventCatalog } from '@shared/domain/types.js';
 import { useStore } from '@/store/index.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog.js';
 import { SpinnerIcon } from '@/shared/ui/icons.js';
 import { Panel } from '@/shared/ui/Panel.js';
@@ -18,6 +19,7 @@ type Props = { connectionId: string };
 
 /** The only component in this feature that reads the store. Children take props. */
 export function CatalogPanel({ connectionId }: Props) {
+  const messages = useMessages().catalog;
   const { catalog, query, selectedId, collapsed } = useStore(
     useShallow((state) => ({
       catalog: state.workspace?.catalog ?? EMPTY_CATALOG,
@@ -120,11 +122,11 @@ export function CatalogPanel({ connectionId }: Props) {
               role="status"
             >
               <SpinnerIcon className="icon-spin" />
-              Leyendo el documento AsyncAPI…
+              {messages.reading}
             </p>
           )}
           <h3 className="shrink-0 px-2 pt-2 pb-1 text-label font-semibold tracking-section text-muted uppercase">
-            Colecciones
+            {messages.collections}
           </h3>
           <CatalogTree
             groups={groups}

@@ -8,6 +8,7 @@ import { useConnectionSocket } from '@/features/connections/useConnectionSocket.
 import { PreferencesDialog } from '@/features/preferences/PreferencesDialog.js';
 import { usePreferenceRequests } from '@/features/preferences/usePreferenceRequests.js';
 import { VariablesDialog } from '@/features/workspace/VariablesDialog.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { useStore } from '@/store/index.js';
 import { AppLayout } from './AppLayout.js';
 import { ErrorBoundary } from './ErrorBoundary.js';
@@ -18,6 +19,7 @@ import { useWorkspaceBootstrap } from './useWorkspaceBootstrap.js';
 
 /** Composition and the three top-level states. Nothing else lives here. */
 export function AppShell() {
+  const messages = useMessages().chrome;
   useWorkspaceAutosave();
   useConnectionSocket();
   const bootstrap = useWorkspaceBootstrap();
@@ -34,7 +36,7 @@ export function AppShell() {
         {bootstrap.status === 'error' ? (
           <p className="p-3 text-error">{bootstrap.message}</p>
         ) : (
-          <p className="p-3 text-muted">Abriendo workspace…</p>
+          <p className="p-3 text-muted">{messages.openingWorkspace}</p>
         )}
         <AboutDialog />
         <PreferencesDialog open={preferences.open} onClose={preferences.close} />
@@ -51,7 +53,7 @@ export function AppShell() {
         connectionBar={connectionId === null ? null : <ConnectionBar connectionId={connectionId} />}
         composer={
           connectionId === null ? (
-            <p className="p-3 text-muted">Crea una conexión para empezar.</p>
+            <p className="p-3 text-muted">{messages.noConnection}</p>
           ) : (
             <ComposerPanel connectionId={connectionId} />
           )

@@ -51,11 +51,10 @@ export function NumberField({
         <span className="relative inline-flex items-center">
           <Input
             id={id}
-            className={unit === undefined ? 'w-24 text-right' : 'w-28 pr-9 text-right'}
-            type="number"
+            className={unit === undefined ? 'w-24 text-left' : 'w-28 pr-9 text-left'}
+            type="text"
             inputMode="numeric"
-            min={min}
-            max={max}
+            pattern="[0-9]*"
             value={draft}
             disabled={disabled}
             onChange={(event) => {

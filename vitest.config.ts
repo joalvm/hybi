@@ -3,9 +3,10 @@ import { defineConfig } from 'vitest/config';
 
 const shared = resolve(import.meta.dirname, 'src/shared');
 const renderer = resolve(import.meta.dirname, 'src/renderer');
+const lang = resolve(import.meta.dirname, 'src/lang');
 
 export default defineConfig({
-  resolve: { alias: { '@shared': shared, '@': renderer } },
+  resolve: { alias: { '@shared': shared, '@lang': lang, '@': renderer } },
   test: {
     projects: [
       {

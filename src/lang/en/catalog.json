@@ -1,0 +1,30 @@
+{
+  "filter": "Filter",
+  "collections": "Collections",
+  "noMatches": "No events match.",
+  "reading": "Reading the AsyncAPI document…",
+  "expandAll": "Expand all",
+  "collapseAll": "Collapse all",
+  "newCollection": "New collection",
+  "import": "Import AsyncAPI",
+  "importing": "Importing AsyncAPI…",
+  "eventName": "Event name",
+  "collectionName": "Collection name",
+  "imported": "{name} — imported from AsyncAPI",
+  "newEvent": "New event",
+  "newEventIn": "New event in {name}",
+  "newEventPrefix": "New Event",
+  "newCollectionPrefix": "New Collection",
+  "copySuffix": "{name} (copy)",
+  "deleteEvent": {
+    "title": "Delete event",
+    "message": "Delete \"{name}\"? This cannot be undone."
+  },
+  "deleteCollection": {
+    "title": "Delete collection",
+    "message": {
+      "one": "Delete \"{name}\" and the event it holds? This cannot be undone.",
+      "other": "Delete \"{name}\" and the {count} events it holds? This cannot be undone."
+    }
+  }
+}

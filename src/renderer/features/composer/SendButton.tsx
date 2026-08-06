@@ -1,3 +1,4 @@
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { SendIcon } from '@/shared/ui/icons.js';
 import { Button } from '@/shared/ui/Button.js';
 
@@ -17,11 +18,12 @@ type Props = {
  * shout over the step that comes first.
  */
 export function SendButton({ connected, empty, onSend }: Props) {
+  const messages = useMessages().composer;
   const reason = !connected
-    ? 'Conecta el socket para enviar'
+    ? messages.sendReason.offline
     : empty
-      ? 'Escribe un payload para enviar'
-      : 'Envía el payload resuelto por el socket';
+      ? messages.sendReason.empty
+      : messages.sendReason.ready;
 
   return (
     <Button
@@ -31,7 +33,7 @@ export function SendButton({ connected, empty, onSend }: Props) {
       onClick={onSend}
     >
       <SendIcon />
-      Enviar
+      {messages.send}
     </Button>
   );
 }

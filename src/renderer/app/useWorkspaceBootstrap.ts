@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { ensureStarterConnection } from '@shared/domain/factory.js';
 import { bridge } from '@/ipc/bridge.js';
 import { useStore } from '@/store/index.js';
 
@@ -20,16 +19,12 @@ export function useWorkspaceBootstrap(): Bootstrap {
 
     void bridge.workspace
       .load(bridge.workspaceId)
-      .then(async (loaded) => {
+      .then((loaded) => {
         if (!active) return;
-        const ready = ensureStarterConnection(loaded);
         const store = useStore.getState();
-        store.setWorkspace(ready);
-        const first = ready.connections[0];
+        store.setWorkspace(loaded);
+        const first = loaded.connections[0];
         if (first !== undefined) store.setActiveConnection(first.id);
-        // Autosave treats a load as "not an edit", so a workspace that only
-        // gained its starter connection here would never reach disk.
-        if (ready !== loaded) await bridge.workspace.save(ready);
         setState({ status: 'ready' });
       })
       .catch((error: unknown) => {

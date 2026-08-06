@@ -1,6 +1,7 @@
 import { usePreferencesDialog } from '@/features/preferences/dialog.store.js';
 import { ActiveEnvironmentPicker } from '@/features/workspace/ActiveEnvironmentPicker.js';
 import { WorkspaceMenu } from '@/features/workspace/WorkspaceMenu.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { BracesIcon, SettingsIcon } from '@/shared/ui/icons.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import { useStore } from '@/store/index.js';
@@ -15,6 +16,7 @@ import { WindowControls } from './WindowControls.js';
  * space drags the window and the controls close it.
  */
 export function TitleBar() {
+  const messages = useMessages().chrome;
   const setDialog = useStore((state) => state.setDialog);
   const openPreferences = usePreferencesDialog((state) => state.openDialog);
 
@@ -31,7 +33,7 @@ export function TitleBar() {
               share one bounded control instead of reading as two controls. */}
           <IconButton
             className="min-h-control min-w-control rounded-none border-0 border-l border-l-border bg-transparent"
-            label="Variables"
+            label={messages.variables}
             onClick={() => {
               setDialog('variables');
             }}
@@ -43,7 +45,7 @@ export function TitleBar() {
             way in: this is where a desktop app is looked at for settings. */}
         <IconButton
           className="app-no-drag shrink-0 bg-control"
-          label="Preferencias"
+          label={messages.preferences}
           onClick={openPreferences}
         >
           <SettingsIcon />

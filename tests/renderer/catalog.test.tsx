@@ -155,11 +155,11 @@ describe('CatalogToolbar', () => {
       />,
     );
 
-    expect(screen.getByLabelText('Filtrar')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Nueva colección' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Importar AsyncAPI' })).toBeTruthy();
+    expect(screen.getByLabelText('Filter')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'New collection' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Import AsyncAPI' })).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: 'Contraer todo' }));
+    await user.click(screen.getByRole('button', { name: 'Collapse all' }));
     expect(onToggleAll).toHaveBeenCalledTimes(1);
 
     rerender(
@@ -173,6 +173,6 @@ describe('CatalogToolbar', () => {
         onToggleAll={onToggleAll}
       />,
     );
-    expect(screen.getByRole('button', { name: 'Expandir todo' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Expand all' })).toBeTruthy();
   });
 });

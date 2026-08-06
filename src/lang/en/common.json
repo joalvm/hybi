@@ -1,0 +1,23 @@
+{
+  "close": "Close",
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "duplicate": "Duplicate",
+  "rename": "Rename",
+  "create": "Create",
+  "add": "Add",
+  "remove": "Remove",
+  "name": "Name",
+  "search": "Search…",
+  "loading": "Loading…",
+  "copy": "Copy",
+  "cut": "Cut",
+  "paste": "Paste",
+  "moveTo": "Move to",
+  "options": "Options",
+  "optionsFor": "Options for {name}",
+  "showValue": "Show value",
+  "hideValue": "Hide value",
+  "reload": "Reload"
+}

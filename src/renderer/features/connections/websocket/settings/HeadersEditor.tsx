@@ -1,4 +1,5 @@
 import type { ConnectionHeader } from '@shared/domain/connections/websocket.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { Button } from '@/shared/ui/Button.js';
 import { PlusIcon } from '@/shared/ui/icons.js';
 import { HeaderRow } from './HeaderRow.js';
@@ -8,6 +9,8 @@ type Props = {
   onChange: (headers: ConnectionHeader[]) => void;
 };
 
+const EMPTY_HEADER: ConnectionHeader = { name: '', value: '', enabled: true };
+
 /**
  * WebSocket handshake headers, in the order they are listed.
  *
@@ -16,43 +19,47 @@ type Props = {
  * in the workspace file that nothing else would ever read.
  */
 export function HeadersEditor({ headers, onChange }: Props) {
+  const messages = useMessages().connections.headers;
+  const rows = headers.length === 0 ? [EMPTY_HEADER] : headers;
+
   const replace = (index: number, header: ConnectionHeader): void => {
+    if (headers.length === 0) {
+      onChange([header]);
+      return;
+    }
     onChange(headers.map((entry, position) => (position === index ? header : entry)));
   };
 
   return (
     <div className="flex flex-col gap-3">
       <p className="text-label leading-copy text-muted">
-        Los valores admiten <code>{'{{variables}}'}</code>. Un token va en una variable secreta del
-        entorno: escrito aquí quedaría guardado en el archivo del workspace.
+        {messages.hint.before}
+        <code>{messages.hint.token}</code>
+        {messages.hint.after}
       </p>
-      {headers.length === 0 ? (
-        <p className="text-ui leading-4 text-muted">Sin cabeceras.</p>
-      ) : (
-        <ul className="flex list-none flex-col gap-1 p-0">
-          {headers.map((header, index) => (
-            <HeaderRow
-              key={index}
-              header={header}
-              onChange={(next) => {
-                replace(index, next);
-              }}
-              onRemove={() => {
-                onChange(headers.filter((_entry, position) => position !== index));
-              }}
-            />
-          ))}
-        </ul>
-      )}
+      <ul className="flex list-none flex-col gap-1 p-0">
+        {rows.map((header, index) => (
+          <HeaderRow
+            key={index}
+            header={header}
+            onChange={(next) => {
+              replace(index, next);
+            }}
+            onRemove={() => {
+              onChange(headers.filter((_entry, position) => position !== index));
+            }}
+          />
+        ))}
+      </ul>
       <Button
-        className="self-start"
-        aria-label="Añadir cabecera"
+        className="self-end"
+        aria-label={messages.add}
         onClick={() => {
-          onChange([...headers, { name: '', value: '', enabled: true }]);
+          onChange([...rows, { name: '', value: '', enabled: true }]);
         }}
       >
         <PlusIcon />
-        Añadir cabecera
+        {messages.add}
       </Button>
     </div>
   );

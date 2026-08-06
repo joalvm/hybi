@@ -26,6 +26,8 @@ import {
   MoreHorizontal,
   Network,
   Palette,
+  PanelLeftClose,
+  PanelLeftOpen,
   Pencil,
   Plus,
   Power,
@@ -45,15 +47,7 @@ import {
   type LucideProps,
 } from 'lucide-react';
 
-/**
- * Every glyph in the app is named here, so weight and size are decided once
- * instead of per button. Lucide draws on a 24px grid at stroke 2, which turns
- * into a blob once scaled to a 26px control: `absoluteStrokeWidth` pins the line
- * to 1px on screen at any size, which is the hairline this UI is drawn in.
- *
- * Icons are decorative — every control that carries one also carries an
- * `aria-label` — so they stay out of the accessibility tree.
- */
+/** Centralizes glyph weight, size, and accessibility so every icon stays consistent. */
 const HAIRLINE: LucideProps = {
   size: 14,
   strokeWidth: 1,
@@ -73,6 +67,10 @@ function hairline(Glyph: LucideIcon) {
 export const CloseIcon = hairline(X);
 /** Opens the application menu from the chrome, where no menu bar is drawn. */
 export const MenuBarIcon = hairline(MenuGlyph);
+/** Hides the catalog rail without closing its workspace content. */
+export const HideCatalogIcon = hairline(PanelLeftClose);
+/** Restores the catalog rail at its previous width. */
+export const ShowCatalogIcon = hairline(PanelLeftOpen);
 /** Window controls: the desktop convention of line, square and stacked squares. */
 export const WindowMinimizeIcon = hairline(Minus);
 /** Maximizes a window. */

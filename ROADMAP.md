@@ -215,10 +215,11 @@ habitual.**
 
 ### Alcance de producto
 
-- [ ] **Interfaz en inglés, con español como segundo idioma.** Hoy todo el texto
-      está escrito directamente en los componentes. Requiere una capa de
-      traducción antes de que el volumen de cadenas haga la migración cara. Es
-      lo más caro de posponer de toda la lista.
+- [x] **Interfaz en inglés, con español como segundo idioma.** El texto vive en
+      `src/lang/{en,es}`, un catálogo JSON por dominio; el inglés es el idioma
+      por omisión y su forma es el tipo contra el que se comprueba el español.
+      Una regla propia de ESLint impide que vuelva a aparecer texto suelto en un
+      componente, y cambiar de idioma no exige reiniciar.
 - [ ] **Socket.IO.** El transporte más pedido después de WebSocket puro, y el
       que hoy hace *parecer* que la herramienta falla. La arquitectura ya está
       preparada: `TransportKind` es discriminado y el contrato está abstraído.
@@ -286,10 +287,11 @@ habitual.**
 | Ingeniería y seguridad | Sólido, por encima de la etiqueta alpha | Bajo |
 | Alcance funcional | Falta binario y Socket.IO | **Alto** |
 | Distribución | Sin firmar: la mayor pérdida de usuarios | **Crítico** |
-| Alcance de mercado | Sólo español | **Alto** |
+| Alcance de mercado | Inglés y español, inglés por omisión | Bajo |
 | Diferenciación | AsyncAPI + headers + local: real y defendible | Bajo |
 | Monetización | Sin modelo | Medio, aplazable |
 
 **Los tres siguientes movimientos, en orden:** frames binarios (cierra el hueco
-funcional más visible), preferencias de aplicación (donde vive todo lo que hoy
-es constante) y la capa de idioma con inglés (cuanto más tarde, más cara).
+funcional más visible), integridad del workspace (lo que convierte la app en
+algo a lo que confiarle trabajo) y Socket.IO (el transporte más pedido después
+de WebSocket puro).

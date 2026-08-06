@@ -1,4 +1,6 @@
 import { app, Menu, type BrowserWindow, type MenuItemConstructorOptions } from 'electron';
+import { format, type Messages } from '@lang/translate.js';
+import { mainMessages } from './lang.js';
 
 type Actions = {
   /** Opens another welcome window, the way File ▸ New does in a native app. */
@@ -9,15 +11,17 @@ type Actions = {
   showPreferences: () => void;
 };
 
+type MenuMessages = Messages['menu'];
+
 const PREFERENCES_ACCELERATOR = 'CmdOrCtrl+,';
 
 /** On macOS preferences belong to the app menu, so File only carries them here. */
-function fileMenu(actions: Actions): MenuItemConstructorOptions {
+function fileMenu(actions: Actions, messages: MenuMessages): MenuItemConstructorOptions {
   return {
-    label: 'Archivo',
+    label: messages.file,
     submenu: [
       {
-        label: 'Nueva ventana',
+        label: messages.newWindow,
         accelerator: 'CmdOrCtrl+Shift+N',
         click: actions.openWelcome,
       },
@@ -26,16 +30,16 @@ function fileMenu(actions: Actions): MenuItemConstructorOptions {
         : ([
             { type: 'separator' },
             {
-              label: 'Preferencias…',
+              label: messages.preferences,
               accelerator: PREFERENCES_ACCELERATOR,
               click: actions.showPreferences,
             },
           ] satisfies MenuItemConstructorOptions[])),
       { type: 'separator' },
-      { role: 'close', label: 'Cerrar ventana' },
+      { role: 'close', label: messages.closeWindow },
       ...(process.platform === 'darwin'
         ? []
-        : ([{ role: 'quit', label: 'Salir' }] satisfies MenuItemConstructorOptions[])),
+        : ([{ role: 'quit', label: messages.quit }] satisfies MenuItemConstructorOptions[])),
     ],
   };
 }
@@ -46,74 +50,79 @@ function fileMenu(actions: Actions): MenuItemConstructorOptions {
  * and on macOS, where this menu is installed, their accelerators would take
  * Ctrl/Cmd+Z and Ctrl/Cmd+A away from the editor that does implement them.
  */
-const EDIT_MENU: MenuItemConstructorOptions = {
-  label: 'Editar',
-  submenu: [
-    { role: 'cut', label: 'Cortar' },
-    { role: 'copy', label: 'Copiar' },
-    { role: 'paste', label: 'Pegar' },
-  ],
-};
+function editMenu(messages: MenuMessages): MenuItemConstructorOptions {
+  return {
+    label: messages.edit,
+    submenu: [
+      { role: 'cut', label: messages.cut },
+      { role: 'copy', label: messages.copy },
+      { role: 'paste', label: messages.paste },
+    ],
+  };
+}
 
-const VIEW_MENU: MenuItemConstructorOptions = {
-  label: 'Ver',
-  submenu: [
-    { role: 'reload', label: 'Recargar' },
-    { role: 'forceReload', label: 'Forzar recarga' },
-    // The accelerator is also wired in `devtools.ts`: on Windows and Linux no
-    // application menu is installed, so the menu alone would not deliver it.
-    { role: 'toggleDevTools', label: 'Herramientas de desarrollo' },
-    { type: 'separator' },
-    { role: 'resetZoom', label: 'Tamaño original' },
-    { role: 'zoomIn', label: 'Acercar' },
-    { role: 'zoomOut', label: 'Alejar' },
-    { type: 'separator' },
-    { role: 'togglefullscreen', label: 'Pantalla completa' },
-  ],
-};
+function viewMenu(messages: MenuMessages): MenuItemConstructorOptions {
+  return {
+    label: messages.view,
+    submenu: [
+      { role: 'reload', label: messages.reload },
+      { role: 'forceReload', label: messages.forceReload },
+      // The accelerator is also wired in `devtools.ts`: on Windows and Linux no
+      // application menu is installed, so the menu alone would not deliver it.
+      { role: 'toggleDevTools', label: messages.devTools },
+      { type: 'separator' },
+      { role: 'resetZoom', label: messages.resetZoom },
+      { role: 'zoomIn', label: messages.zoomIn },
+      { role: 'zoomOut', label: messages.zoomOut },
+      { type: 'separator' },
+      { role: 'togglefullscreen', label: messages.fullscreen },
+    ],
+  };
+}
 
 /**
  * The native panel names Electron and Chromium; the app's own dialog names the
  * version and the phase it is in, which is what someone asking is after.
  */
-function helpMenu(actions: Actions): MenuItemConstructorOptions {
+function helpMenu(actions: Actions, messages: MenuMessages): MenuItemConstructorOptions {
   return {
-    label: 'Ayuda',
-    submenu: [{ label: `Acerca de ${app.name}`, click: actions.showAbout }],
+    label: messages.help,
+    submenu: [{ label: format(messages.about, { app: app.name }), click: actions.showAbout }],
   };
 }
 
 /** One template behind both the macOS menu bar and the button on the other two. */
 export function buildAppMenu(actions: Actions): Menu {
+  const messages = mainMessages().menu;
   const template: MenuItemConstructorOptions[] = [
     ...(process.platform === 'darwin'
       ? ([
           {
             label: app.name,
             submenu: [
-              { label: `Acerca de ${app.name}`, click: actions.showAbout },
+              { label: format(messages.about, { app: app.name }), click: actions.showAbout },
               { type: 'separator' },
               {
-                label: 'Preferencias…',
+                label: messages.preferences,
                 accelerator: PREFERENCES_ACCELERATOR,
                 click: actions.showPreferences,
               },
               { type: 'separator' },
               { role: 'services' },
               { type: 'separator' },
-              { role: 'hide', label: `Ocultar ${app.name}` },
-              { role: 'hideOthers', label: 'Ocultar otros' },
-              { role: 'unhide', label: 'Mostrar todo' },
+              { role: 'hide', label: format(messages.hide, { app: app.name }) },
+              { role: 'hideOthers', label: messages.hideOthers },
+              { role: 'unhide', label: messages.unhide },
               { type: 'separator' },
-              { role: 'quit', label: `Salir de ${app.name}` },
+              { role: 'quit', label: format(messages.quitApp, { app: app.name }) },
             ],
           },
         ] satisfies MenuItemConstructorOptions[])
       : []),
-    fileMenu(actions),
-    EDIT_MENU,
-    VIEW_MENU,
-    helpMenu(actions),
+    fileMenu(actions, messages),
+    editMenu(messages),
+    viewMenu(messages),
+    helpMenu(actions, messages),
   ];
 
   return Menu.buildFromTemplate(template);

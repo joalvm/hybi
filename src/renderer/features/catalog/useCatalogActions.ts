@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react';
+import { format, plural } from '@lang/translate.js';
 import { createCollection, createEventItem } from '@shared/domain/factory.js';
 import type { Collection, EventItem } from '@shared/domain/types.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { useStore } from '@/store/index.js';
 
 /** The only dialog left in the catalog: deleting is the one act worth stopping for. */
@@ -21,14 +23,13 @@ export type CatalogRowActions = {
   removeCollection: (collection: Collection) => void;
 };
 
-/** What a new row is called before it is renamed. */
-const NEW_ITEM_PREFIX = 'Nuevo Evento';
-const NEW_COLLECTION_PREFIX = 'Nueva Colección';
-
 /**
  * The lowest free number for a prefix, so deleting the third one frees the name
- * again. Matching is anchored: an event a user called "Nuevo Evento de prueba"
- * is a name, not a placeholder, and must not take a number out of the sequence.
+ * again. Matching is anchored: an event a user called "New Event of mine" is a
+ * name, not a placeholder, and must not take a number out of the sequence.
+ *
+ * The prefix comes from the catalog, so it is written in the language the app is
+ * being read in — and the rows created under another one keep their own names.
  */
 function nextName(names: readonly string[], prefix: string): string {
   const numbered = new RegExp(`^${prefix} (\\d+)$`);
@@ -51,6 +52,7 @@ function nextName(names: readonly string[], prefix: string): string {
  * function identity per render would repaint every row in the tree.
  */
 export function useCatalogActions(connectionId: string) {
+  const messages = useMessages().catalog;
   const upsertEventItem = useStore((state) => state.upsertEventItem);
   const removeEventItem = useStore((state) => state.removeEventItem);
   const upsertCollection = useStore((state) => state.upsertCollection);
@@ -92,7 +94,7 @@ export function useCatalogActions(connectionId: string) {
       const item = createEventItem({
         name: nextName(
           items.map((entry) => entry.name),
-          NEW_ITEM_PREFIX,
+          messages.newEventPrefix,
         ),
         collectionId,
       });
@@ -101,7 +103,7 @@ export function useCatalogActions(connectionId: string) {
       setSelectedEvent(connectionId, item.id);
       setRenamingId(item.id);
     },
-    [connectionId, setSelectedEvent, upsertEventItem],
+    [connectionId, messages.newEventPrefix, setSelectedEvent, upsertEventItem],
   );
 
   const rename = useCallback((itemId: string) => {
@@ -133,19 +135,23 @@ export function useCatalogActions(connectionId: string) {
       upsertEventItem({
         ...item,
         id: globalThis.crypto.randomUUID(),
-        name: `${item.name} (copia)`,
+        name: format(messages.copySuffix, { name: item.name }),
       });
     },
-    [upsertEventItem],
+    [messages.copySuffix, upsertEventItem],
   );
 
   const deleteItem = useCallback(
     (item: EventItem) => {
-      ask('Eliminar evento', `¿Eliminar "${item.name}"? No se puede deshacer.`, () => {
-        removeEventItem(item.id);
-      });
+      ask(
+        messages.deleteEvent.title,
+        format(messages.deleteEvent.message, { name: item.name }),
+        () => {
+          removeEventItem(item.id);
+        },
+      );
     },
-    [ask, removeEventItem],
+    [ask, messages.deleteEvent, removeEventItem],
   );
 
   /** The collection twin of `createIn`: named, listed and open for editing. */
@@ -155,13 +161,13 @@ export function useCatalogActions(connectionId: string) {
     const collection = createCollection(
       nextName(
         collections.map((entry) => entry.name),
-        NEW_COLLECTION_PREFIX,
+        messages.newCollectionPrefix,
       ),
     );
     store.setCatalogQuery('');
     upsertCollection(collection);
     setRenamingId(collection.id);
-  }, [upsertCollection]);
+  }, [messages.newCollectionPrefix, upsertCollection]);
 
   const renameCollection = useCallback((collection: Collection) => {
     setRenamingId(collection.id);
@@ -186,14 +192,14 @@ export function useCatalogActions(connectionId: string) {
       // The count is the whole point of the prompt: events cannot survive their
       // collection, so this says how much is about to go.
       ask(
-        'Eliminar colección',
-        `¿Eliminar "${collection.name}" y sus ${String(count)} eventos? No se puede deshacer.`,
+        messages.deleteCollection.title,
+        plural(messages.deleteCollection.message, count, { name: collection.name }),
         () => {
           removeCollectionFromStore(collection.id);
         },
       );
     },
-    [ask, removeCollectionFromStore],
+    [ask, messages.deleteCollection, removeCollectionFromStore],
   );
 
   return {

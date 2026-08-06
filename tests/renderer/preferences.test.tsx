@@ -40,9 +40,9 @@ describe('PreferencesDialog', () => {
   it('paints the theme in the document and persists it in the same step', async () => {
     const user = userEvent.setup();
     render(<PreferencesDialog open onClose={() => undefined} />);
-    await openTab(user, 'Apariencia');
+    await openTab(user, 'Appearance');
 
-    await pick(user, 'Tema', 'Oscuro');
+    await pick(user, 'Theme', 'Dark');
 
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(usePreferences.getState().theme).toBe('dark');
@@ -57,9 +57,9 @@ describe('PreferencesDialog', () => {
     const user = userEvent.setup();
     usePreferences.getState().replace({ ...DEFAULT_PREFERENCES, theme: 'dark' });
     render(<PreferencesDialog open onClose={() => undefined} />);
-    await openTab(user, 'Apariencia');
+    await openTab(user, 'Appearance');
 
-    await pick(user, 'Tema', 'Sistema');
+    await pick(user, 'Theme', 'System');
 
     expect(document.documentElement.dataset.theme).toBeUndefined();
   });
@@ -67,9 +67,9 @@ describe('PreferencesDialog', () => {
   it('commits the editor font size when the field is left', async () => {
     const user = userEvent.setup();
     render(<PreferencesDialog open onClose={() => undefined} />);
-    await openTab(user, 'Apariencia');
+    await openTab(user, 'Appearance');
 
-    const field = screen.getByLabelText('Tamaño de fuente del editor');
+    const field = screen.getByLabelText('Editor font size');
     await user.clear(field);
     await user.type(field, '16');
     await user.tab();
@@ -82,9 +82,9 @@ describe('PreferencesDialog', () => {
   it('stores the log budget in bytes while showing megabytes', async () => {
     const user = userEvent.setup();
     render(<PreferencesDialog open onClose={() => undefined} />);
-    await openTab(user, 'Log de actividad');
+    await openTab(user, 'Activity log');
 
-    const field = screen.getByLabelText('Memoria máxima del log');
+    const field = screen.getByLabelText('Maximum log memory');
     await user.clear(field);
     await user.type(field, '16');
     await user.tab();
@@ -96,7 +96,7 @@ describe('PreferencesDialog', () => {
     const user = userEvent.setup();
     render(<PreferencesDialog open onClose={() => undefined} />);
 
-    await pick(user, 'Al arrancar', 'Abrir el último workspace');
+    await pick(user, 'On startup', 'Last workspace');
 
     expect(lastSaved()?.startup).toBe('last-workspace');
   });
@@ -106,13 +106,13 @@ describe('PreferencesDialog', () => {
     const user = userEvent.setup();
     render(<PreferencesDialog open onClose={() => undefined} />);
 
-    expect(screen.getByRole('combobox', { name: 'Al arrancar' })).toBeTruthy();
-    expect(screen.queryByLabelText('Mensajes máximos por conexión')).toBeNull();
+    expect(screen.getByRole('combobox', { name: 'On startup' })).toBeTruthy();
+    expect(screen.queryByLabelText('Maximum messages per connection')).toBeNull();
 
-    await openTab(user, 'Log de actividad');
+    await openTab(user, 'Activity log');
 
-    expect(screen.queryByRole('combobox', { name: 'Al arrancar' })).toBeNull();
-    expect(screen.getByLabelText('Mensajes máximos por conexión')).toBeTruthy();
+    expect(screen.queryByRole('combobox', { name: 'On startup' })).toBeNull();
+    expect(screen.getByLabelText('Maximum messages per connection')).toBeTruthy();
   });
 });
 

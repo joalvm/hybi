@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import type { ActivityRecord } from '@shared/ipc/activity.js';
 import { bridge } from '@/ipc/bridge.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog.js';
 import { Panel } from '@/shared/ui/Panel.js';
 import { SplitPane } from '@/shared/ui/SplitPane.js';
@@ -19,6 +20,7 @@ type Props = { connectionId: string };
 
 /** The only file in this feature that reads the store. Children take props. */
 export function ActivityPanel({ connectionId }: Props) {
+  const messages = useMessages();
   const records = useStore(selectActivityFor(connectionId));
   const { query, selectedId, dropped } = useStore(
     useShallow((state) => ({
@@ -68,11 +70,12 @@ export function ActivityPanel({ connectionId }: Props) {
   // The renderer has no clipboard of its own — the CSP denies the permission —
   // so the text goes to the main process, which owns the system one. `origin` is
   // the only dependency, and it already re-renders every row when it moves.
+  const kinds = messages.activity.kinds;
   const copy = useCallback(
     (record: ActivityRecord, scope: CopyScope) => {
-      void bridge.clipboard.writeText(copyText(record, scope, origin));
+      void bridge.clipboard.writeText(copyText(record, scope, origin, kinds));
     },
-    [origin],
+    [origin, kinds],
   );
 
   const list = (
@@ -89,7 +92,7 @@ export function ActivityPanel({ connectionId }: Props) {
 
   return (
     <Panel
-      title="Actividad"
+      title={messages.activity.title}
       actions={
         <ActivityToolbar
           query={query}
@@ -125,9 +128,9 @@ export function ActivityPanel({ connectionId }: Props) {
       )}
       <ConfirmDialog
         open={replay.pending !== null}
-        title="Reemplazar el borrador"
-        message="El composer tiene cambios sin guardar. Cargar este frame los descarta."
-        confirmLabel="Reemplazar"
+        title={messages.activity.replaceDraft.title}
+        message={messages.activity.replaceDraft.message}
+        confirmLabel={messages.activity.replaceDraft.confirm}
         onConfirm={replay.confirm}
         onClose={replay.dismiss}
       />

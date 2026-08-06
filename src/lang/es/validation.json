@@ -1,0 +1,7 @@
+{
+  "exportPathEmpty": "La ruta de exportación está vacía",
+  "messageTooLarge": "El mensaje supera el límite de {bytes} bytes",
+  "unsupportedScheme": "Solo se permiten URL ws: y wss:, se recibió {protocol}",
+  "workspaceId": "Identificador de workspace inválido: {id}",
+  "workspaceFile": "Archivo de workspace inválido: {issues}"
+}

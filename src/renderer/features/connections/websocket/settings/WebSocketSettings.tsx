@@ -1,4 +1,5 @@
 import type { WebSocketTransportSettings } from '@shared/domain/connections/websocket.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { SettingsPane } from '@/shared/ui/settings/SettingsPane.js';
 import { AdvancedFields } from './AdvancedFields.js';
 import { HeadersEditor } from './HeadersEditor.js';
@@ -16,12 +17,14 @@ type Props = {
  * draws its rail from.
  */
 export function WebSocketSettings({ settings, onChange }: Props) {
+  const tabs = useMessages().connections.tabs;
+
   return (
     <>
-      <SettingsPane value="connection" title="Conexión">
+      <SettingsPane value="connection" title={tabs.connection}>
         <AdvancedFields settings={settings} onChange={onChange} />
       </SettingsPane>
-      <SettingsPane value="headers" title="Cabeceras">
+      <SettingsPane value="headers" title={tabs.headers}>
         <HeadersEditor
           headers={settings.headers}
           onChange={(headers) => {
@@ -29,7 +32,7 @@ export function WebSocketSettings({ settings, onChange }: Props) {
           }}
         />
       </SettingsPane>
-      <SettingsPane value="retry" title="Reintentos">
+      <SettingsPane value="retry" title={tabs.retry}>
         <RetryFields
           retry={settings.retry}
           onChange={(retry) => {
@@ -37,7 +40,7 @@ export function WebSocketSettings({ settings, onChange }: Props) {
           }}
         />
       </SettingsPane>
-      <SettingsPane value="keepalive" title="Keepalive">
+      <SettingsPane value="keepalive" title={tabs.keepalive}>
         <KeepaliveFields
           keepalive={settings.keepalive}
           onChange={(keepalive) => {

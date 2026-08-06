@@ -1,5 +1,7 @@
 import { memo } from 'react';
+import { format } from '@lang/translate.js';
 import type { EventItem } from '@shared/domain/types.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { InlineNameInput } from '@/shared/ui/InlineNameInput.js';
 import { cn } from '@/shared/utils/cn.js';
 import { CatalogItemMenu } from './CatalogItemMenu.js';
@@ -29,6 +31,8 @@ export const CatalogItem = memo(function CatalogItem({
   onSelect,
   actions,
 }: Props) {
+  const messages = useMessages().catalog;
+
   return (
     <li
       role="treeitem"
@@ -38,7 +42,9 @@ export const CatalogItem = memo(function CatalogItem({
       data-row-id={item.id}
       data-selected={selected}
       tabIndex={tabIndexFor(item.id)}
-      title={item.source === 'asyncapi' ? `${item.name} — importado de AsyncAPI` : item.name}
+      title={
+        item.source === 'asyncapi' ? format(messages.imported, { name: item.name }) : item.name
+      }
       className={cn(
         'catalog-actions-runtime flex min-h-row cursor-pointer items-center gap-2 rounded-ui px-2 pl-3 focus-visible:bg-hover focus-visible:outline focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-accent hover:bg-hover',
         selected && 'bg-selected',
@@ -53,7 +59,7 @@ export const CatalogItem = memo(function CatalogItem({
       {renaming && actions !== undefined ? (
         <InlineNameInput
           value={item.name}
-          label="Nombre del evento"
+          label={messages.eventName}
           onCommit={(name) => {
             actions.commitRename(item.id, name);
           }}

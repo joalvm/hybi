@@ -8,7 +8,6 @@ import type { WindowRole } from './contract.js';
 const ROLE_FLAG = '--hybi-role=';
 const WORKSPACE_FLAG = '--hybi-workspace=';
 const VERSION_FLAG = '--hybi-version=';
-const LOCALE_FLAG = '--hybi-locale=';
 
 /** The flags the main process hands a welcome window. */
 export function welcomeArgs(): string[] {
@@ -39,18 +38,4 @@ export function versionArg(version: string): string {
 export function versionOf(argv: readonly string[]): string {
   const flag = argv.find((entry) => entry.startsWith(VERSION_FLAG));
   return flag === undefined ? '0.0.0' : flag.slice(VERSION_FLAG.length);
-}
-
-/**
- * `app.getLocale` and not `navigator.language`: on Linux they disagree often
- * enough that the app would read in one language and the native dialogs in
- * another.
- */
-export function localeArg(locale: string): string {
-  return `${LOCALE_FLAG}${locale}`;
-}
-
-export function localeOf(argv: readonly string[]): string {
-  const flag = argv.find((entry) => entry.startsWith(LOCALE_FLAG));
-  return flag === undefined ? 'en' : flag.slice(LOCALE_FLAG.length);
 }

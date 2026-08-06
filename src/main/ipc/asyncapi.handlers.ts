@@ -7,6 +7,7 @@ import {
 } from '@shared/ipc/contract.js';
 import { asyncApiDefaultFileName, writeAsyncApiExport } from '../asyncapi/export-file.js';
 import { importAsyncApi } from '../asyncapi/importer.js';
+import { mainMessages } from '../lang.js';
 
 const ASYNCAPI_CHANNELS = [CHANNELS.asyncapiImport, CHANNELS.asyncapiExport];
 
@@ -16,10 +17,11 @@ const ASYNCAPI_CHANNELS = [CHANNELS.asyncapiImport, CHANNELS.asyncapiExport];
  */
 export function registerAsyncApiHandlers(window: BrowserWindow): () => void {
   ipcMain.handle(CHANNELS.asyncapiImport, async (): Promise<ImportOutcome> => {
+    const messages = mainMessages().menu;
     const picked = await dialog.showOpenDialog(window, {
-      title: 'Importar AsyncAPI',
+      title: messages.importAsyncApi,
       properties: ['openFile'],
-      filters: [{ name: 'AsyncAPI', extensions: ['json', 'yaml', 'yml'] }],
+      filters: [{ name: messages.fileAsyncApi, extensions: ['json', 'yaml', 'yml'] }],
     });
 
     const filePath = picked.filePaths[0];
@@ -38,10 +40,11 @@ export function registerAsyncApiHandlers(window: BrowserWindow): () => void {
     CHANNELS.asyncapiExport,
     async (_event, workspace: Workspace): Promise<ExportOutcome> => {
       try {
+        const messages = mainMessages().menu;
         const picked = await dialog.showSaveDialog(window, {
-          title: 'Exportar workspace como AsyncAPI',
+          title: messages.exportWorkspace,
           defaultPath: asyncApiDefaultFileName(workspace.name),
-          filters: [{ name: 'AsyncAPI JSON', extensions: ['json'] }],
+          filters: [{ name: messages.fileAsyncApi, extensions: ['json'] }],
         });
         if (picked.canceled || picked.filePath === '') {
           return { ok: false, cancelled: true, error: 'cancelled' };

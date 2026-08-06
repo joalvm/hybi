@@ -55,10 +55,10 @@ describe('AsyncAPI import', () => {
     const settle = pending();
     render(<CatalogPanel connectionId="c1" />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Importar AsyncAPI' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Import AsyncAPI' }));
 
-    expect(screen.getByRole('status').textContent).toContain('Leyendo el documento AsyncAPI…');
-    expect(screen.getByRole('button', { name: 'Importando AsyncAPI…' })).toHaveProperty(
+    expect(screen.getByRole('status').textContent).toContain('Reading the AsyncAPI document…');
+    expect(screen.getByRole('button', { name: 'Importing AsyncAPI…' })).toHaveProperty(
       'disabled',
       true,
     );
@@ -74,11 +74,11 @@ describe('AsyncAPI import', () => {
     const settle = pending();
     render(<CatalogPanel connectionId="c1" />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Importar AsyncAPI' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Import AsyncAPI' }));
     await settle({ ok: false, cancelled: true, error: 'cancelled' });
 
     expect(screen.queryByRole('status')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Importar AsyncAPI' })).toHaveProperty(
+    expect(screen.getByRole('button', { name: 'Import AsyncAPI' })).toHaveProperty(
       'disabled',
       false,
     );
@@ -89,7 +89,7 @@ describe('AsyncAPI import', () => {
     const logged = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     render(<CatalogPanel connectionId="c1" />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Importar AsyncAPI' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Import AsyncAPI' }));
     await settle({ ok: false, error: 'no es un documento AsyncAPI' });
 
     expect(screen.queryByRole('status')).toBeNull();

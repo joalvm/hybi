@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { app, BrowserWindow } from 'electron';
 import { CHANNELS } from '@shared/ipc/contract.js';
-import { localeArg, versionArg, welcomeArgs, workbenchArgs } from '@shared/ipc/window-args.js';
+import { versionArg, welcomeArgs, workbenchArgs } from '@shared/ipc/window-args.js';
 import { watchDevToolsShortcut } from './devtools.js';
 import { openExternally } from './security/external.js';
 
@@ -24,7 +24,7 @@ function baseOptions(argv: string[]): Electron.BrowserWindowConstructorOptions {
       sandbox: true,
       webviewTag: false,
       spellcheck: false,
-      additionalArguments: [...argv, versionArg(app.getVersion()), localeArg(app.getLocale())],
+      additionalArguments: [...argv, versionArg(app.getVersion())],
     },
   };
 }

@@ -1,13 +1,8 @@
 import { EDITOR_FONT_SIZE_RANGE } from '@shared/preferences/defaults.js';
 import type { ThemePreference } from '@shared/preferences/types.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { NumberField } from '@/shared/ui/NumberField.js';
 import { SelectField } from '@/shared/ui/SelectField.js';
-
-const THEME_OPTIONS = [
-  { value: 'system', label: 'Sistema' },
-  { value: 'light', label: 'Claro' },
-  { value: 'dark', label: 'Oscuro' },
-];
 
 type Props = {
   theme: ThemePreference;
@@ -23,20 +18,26 @@ export function AppearanceSection({
   onThemeChange,
   onEditorFontSizeChange,
 }: Props) {
+  const messages = useMessages().preferences;
+
   return (
     <div className="flex flex-col">
       <SelectField
-        label="Tema"
-        description="Sistema sigue el modo claro u oscuro del escritorio."
+        label={messages.theme.label}
+        description={messages.theme.description}
         value={theme}
-        options={THEME_OPTIONS}
+        options={[
+          { value: 'system', label: messages.theme.system },
+          { value: 'light', label: messages.theme.light },
+          { value: 'dark', label: messages.theme.dark },
+        ]}
         onChange={(value) => {
           onThemeChange(value as ThemePreference);
         }}
       />
       <NumberField
-        label="Tamaño de fuente del editor"
-        description="Se aplica al composer, a la documentación y al detalle del log."
+        label={messages.editorFontSize.label}
+        description={messages.editorFontSize.description}
         value={editorFontSize}
         min={EDITOR_FONT_SIZE_RANGE.min}
         max={EDITOR_FONT_SIZE_RANGE.max}

@@ -4,8 +4,10 @@ import type {
   OperationAction,
   OperationInterface,
 } from '@asyncapi/parser';
+import { format } from '@lang/translate.js';
 import type { Collection, EventItem } from '@shared/domain/types.js';
 import type { ImportResult } from '@shared/ipc/contract.js';
+import { mainMessages } from '../lang.js';
 import { exampleFromSchema } from './example.js';
 
 export class AsyncApiImportError extends Error {
@@ -52,8 +54,12 @@ export async function importAsyncApi(filePath: string): Promise<ImportResult> {
       .filter(isFatal)
       .map((entry) => entry.message)
       .join('; ');
+    // The parser's own diagnostics say more than any sentence here could, so
+    // the catalog only answers for the case where it produced none.
     throw new AsyncApiImportError(
-      detail === '' ? `Could not parse ${basename(filePath)}` : detail,
+      detail === ''
+        ? format(mainMessages().exceptions.asyncapi.unreadable, { file: basename(filePath) })
+        : detail,
     );
   }
 
@@ -78,7 +84,7 @@ export async function importAsyncApi(filePath: string): Promise<ImportResult> {
 
   if (items.length === 0) {
     throw new AsyncApiImportError(
-      `${basename(filePath)} has no operations this client could send`,
+      format(mainMessages().exceptions.asyncapi.noOperations, { file: basename(filePath) }),
     );
   }
 

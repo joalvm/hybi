@@ -1,4 +1,5 @@
 import { bridge } from '@/ipc/bridge.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import { MenuBarIcon } from '@/shared/ui/icons.js';
 
@@ -10,12 +11,14 @@ import { MenuBarIcon } from '@/shared/ui/icons.js';
  * macOS keeps its own menu bar, so the button is not drawn there.
  */
 export function AppMenuButton() {
+  const messages = useMessages().chrome;
+
   if (bridge.platform === 'darwin') return null;
 
   return (
     <IconButton
       className="app-no-drag h-control w-control shrink-0 border-0 text-muted"
-      label="Menú"
+      label={messages.menu}
       onClick={(event) => {
         const box = event.currentTarget.getBoundingClientRect();
         void bridge.window.popupAppMenu({ x: box.left, y: box.bottom });

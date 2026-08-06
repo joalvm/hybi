@@ -51,7 +51,7 @@ test('undoes and redoes a payload edit with the keyboard', async () => {
 
     await window.getByText('Ping', { exact: true }).click();
     // The panel title became a breadcrumb in phase 2: collection, then event.
-    await expect(window.getByLabel('Ubicación del evento')).toContainText('Ping');
+    await expect(window.getByLabel('Event location')).toContainText('Ping');
 
     // The text itself, not the hidden textarea Monaco keeps for IME input.
     const editor = window.locator('[data-part="payload-editor"]');

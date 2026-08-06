@@ -30,9 +30,9 @@ describe('WindowControls', () => {
     const user = userEvent.setup();
     render(<WindowControls />);
 
-    await user.click(screen.getByRole('button', { name: 'Minimizar' }));
-    await user.click(screen.getByRole('button', { name: 'Maximizar' }));
-    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
+    await user.click(screen.getByRole('button', { name: 'Minimise' }));
+    await user.click(screen.getByRole('button', { name: 'Maximise' }));
+    await user.click(screen.getByRole('button', { name: 'Close' }));
 
     expect(windowBridge.minimize).toHaveBeenCalledOnce();
     expect(windowBridge.toggleMaximize).toHaveBeenCalledOnce();
@@ -43,8 +43,8 @@ describe('WindowControls', () => {
     windowBridge.isMaximized.mockResolvedValue(true);
     render(<WindowControls />);
 
-    expect(await screen.findByRole('button', { name: 'Restaurar' })).toBeDefined();
-    expect(screen.queryByRole('button', { name: 'Maximizar' })).toBeNull();
+    expect(await screen.findByRole('button', { name: 'Restore' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Maximise' })).toBeNull();
   });
 
   /**
@@ -54,9 +54,9 @@ describe('WindowControls', () => {
   it('offers only close on a window that cannot be resized', () => {
     render(<WindowControls resizable={false} />);
 
-    expect(screen.getByRole('button', { name: 'Cerrar' })).toBeDefined();
-    expect(screen.queryByRole('button', { name: 'Minimizar' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Maximizar' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Close' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Minimise' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Maximise' })).toBeNull();
   });
 
   it('draws nothing on macOS, where the system owns the controls', () => {

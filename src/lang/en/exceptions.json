@@ -1,0 +1,11 @@
+{
+  "connectionNotOpen": "Connection is not open",
+  "connectionMissing": "Connection {id} is not open",
+  "connectionSuperseded": "Connection attempt was superseded",
+  "connectionClosedEarly": "Connection closed before opening",
+  "sendFailed": "WebSocket send failed",
+  "asyncapi": {
+    "unreadable": "Could not parse {file}",
+    "noOperations": "{file} has no operations this client could send"
+  }
+}

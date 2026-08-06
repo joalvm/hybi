@@ -1,0 +1,14 @@
+{
+  "menu": "Menú",
+  "variables": "Variables",
+  "preferences": "Preferencias",
+  "minimize": "Minimizar",
+  "maximize": "Maximizar",
+  "restore": "Restaurar",
+  "close": "Cerrar",
+  "hideCatalog": "Ocultar el catálogo",
+  "showCatalog": "Mostrar el catálogo",
+  "openingWorkspace": "Abriendo workspace…",
+  "noConnection": "Crea una conexión para empezar.",
+  "reload": "Recargar"
+}

@@ -47,7 +47,7 @@ describe('application menu', () => {
     buildAppMenu(actions);
 
     expect(labels(built[0] ?? [])).toEqual(
-      expect.arrayContaining(['Archivo', 'Editar', 'Ver', 'Ayuda']),
+      expect.arrayContaining(['File', 'Edit', 'View', 'Help']),
     );
   });
 
@@ -55,18 +55,18 @@ describe('application menu', () => {
   it('keeps devtools in the View menu', () => {
     buildAppMenu(actions);
 
-    expect(submenuRoles(built[0] ?? [], 'Ver')).toContain('toggleDevTools');
+    expect(submenuRoles(built[0] ?? [], 'View')).toContain('toggleDevTools');
   });
 
   /** The native panel names Electron and Chromium, not the phase this app is in. */
   it('opens the app dialog from Help instead of the native panel', () => {
     buildAppMenu(actions);
-    const help = built[0]?.find((entry) => entry.label === 'Ayuda')?.submenu;
+    const help = built[0]?.find((entry) => entry.label === 'Help')?.submenu;
     if (!Array.isArray(help)) throw new Error('no Help submenu');
 
     expect(help.map((entry) => entry.role)).not.toContain('about');
     help
-      .find((entry) => entry.label === 'Acerca de Hybi')
+      .find((entry) => entry.label === 'About Hybi')
       ?.click?.({} as Electron.MenuItem, undefined, {});
 
     expect(showAbout).toHaveBeenCalledOnce();
@@ -79,17 +79,17 @@ describe('application menu', () => {
    */
   it('leaves undo, redo and select-all to the editor', () => {
     buildAppMenu(actions);
-    const roles = submenuRoles(built[0] ?? [], 'Editar');
+    const roles = submenuRoles(built[0] ?? [], 'Edit');
 
     expect(roles).toEqual(['cut', 'copy', 'paste']);
   });
 
   it('opens a welcome window from File', () => {
     buildAppMenu(actions);
-    const file = built[0]?.find((entry) => entry.label === 'Archivo')?.submenu;
+    const file = built[0]?.find((entry) => entry.label === 'File')?.submenu;
     if (!Array.isArray(file)) throw new Error('no File submenu');
 
-    file.find((entry) => entry.label === 'Nueva ventana')?.click?.({} as Electron.MenuItem, undefined, {});
+    file.find((entry) => entry.label === 'New window')?.click?.({} as Electron.MenuItem, undefined, {});
 
     expect(openWelcome).toHaveBeenCalledOnce();
   });
@@ -100,11 +100,11 @@ describe('application menu', () => {
    */
   it('opens preferences from the block its platform expects', () => {
     buildAppMenu(actions);
-    const owner = process.platform === 'darwin' ? 'Hybi' : 'Archivo';
+    const owner = process.platform === 'darwin' ? 'Hybi' : 'File';
     const submenu = built[0]?.find((entry) => entry.label === owner)?.submenu;
     if (!Array.isArray(submenu)) throw new Error(`no ${owner} submenu`);
 
-    const item = submenu.find((entry) => entry.label === 'Preferencias…');
+    const item = submenu.find((entry) => entry.label === 'Preferences…');
     expect(item?.accelerator).toBe('CmdOrCtrl+,');
     item?.click?.({} as Electron.MenuItem, undefined, {});
 

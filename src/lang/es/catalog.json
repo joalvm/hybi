@@ -1,0 +1,30 @@
+{
+  "filter": "Filtrar",
+  "collections": "Colecciones",
+  "noMatches": "No hay eventos que coincidan.",
+  "reading": "Leyendo el documento AsyncAPI…",
+  "expandAll": "Expandir todo",
+  "collapseAll": "Contraer todo",
+  "newCollection": "Nueva colección",
+  "import": "Importar AsyncAPI",
+  "importing": "Importando AsyncAPI…",
+  "eventName": "Nombre del evento",
+  "collectionName": "Nombre de la colección",
+  "imported": "{name} — importado de AsyncAPI",
+  "newEvent": "Nuevo evento",
+  "newEventIn": "Nuevo evento en {name}",
+  "newEventPrefix": "Nuevo Evento",
+  "newCollectionPrefix": "Nueva Colección",
+  "copySuffix": "{name} (copia)",
+  "deleteEvent": {
+    "title": "Eliminar evento",
+    "message": "¿Eliminar «{name}»? No se puede deshacer."
+  },
+  "deleteCollection": {
+    "title": "Eliminar colección",
+    "message": {
+      "one": "¿Eliminar «{name}» y el evento que contiene? No se puede deshacer.",
+      "other": "¿Eliminar «{name}» y los {count} eventos que contiene? No se puede deshacer."
+    }
+  }
+}

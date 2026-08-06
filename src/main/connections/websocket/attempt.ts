@@ -1,5 +1,6 @@
 import { WebSocket, type RawData } from 'ws';
 import type { ResolvedWebSocketTransport } from '@shared/transport/websocket.js';
+import { mainMessages } from '../../lang.js';
 import { startKeepalive } from './keepalive.js';
 
 export type WebSocketAttempt = {
@@ -42,7 +43,7 @@ export function createWebSocketAttempt(
   const opened = new Promise<void>((resolve, reject) => {
     socket.once('open', () => {
       if (!callbacks.isCurrent(attempt)) {
-        reject(new Error('Connection attempt was superseded'));
+        reject(new Error(mainMessages().exceptions.connectionSuperseded));
         return;
       }
       didOpen = true;
@@ -52,7 +53,7 @@ export function createWebSocketAttempt(
     });
     socket.once('error', reject);
     socket.once('close', () => {
-      if (!didOpen) reject(new Error('Connection closed before opening'));
+      if (!didOpen) reject(new Error(mainMessages().exceptions.connectionClosedEarly));
     });
   });
   return { attempt, opened };

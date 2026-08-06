@@ -1,4 +1,5 @@
 import type { KeepalivePolicy } from '@shared/domain/connections/websocket.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { NumberField } from '@/shared/ui/NumberField.js';
 import { ToggleField } from '@/shared/ui/ToggleField.js';
 
@@ -13,18 +14,20 @@ type Props = {
  * from one that is merely quiet.
  */
 export function KeepaliveFields({ keepalive, onChange }: Props) {
+  const messages = useMessages().connections.keepalive;
+
   return (
     <div className="flex flex-col">
       <ToggleField
-        label="Enviar ping periódico"
-        hint="Si no llega el pong dentro del tiempo de espera, la conexión se da por caída."
+        label={messages.enabled.label}
+        hint={messages.enabled.hint}
         checked={keepalive.enabled}
         onChange={(enabled) => {
           onChange({ ...keepalive, enabled });
         }}
       />
       <NumberField
-        label="Intervalo"
+        label={messages.interval}
         value={keepalive.intervalMs}
         min={1000}
         max={600000}
@@ -35,7 +38,7 @@ export function KeepaliveFields({ keepalive, onChange }: Props) {
         }}
       />
       <NumberField
-        label="Espera del pong"
+        label={messages.timeout}
         value={keepalive.timeoutMs}
         min={500}
         max={600000}

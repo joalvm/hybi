@@ -1,5 +1,6 @@
 import { Tabs } from 'radix-ui';
 import type { ReactNode } from 'react';
+import { useMessages } from '../../i18n/useMessages.js';
 import { Dialog } from '../Dialog.js';
 import { CloseIcon } from '../icons.js';
 import { IconButton } from '../IconButton.js';
@@ -28,6 +29,7 @@ type Props = {
  * the close button belongs in the corner of the surface it closes.
  */
 export function SettingsDialog({ open, title, tabs, notice, onClose, children }: Props) {
+  const messages = useMessages().common;
   const first = tabs[0]?.value;
   if (first === undefined) return null;
 
@@ -47,7 +49,7 @@ export function SettingsDialog({ open, title, tabs, notice, onClose, children }:
               trap — this is the button the user looks for first. */}
           <IconButton
             className="absolute top-4 right-4 z-1 min-h-6 min-w-6 bg-panel p-0"
-            label="Cerrar"
+            label={messages.close}
             onClick={onClose}
           >
             <CloseIcon />

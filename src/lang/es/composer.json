@@ -1,0 +1,28 @@
+{
+  "title": "Payload",
+  "noEvent": "Selecciona un evento del catálogo.",
+  "breadcrumb": "Ubicación del evento",
+  "send": "Enviar",
+  "sendReason": {
+    "offline": "Conecta el socket para enviar",
+    "empty": "Escribe un payload para enviar",
+    "ready": "Envía el payload resuelto por el socket"
+  },
+  "editorActions": "Acciones del editor",
+  "tabs": {
+    "label": "Vista del evento",
+    "docs": "Docs",
+    "message": "Message",
+    "unsaved": "Cambios sin guardar"
+  },
+  "format": {
+    "label": "Formato del payload",
+    "beautify": "Formatear"
+  },
+  "docs": {
+    "label": "Documentación del evento",
+    "empty": "Este evento no tiene descripción.",
+    "closeEditor": "Cerrar editor",
+    "edit": "Editar documentación"
+  }
+}

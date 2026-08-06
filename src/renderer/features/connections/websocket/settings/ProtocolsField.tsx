@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { Input } from '@/shared/ui/Input.js';
 import { SettingsRow } from '@/shared/ui/settings/SettingsRow.js';
 
@@ -16,6 +17,7 @@ type Props = {
  * could never grow past its first entry.
  */
 export function ProtocolsField({ protocols, onChange }: Props) {
+  const messages = useMessages().connections.protocols;
   const id = useId();
   const [draft, setDraft] = useState(protocols.join(', '));
 
@@ -30,15 +32,15 @@ export function ProtocolsField({ protocols, onChange }: Props) {
 
   return (
     <SettingsRow
-      label="Subprotocolos"
-      description="Separados por comas, en orden de preferencia."
+      label={messages.label}
+      description={messages.description}
       htmlFor={id}
       control={
         <Input
           id={id}
           className="w-52"
           value={draft}
-          placeholder="graphql-ws, wamp.2.json"
+          placeholder={messages.placeholder}
           onChange={(event) => {
             setDraft(event.target.value);
           }}

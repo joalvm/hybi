@@ -14,9 +14,9 @@ test('lays out a URL variable without covering the text beside it', async () => 
     const welcome = await app.firstWindow();
     const opened = app.waitForEvent('window');
 
-    await welcome.getByRole('button', { name: 'Crear workspace' }).click();
-    await welcome.getByRole('textbox', { name: 'Nombre' }).fill('URL');
-    await welcome.getByRole('button', { name: 'Guardar' }).click();
+    await welcome.getByRole('button', { name: 'Create workspace' }).click();
+    await welcome.getByRole('textbox', { name: 'Name' }).fill('URL');
+    await welcome.getByRole('button', { name: 'Save' }).click();
 
     const workbench = await opened;
     await workbench.waitForLoadState('domcontentloaded');

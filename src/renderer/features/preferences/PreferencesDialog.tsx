@@ -1,17 +1,13 @@
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { LogIcon, PaletteIcon, StartupIcon } from '@/shared/ui/icons.js';
 import { SettingsDialog, type SettingsTab } from '@/shared/ui/settings/SettingsDialog.js';
 import { SettingsPane } from '@/shared/ui/settings/SettingsPane.js';
 import { usePreferences } from '@/store/preferences.store.js';
 import { AppearanceSection } from './AppearanceSection.js';
+import { LanguageSection } from './LanguageSection.js';
 import { LogSection } from './LogSection.js';
 import { StartupSection } from './StartupSection.js';
 import { usePreferenceActions } from './usePreferenceActions.js';
-
-const TABS: SettingsTab[] = [
-  { value: 'general', label: 'General', icon: <StartupIcon /> },
-  { value: 'appearance', label: 'Apariencia', icon: <PaletteIcon /> },
-  { value: 'log', label: 'Log de actividad', icon: <LogIcon /> },
-];
 
 type Props = { open: boolean; onClose: () => void };
 
@@ -24,6 +20,8 @@ type Props = { open: boolean; onClose: () => void };
  * values and a callback, which is what keeps each of them testable alone.
  */
 export function PreferencesDialog({ open, onClose }: Props) {
+  const messages = useMessages().preferences;
+  const language = usePreferences((state) => state.language);
   const theme = usePreferences((state) => state.theme);
   const editorFontSize = usePreferences((state) => state.editorFontSize);
   const activityLimit = usePreferences((state) => state.activityLimit);
@@ -33,9 +31,21 @@ export function PreferencesDialog({ open, onClose }: Props) {
 
   if (!open) return null;
 
+  const tabs: SettingsTab[] = [
+    { value: 'general', label: messages.tabs.general, icon: <StartupIcon /> },
+    { value: 'appearance', label: messages.tabs.appearance, icon: <PaletteIcon /> },
+    { value: 'log', label: messages.tabs.log, icon: <LogIcon /> },
+  ];
+
   return (
-    <SettingsDialog open title="Preferencias" tabs={TABS} onClose={onClose}>
-      <SettingsPane value="general" title="General">
+    <SettingsDialog open title={messages.title} tabs={tabs} onClose={onClose}>
+      <SettingsPane value="general" title={messages.tabs.general}>
+        <LanguageSection
+          language={language}
+          onLanguageChange={(next) => {
+            update({ language: next });
+          }}
+        />
         <StartupSection
           startup={startup}
           onStartupChange={(next) => {
@@ -43,7 +53,7 @@ export function PreferencesDialog({ open, onClose }: Props) {
           }}
         />
       </SettingsPane>
-      <SettingsPane value="appearance" title="Apariencia">
+      <SettingsPane value="appearance" title={messages.tabs.appearance}>
         <AppearanceSection
           theme={theme}
           editorFontSize={editorFontSize}
@@ -55,7 +65,7 @@ export function PreferencesDialog({ open, onClose }: Props) {
           }}
         />
       </SettingsPane>
-      <SettingsPane value="log" title="Log de actividad">
+      <SettingsPane value="log" title={messages.tabs.log}>
         <LogSection
           activityLimit={activityLimit}
           activityByteLimit={activityByteLimit}

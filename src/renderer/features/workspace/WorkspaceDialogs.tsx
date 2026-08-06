@@ -1,3 +1,5 @@
+import { format } from '@lang/translate.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog.js';
 import { NameDialog } from '@/shared/ui/NameDialog.js';
 
@@ -21,12 +23,18 @@ export function WorkspaceDialogs({
   onRemove,
   onClose,
 }: Props) {
+  const messages = useMessages().workspace;
+
   if (dialog === 'create' || dialog === 'duplicate') {
     return (
       <NameDialog
         open
-        title={dialog === 'create' ? 'Nuevo workspace' : 'Duplicar workspace'}
-        initial={dialog === 'create' ? '' : `${workspaceName} (copia)`}
+        title={dialog === 'create' ? messages.new : messages.duplicate.title}
+        initial={
+          dialog === 'create'
+            ? ''
+            : format(messages.duplicate.copySuffix, { name: workspaceName })
+        }
         onSubmit={(value) => {
           if (dialog === 'create') onCreate(value);
           else onDuplicate(value);
@@ -41,8 +49,8 @@ export function WorkspaceDialogs({
   return (
     <ConfirmDialog
       open
-      title="Eliminar workspace"
-      message={`¿Eliminar "${workspaceName}" con sus entornos, conexiones y catálogo? No se puede deshacer.`}
+      title={messages.delete.title}
+      message={format(messages.delete.message, { name: workspaceName })}
       onConfirm={() => {
         onRemove();
         onClose();

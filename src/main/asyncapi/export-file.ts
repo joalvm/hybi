@@ -1,6 +1,7 @@
 import { rename, rm, writeFile } from 'node:fs/promises';
 import { join, parse } from 'node:path';
 import type { Workspace } from '@shared/domain/types.js';
+import { mainMessages } from '../lang.js';
 import { createAsyncApiDocument } from './exporter.js';
 
 const INVALID_FILE_NAME = /[<>:"/\\|?*]/g;
@@ -25,7 +26,7 @@ export function asyncApiDefaultFileName(workspaceName: string): string {
 
 function jsonPath(selectedPath: string): string {
   const parts = parse(selectedPath);
-  if (parts.base === '') throw new Error('Export path is empty');
+  if (parts.base === '') throw new Error(mainMessages().validation.exportPathEmpty);
   return join(parts.dir, `${parts.name}.json`);
 }
 

@@ -1,0 +1,7 @@
+{
+  "exportPathEmpty": "Export path is empty",
+  "messageTooLarge": "Message exceeds the {bytes} byte limit",
+  "unsupportedScheme": "Only ws: and wss: URLs are allowed, received {protocol}",
+  "workspaceId": "Invalid workspace id: {id}",
+  "workspaceFile": "Invalid workspace file: {issues}"
+}

@@ -1,3 +1,5 @@
+import { format } from '@lang/translate.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { SettingsDialog } from '@/shared/ui/settings/SettingsDialog.js';
 import { useStore } from '@/store/index.js';
 import { settingsTabsFor } from './tabs.js';
@@ -18,6 +20,7 @@ type Props = { connectionId: string; onClose: () => void };
  * Cancel: the socket, not the dialog, is what a change is waiting on.
  */
 export function ConnectionSettingsDialog({ connectionId, onClose }: Props) {
+  const messages = useMessages();
   const connection = useStore(
     (state) => state.workspace?.connections.find((entry) => entry.id === connectionId) ?? null,
   );
@@ -32,12 +35,12 @@ export function ConnectionSettingsDialog({ connectionId, onClose }: Props) {
   return (
     <SettingsDialog
       open
-      title={`Configuración · ${connection.name}`}
-      tabs={settingsTabsFor(transport)}
+      title={format(messages.connections.settingsTitle, { name: connection.name })}
+      tabs={settingsTabsFor(transport, messages)}
       notice={
         live ? (
           <p className="border-b border-border bg-chrome px-6 py-2 text-label text-muted">
-            El socket sigue abierto: lo que cambies aquí se aplica al volver a conectar.
+            {messages.connections.liveNotice}
           </p>
         ) : undefined
       }

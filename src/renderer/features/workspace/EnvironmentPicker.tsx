@@ -1,4 +1,5 @@
 import type { Environment } from '@shared/domain/types.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { Select } from '@/shared/ui/Select.js';
 
 type Props = {
@@ -15,13 +16,15 @@ type Props = {
 const NONE = 'none';
 
 export function EnvironmentPicker({ environments, value, onChange }: Props) {
+  const messages = useMessages().workspace.environments;
+
   return (
     <Select
-      label="Entorno"
-      className="h-control w-32 justify-between gap-2 rounded-none border-0 bg-transparent px-2 text-muted hover:bg-hover focus-visible:border-0 focus-visible:bg-panel"
+      label={messages.picker}
+      className="h-control max-w-32 justify-between gap-2 rounded-none border-0 bg-transparent px-2 text-muted hover:bg-hover focus-visible:border-0 focus-visible:bg-panel"
       value={value ?? NONE}
       options={[
-        { value: NONE, label: 'Sin entorno' },
+        { value: NONE, label: messages.none },
         ...environments.map((environment) => ({
           value: environment.id,
           label: environment.name,

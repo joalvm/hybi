@@ -1,6 +1,8 @@
 import { memo } from 'react';
+import { format } from '@lang/translate.js';
 import type { Connection } from '@shared/domain/types.js';
 import type { ConnectionState } from '@shared/ipc/activity.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { DuplicateIcon, RenameIcon, SettingsIcon, TrashIcon } from '@/shared/ui/icons.js';
 import { InlineNameInput } from '@/shared/ui/InlineNameInput.js';
 import { RowMenu } from '@/shared/ui/RowMenu.js';
@@ -50,7 +52,8 @@ export const ConnectionTab = memo(function ConnectionTab({
   onConfigure,
   onRequestClose,
 }: Props) {
-  const label = stateLabel(state);
+  const messages = useMessages();
+  const label = stateLabel(state, messages.connections.states);
   const tones: Record<typeof label.tone, string> = {
     neutral: 'text-muted',
     ok: 'text-ok',
@@ -77,7 +80,7 @@ export const ConnectionTab = memo(function ConnectionTab({
           {dot}
           <InlineNameInput
             value={connection.name}
-            label="Nombre de la conexión"
+            label={messages.connections.connectionName}
             onCommit={(name) => {
               onRename(connection.id, name);
             }}
@@ -92,7 +95,10 @@ export const ConnectionTab = memo(function ConnectionTab({
             active && 'text-foreground',
           )}
           aria-current={active ? 'true' : undefined}
-          title={`${connection.name} — ${label.text} (doble clic para renombrar)`}
+          title={format(messages.connections.tabTitle, {
+            name: connection.name,
+            state: label.text,
+          })}
           onClick={() => {
             onSelect(connection.id);
           }}
@@ -105,31 +111,31 @@ export const ConnectionTab = memo(function ConnectionTab({
         </button>
       )}
       <RowMenu
-        label={`Opciones de ${connection.name}`}
+        label={format(messages.common.optionsFor, { name: connection.name })}
         items={[
           {
-            label: 'Renombrar',
+            label: messages.common.rename,
             icon: <RenameIcon />,
             onSelect: () => {
               onStartRename(connection.id);
             },
           },
           {
-            label: 'Duplicar',
+            label: messages.common.duplicate,
             icon: <DuplicateIcon />,
             onSelect: () => {
               onDuplicate(connection.id);
             },
           },
           {
-            label: 'Configuración',
+            label: messages.connections.configure,
             icon: <SettingsIcon />,
             onSelect: () => {
               onConfigure(connection.id);
             },
           },
           {
-            label: 'Eliminar',
+            label: messages.common.delete,
             icon: <TrashIcon />,
             tone: 'danger',
             onSelect: () => {

@@ -173,8 +173,6 @@ export type WorkbenchBridge = {
     onAboutRequested(listener: () => void): () => void;
     /** Same contract for the preferences entry, which is also a menu item. */
     onPreferencesRequested(listener: () => void): () => void;
-    /** The host locale, for the preferences that defer to the machine. */
-    locale: string;
   };
   /** Decides who owns the controls, so the renderer never guesses the host. */
   platform: HostPlatform;

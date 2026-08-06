@@ -1,5 +1,6 @@
 import { useId, useLayoutEffect, useMemo, useRef, type KeyboardEvent, type PointerEvent } from 'react';
 import type { VariableScope } from '@shared/variables/resolve.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { paintSegments, readCaret, readSelection, readText, writeCaret } from './urlCaret.js';
 import { urlSegments } from './urlSegments.js';
 import { useUrlSuggestions } from './useUrlSuggestions.js';
@@ -36,6 +37,7 @@ function tokenAt(event: PointerEvent<HTMLDivElement>): HTMLElement | null {
  * and that the field is repainted rather than reconciled — see `urlCaret.ts`.
  */
 export function UrlInput({ value, missing, scope, onChange, onVariablePoint }: Props) {
+  const messages = useMessages().connections;
   const segments = useMemo(() => urlSegments(value, missing), [value, missing]);
   const suggestions = useUrlSuggestions(value, scope);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -97,7 +99,7 @@ export function UrlInput({ value, missing, scope, onChange, onVariablePoint }: P
         data-part="url-input-field"
         contentEditable
         role="combobox"
-        aria-label="URL"
+        aria-label={messages.url}
         aria-autocomplete="list"
         aria-expanded={open}
         aria-controls={open ? listboxId : undefined}

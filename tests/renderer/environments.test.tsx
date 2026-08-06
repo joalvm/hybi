@@ -23,7 +23,7 @@ function loadWorkspace(): void {
   });
   workspace.connections.push({
     id: 'c1',
-    name: 'Conexión A',
+    name: 'Connection A',
     environmentId: null,
     transport: {
       kind: 'websocket',
@@ -45,7 +45,7 @@ describe('ActiveEnvironmentPicker', () => {
     loadWorkspace();
     render(<ActiveEnvironmentPicker />);
 
-    await user.click(screen.getByRole('combobox', { name: 'Entorno' }));
+    await user.click(screen.getByRole('combobox', { name: 'Environment' }));
     await user.click(screen.getByRole('option', { name: 'local' }));
 
     expect(useStore.getState().workspace?.connections[0]?.environmentId).toBe('env1');
@@ -56,7 +56,7 @@ describe('ActiveEnvironmentPicker', () => {
     useStore.getState().setActiveConnection(null);
     render(<ActiveEnvironmentPicker />);
 
-    expect(screen.queryByLabelText('Entorno')).toBeNull();
+    expect(screen.queryByLabelText('Environment')).toBeNull();
   });
 });
 
@@ -76,12 +76,12 @@ describe('EnvironmentPicker', () => {
       />,
     );
 
-    await user.click(screen.getByRole('combobox', { name: 'Entorno' }));
+    await user.click(screen.getByRole('combobox', { name: 'Environment' }));
     await user.click(screen.getByRole('option', { name: 'staging' }));
     expect(onChange).toHaveBeenCalledWith('env-2');
 
-    await user.click(screen.getByRole('combobox', { name: 'Entorno' }));
-    await user.click(screen.getByRole('option', { name: 'Sin entorno' }));
+    await user.click(screen.getByRole('combobox', { name: 'Environment' }));
+    await user.click(screen.getByRole('option', { name: 'No environment' }));
     expect(onChange).toHaveBeenCalledWith(null);
   });
 });
@@ -94,26 +94,26 @@ describe('VariablesDialog', () => {
   });
 
   it('creates an environment with a name and nothing else', () => {
-    fireEvent.click(screen.getByRole('button', { name: 'Nuevo entorno' }));
+    fireEvent.click(screen.getByRole('button', { name: 'New environment' }));
 
     expect(environments()).toHaveLength(2);
     expect(environments()[1]?.variables).toEqual([]);
     // The new one is what the detail half shows, so variables land in it.
-    expect(screen.getByLabelText('Nombre del entorno')).toHaveProperty('value', 'Entorno 2');
+    expect(screen.getByLabelText('Environment name')).toHaveProperty('value', 'Environment 2');
   });
 
   it('renames in place', () => {
-    fireEvent.change(screen.getByLabelText('Nombre del entorno'), { target: { value: 'staging' } });
+    fireEvent.change(screen.getByLabelText('Environment name'), { target: { value: 'staging' } });
 
     expect(environments()[0]?.name).toBe('staging');
   });
 
   it('adds and edits a variable of the selected environment', () => {
-    fireEvent.click(screen.getByRole('button', { name: 'Añadir variable' }));
-    fireEvent.change(screen.getByLabelText('Nombre de la variable 2'), {
+    fireEvent.click(screen.getByRole('button', { name: 'Add variable' }));
+    fireEvent.change(screen.getByLabelText('Name of variable 2'), {
       target: { value: 'token' },
     });
-    fireEvent.change(screen.getByLabelText('Valor de la variable 2'), { target: { value: 'abc' } });
+    fireEvent.change(screen.getByLabelText('Value of variable 2'), { target: { value: 'abc' } });
 
     expect(environments()[0]?.variables[1]).toEqual({
       name: 'token',
@@ -125,7 +125,7 @@ describe('VariablesDialog', () => {
   it('asks before deleting and frees the connections that used it', () => {
     useStore.getState().upsertConnection({
       id: 'c1',
-      name: 'Conexión A',
+      name: 'Connection A',
       environmentId: 'env1',
       transport: {
         kind: 'websocket',
@@ -134,13 +134,13 @@ describe('VariablesDialog', () => {
       },
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Eliminar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
     expect(environments()).toHaveLength(1);
 
     // The confirm dialog is modal, so Radix marks the rest of the tree
     // aria-hidden — the button behind it drops out of the accessible tree and
     // this query resolves to the dialog's own action, uniquely.
-    fireEvent.click(screen.getByRole('button', { name: 'Eliminar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(environments()).toHaveLength(0);
     expect(useStore.getState().workspace?.connections[0]?.environmentId).toBeNull();
@@ -169,7 +169,7 @@ describe('VariablePopover', () => {
     const user = userEvent.setup();
     render(<VariablePopover name="host" environmentId="env-1" anchor={anchor} onClose={vi.fn()} />);
 
-    const field = screen.getByLabelText('Valor de host');
+    const field = screen.getByLabelText('Value of host');
     await user.clear(field);
     await user.type(field, 'ws://b{Enter}');
 
@@ -182,7 +182,7 @@ describe('VariablePopover', () => {
     const user = userEvent.setup();
     render(<VariablePopover name="token" environmentId="env-1" anchor={anchor} onClose={vi.fn()} />);
 
-    await user.click(screen.getByRole('button', { name: 'Crear en local' }));
+    await user.click(screen.getByRole('button', { name: 'Create it in local' }));
 
     expect(useStore.getState().workspace?.environments[0]?.variables).toContainEqual({
       name: 'token',
@@ -199,9 +199,9 @@ describe('VariablePopover', () => {
 
     render(<VariablePopover name="apiKey" environmentId="env-1" anchor={anchor} onClose={vi.fn()} />);
 
-    const field = screen.getByLabelText('Valor de apiKey');
+    const field = screen.getByLabelText('Value of apiKey');
     expect(field.getAttribute('type')).toBe('password');
-    await user.click(screen.getByRole('button', { name: 'Mostrar valor' }));
+    await user.click(screen.getByRole('button', { name: 'Show value' }));
     expect(field.getAttribute('type')).toBe('text');
   });
 });

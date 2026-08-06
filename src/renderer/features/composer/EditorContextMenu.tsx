@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { ContextMenu } from '@/shared/ui/ContextMenu.js';
 import { CutIcon, DuplicateIcon, PasteIcon } from '@/shared/ui/icons.js';
 
@@ -18,23 +19,25 @@ export function EditorContextMenu({
   onCopy,
   onPaste,
 }: Props) {
+  const messages = useMessages();
+
   return (
     <ContextMenu
-      label="Acciones del editor"
+      label={messages.composer.editorActions}
       items={[
         {
-          label: 'Cortar',
+          label: messages.common.cut,
           icon: <CutIcon />,
           disabled: !hasSelection,
           onSelect: onCut,
         },
         {
-          label: 'Copiar',
+          label: messages.common.copy,
           icon: <DuplicateIcon />,
           disabled: !hasSelection,
           onSelect: onCopy,
         },
-        { label: 'Pegar', icon: <PasteIcon />, onSelect: onPaste },
+        { label: messages.common.paste, icon: <PasteIcon />, onSelect: onPaste },
       ]}
     >
       {children}

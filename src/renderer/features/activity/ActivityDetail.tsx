@@ -1,5 +1,8 @@
 import { useEffect, useMemo } from 'react';
-import { ACTIVITY_KIND_LABEL, type ActivityRecord } from '@shared/ipc/activity.js';
+import { formatTime } from '@lang/format.js';
+import { format } from '@lang/translate.js';
+import type { ActivityRecord } from '@shared/ipc/activity.js';
+import { useLanguage, useMessages } from '@/shared/i18n/useMessages.js';
 import { modelFor, useMonacoEditor } from '@/shared/monaco/useMonacoEditor.js';
 import { CloseIcon, DuplicateIcon, SendIcon } from '@/shared/ui/icons.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
@@ -27,6 +30,8 @@ type Props = {
 
 /** Mounted by a selection: the parent renders nothing while no line is marked. */
 export function ActivityDetail({ record, onClose, onCopy, onResend, canResend }: Props) {
+  const messages = useMessages();
+  const language = useLanguage();
   const { containerRef, editorRef } = useMonacoEditor({
     readOnly: true,
     lineNumbers: 'off',
@@ -48,12 +53,14 @@ export function ActivityDetail({ record, onClose, onCopy, onResend, canResend }:
   return (
     <div className="flex h-full min-h-0 flex-col" data-testid="activity-detail">
       <header className="flex items-center gap-3 px-3 py-2 text-label">
-        <span>{ACTIVITY_KIND_LABEL[record.kind]}</span>
-        <span className="text-muted">{String(record.bytes)} B</span>
-        <span className="text-muted">{new Date(record.at).toLocaleTimeString('es')}</span>
+        <span>{messages.activity.kinds[record.kind]}</span>
+        <span className="text-muted">
+          {format(messages.activity.bytes, { count: record.bytes })}
+        </span>
+        <span className="text-muted">{formatTime(language, record.at)}</span>
         <IconButton
           className="ml-auto"
-          label="Reenviar al composer"
+          label={messages.activity.resend}
           disabled={!canResend}
           onClick={onResend}
         >
@@ -61,12 +68,12 @@ export function ActivityDetail({ record, onClose, onCopy, onResend, canResend }:
         </IconButton>
         {/* The frame as it arrived, not the indented copy on screen: what the
             socket carried is what a report or a replay needs. */}
-        <IconButton label="Copiar el frame" onClick={onCopy}>
+        <IconButton label={messages.activity.copyFrame} onClick={onCopy}>
           <DuplicateIcon />
         </IconButton>
         {/* Clicking the marked line again also closes the pane, but that is not
             discoverable — the pane has to carry its own way out. */}
-        <IconButton label="Cerrar detalle" onClick={onClose}>
+        <IconButton label={messages.activity.closeDetail} onClick={onClose}>
           <CloseIcon />
         </IconButton>
       </header>

@@ -53,6 +53,7 @@
   --spacing-variable-input: var(--variable-input-h);
   --spacing-header: var(--header-h);
   --spacing-titlebar: var(--titlebar-h);
+  --spacing-statusbar: var(--statusbar-h);
   --spacing-traffic-lights: var(--traffic-lights-w);
   --spacing-dialog-sm: 400px;
   --spacing-dialog-md: 520px;

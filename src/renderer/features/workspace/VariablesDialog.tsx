@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { format } from '@lang/translate.js';
 import type { Environment, Variable } from '@shared/domain/types.js';
+import { useMessages } from '@/shared/i18n/useMessages.js';
 import { Button } from '@/shared/ui/Button.js';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog.js';
 import { Dialog } from '@/shared/ui/Dialog.js';
@@ -17,6 +19,8 @@ const EMPTY_ENVIRONMENTS: Environment[] = [];
  * is what you fill in afterwards, and the name is editable in place.
  */
 export function VariablesDialog() {
+  const catalog = useMessages();
+  const messages = catalog.workspace;
   const open = useStore((state) => state.dialog === 'variables');
   const environments = useStore((state) => state.workspace?.environments ?? EMPTY_ENVIRONMENTS);
   const setDialog = useStore((state) => state.setDialog);
@@ -37,7 +41,9 @@ export function VariablesDialog() {
   };
 
   const create = (): void => {
-    addEnvironment(`Entorno ${String(environments.length + 1)}`);
+    addEnvironment(
+      format(messages.environments.created, { number: environments.length + 1 }),
+    );
     const created = useStore.getState().workspace?.environments.at(-1);
     if (created) setSelectedId(created.id);
   };
@@ -45,7 +51,7 @@ export function VariablesDialog() {
   return (
     <Dialog
       open={open}
-      title="Variables de entorno"
+      title={messages.variables.title}
       size="lg"
       onClose={() => {
         setDialog(null);
@@ -61,12 +67,12 @@ export function VariablesDialog() {
 
         <section className="flex min-w-0 flex-col gap-2">
           {current === null ? (
-            <p className="text-label text-muted">Crea un entorno para añadir variables.</p>
+            <p className="text-label text-muted">{messages.variables.noEnvironment}</p>
           ) : (
             <>
               <div className="flex items-center gap-2">
                 <Input
-                  aria-label="Nombre del entorno"
+                  aria-label={messages.environments.name}
                   value={current.name}
                   onChange={(event) => {
                     renameEnvironment(current.id, event.target.value);
@@ -78,13 +84,11 @@ export function VariablesDialog() {
                     setConfirming(true);
                   }}
                 >
-                  Eliminar
+                  {catalog.common.delete}
                 </Button>
               </div>
 
-              <p className="text-label text-muted">
-                Los valores marcados como secretos no se guardan en disco.
-              </p>
+              <p className="text-label text-muted">{messages.variables.secretNote}</p>
 
               {variables.map((variable, index) => (
                 <VariableRow
@@ -106,7 +110,7 @@ export function VariablesDialog() {
                     write([...variables, { name: '', value: '', secret: false }]);
                   }}
                 >
-                  Añadir variable
+                  {messages.variables.add}
                 </Button>
               </div>
             </>
@@ -117,8 +121,8 @@ export function VariablesDialog() {
       {confirming && current !== null && (
         <ConfirmDialog
           open
-          title="Eliminar entorno"
-          message={`¿Eliminar "${current.name}"? Las conexiones que lo usaban se quedan sin entorno.`}
+          title={messages.environments.delete.title}
+          message={format(messages.environments.delete.message, { name: current.name })}
           onConfirm={() => {
             removeEnvironment(current.id);
             setSelectedId(null);

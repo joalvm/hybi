@@ -4,11 +4,11 @@ import type { WorkspaceSummary } from '@shared/domain/types.js';
 
 const openWelcome = vi.fn();
 const openWorkspace = vi.fn();
-const loadPreferences = vi.fn();
+const currentPreferences = vi.fn();
 const list = vi.fn<() => Promise<WorkspaceSummary[]>>(() => Promise.resolve([]));
 
 vi.mock('../../src/main/shell.js', () => ({ openWelcome, openWorkspace }));
-vi.mock('../../src/main/preferences/service.js', () => ({ loadPreferences }));
+vi.mock('../../src/main/preferences/service.js', () => ({ currentPreferences }));
 vi.mock('../../src/main/workspace/paths.js', () => ({ workspacesDirectory: () => 'ignored' }));
 vi.mock('../../src/main/workspace/repository.js', () => ({
   WorkspaceRepository: class {
@@ -26,7 +26,7 @@ const saved: WorkspaceSummary = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  loadPreferences.mockResolvedValue(DEFAULT_PREFERENCES);
+  currentPreferences.mockReturnValue(DEFAULT_PREFERENCES);
   list.mockResolvedValue([]);
 });
 
@@ -40,7 +40,7 @@ describe('openStartupWindow', () => {
 
   /** `list()` is sorted by `updatedAt`, so the first entry is the last one used. */
   it('opens the last document when the preference asks for it', async () => {
-    loadPreferences.mockResolvedValue({ ...DEFAULT_PREFERENCES, startup: 'last-workspace' });
+    currentPreferences.mockReturnValue({ ...DEFAULT_PREFERENCES, startup: 'last-workspace' });
     list.mockResolvedValue([saved, { ...saved, id: 'w0', updatedAt: '2026-07-01T00:00:00.000Z' }]);
 
     await openStartupWindow();
@@ -51,7 +51,7 @@ describe('openStartupWindow', () => {
 
   /** There is nothing to go back to on a fresh install, whatever the setting says. */
   it('falls back to welcome when there is no document to reopen', async () => {
-    loadPreferences.mockResolvedValue({ ...DEFAULT_PREFERENCES, startup: 'last-workspace' });
+    currentPreferences.mockReturnValue({ ...DEFAULT_PREFERENCES, startup: 'last-workspace' });
 
     await openStartupWindow();
 

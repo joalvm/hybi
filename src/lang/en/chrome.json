@@ -1,0 +1,14 @@
+{
+  "menu": "Menu",
+  "variables": "Variables",
+  "preferences": "Preferences",
+  "minimize": "Minimise",
+  "maximize": "Maximise",
+  "restore": "Restore",
+  "close": "Close",
+  "hideCatalog": "Hide the catalog",
+  "showCatalog": "Show the catalog",
+  "openingWorkspace": "Opening workspace…",
+  "noConnection": "Create a connection to get started.",
+  "reload": "Reload"
+}
