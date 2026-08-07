@@ -1,4 +1,4 @@
-import { readFile, stat } from 'node:fs/promises';
+import { open } from 'node:fs/promises';
 import { basename } from 'node:path';
 import { dialog, ipcMain, type BrowserWindow } from 'electron';
 import { bytesToBase64 } from '@shared/binary/base64.js';
@@ -29,22 +29,27 @@ export function registerFileHandlers(window: BrowserWindow): () => void {
     }
 
     try {
-      // Measured before it is read: the point of the ceiling is not to load the
-      // file that exceeds it.
-      const { size } = await stat(filePath);
-      if (size > MAX_ATTACHMENT_BYTES) {
+      // One handle for stat and read: re-resolving the path between the two
+      // would let the file swap out after the size check passed.
+      const handle = await open(filePath, 'r');
+      try {
+        const { size } = await handle.stat();
+        if (size > MAX_ATTACHMENT_BYTES) {
+          return {
+            ok: false,
+            error: format(messages.validation.attachmentTooLarge, { bytes: MAX_ATTACHMENT_BYTES }),
+          };
+        }
+        const contents = await handle.readFile();
         return {
-          ok: false,
-          error: format(messages.validation.attachmentTooLarge, { bytes: MAX_ATTACHMENT_BYTES }),
+          ok: true,
+          name: basename(filePath),
+          body: bytesToBase64(new Uint8Array(contents)),
+          bytes: contents.byteLength,
         };
+      } finally {
+        await handle.close();
       }
-      const contents = await readFile(filePath);
-      return {
-        ok: true,
-        name: basename(filePath),
-        body: bytesToBase64(new Uint8Array(contents)),
-        bytes: contents.byteLength,
-      };
     } catch (error) {
       return { ok: false, error: error instanceof Error ? error.message : String(error) };
     }
