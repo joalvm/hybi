@@ -327,3 +327,34 @@ describe('connection tab menu', () => {
     expect(connections[0]?.transport.settings.headers).toHaveLength(1);
   });
 });
+
+describe('choosing the transport', () => {
+  it('rebuilds the connection on the new transport, at its own defaults', async () => {
+    const user = userEvent.setup();
+    loadWorkspace();
+    render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
+
+    await user.click(screen.getByRole('combobox', { name: 'Transport' }));
+    await user.click(screen.getByRole('option', { name: 'Socket.IO' }));
+
+    const transport = useStore.getState().workspace?.connections[0]?.transport;
+    expect(transport?.kind).toBe('socketio');
+    // Its own default endpoint: a `ws://` URL is not one a Socket.IO client dials.
+    expect(transport?.url).toBe('http://127.0.0.1:3000');
+  });
+
+  it('shows the rail of the transport that was chosen', async () => {
+    const user = userEvent.setup();
+    loadWorkspace();
+    render(<ConnectionSettingsDialog connectionId="c1" onClose={() => undefined} />);
+
+    expect(screen.queryByRole('tab', { name: 'Keepalive' })).toBeTruthy();
+
+    await user.click(screen.getByRole('combobox', { name: 'Transport' }));
+    await user.click(screen.getByRole('option', { name: 'Socket.IO' }));
+
+    expect(screen.getByRole('tab', { name: 'Auth' })).toBeTruthy();
+    // Keepalive is the native socket's ping/pong; Socket.IO runs its own.
+    expect(screen.queryByRole('tab', { name: 'Keepalive' })).toBeNull();
+  });
+});

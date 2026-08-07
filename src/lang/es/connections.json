@@ -130,5 +130,11 @@
       "send": "Enviar {name}",
       "remove": "Quitar {name}"
     }
+  },
+  "transport": {
+    "label": "Transporte",
+    "description": "Qué protocolo habla esta conexión. Cambiarlo parte de los valores por defecto de ese transporte, URL incluida.",
+    "websocket": "WebSocket",
+    "socketio": "Socket.IO"
   }
 }

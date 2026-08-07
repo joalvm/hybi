@@ -1,14 +1,17 @@
+import type { TransportKind } from '@shared/domain/connections/connection.js';
 import type { SocketIoTransportSettings } from '@shared/domain/connections/socketio.js';
 import { useMessages } from '@/shared/i18n/useMessages.js';
 import { SettingsPane } from '@/shared/ui/settings/SettingsPane.js';
 import { PairsEditor } from '../../settings/PairsEditor.js';
 import { RetryFields } from '../../settings/RetryFields.js';
+import { TransportKindField } from '../../settings/TransportKindField.js';
 import { NamespaceFields } from './NamespaceFields.js';
 import { SocketIoAdvanced } from './SocketIoAdvanced.js';
 
 type Props = {
   settings: SocketIoTransportSettings;
   onChange: (next: Partial<SocketIoTransportSettings>) => void;
+  onKindChange: (kind: TransportKind) => void;
 };
 
 /**
@@ -16,13 +19,14 @@ type Props = {
  * entry of `socketIoSettingsTabs`, which is the list the dialog draws its rail
  * from.
  */
-export function SocketIoSettings({ settings, onChange }: Props) {
+export function SocketIoSettings({ settings, onChange, onKindChange }: Props) {
   const messages = useMessages().connections;
   const tabs = messages.tabs;
 
   return (
     <>
       <SettingsPane value="connection" title={tabs.connection}>
+        <TransportKindField kind="socketio" onChange={onKindChange} />
         <NamespaceFields settings={settings} onChange={onChange} />
       </SettingsPane>
       <SettingsPane value="auth" title={tabs.auth}>

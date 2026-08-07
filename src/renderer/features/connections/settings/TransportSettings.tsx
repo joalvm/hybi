@@ -1,4 +1,5 @@
-import type { ConnectionTransport } from '@shared/domain/connections/connection.js';
+import type { ConnectionTransport, TransportKind } from '@shared/domain/connections/connection.js';
+import { createTransport } from '@shared/domain/connections/factory.js';
 import { SocketIoSettings } from '../socketio/settings/SocketIoSettings.js';
 import { WebSocketSettings } from '../websocket/settings/WebSocketSettings.js';
 
@@ -17,11 +18,16 @@ type Props = {
  * handler that only saw the union.
  */
 export function TransportSettings({ transport, onChange }: Props) {
+  const changeKind = (kind: TransportKind): void => {
+    if (kind !== transport.kind) onChange(createTransport(kind));
+  };
+
   switch (transport.kind) {
     case 'websocket':
       return (
         <WebSocketSettings
           settings={transport.settings}
+          onKindChange={changeKind}
           onChange={(next) => {
             onChange({ ...transport, settings: { ...transport.settings, ...next } });
           }}
@@ -31,6 +37,7 @@ export function TransportSettings({ transport, onChange }: Props) {
       return (
         <SocketIoSettings
           settings={transport.settings}
+          onKindChange={changeKind}
           onChange={(next) => {
             onChange({ ...transport, settings: { ...transport.settings, ...next } });
           }}
