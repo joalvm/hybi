@@ -40,6 +40,8 @@
   --color-ok: var(--ok);
   --color-warn: var(--warn);
   --color-error: var(--error);
+  --color-transport-websocket: var(--transport-websocket);
+  --color-transport-socketio: var(--transport-socketio);
   --color-window-close: var(--window-close-hover);
   --color-on-danger: #ffffff;
   --color-switch-off: var(--switch-off);

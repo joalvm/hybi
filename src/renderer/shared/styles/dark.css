@@ -25,6 +25,8 @@
   --ok: #4ade80;
   --warn: #fbbf24;
   --error: #fb7185;
+  --transport-websocket: #a7a0f0;
+  --transport-socketio: #f2a0c0;
   --switch-off: #5b6669;
   --scrollbar-thumb: rgb(234 243 241 / 18%);
   --scrollbar-thumb-hover: rgb(234 243 241 / 30%);

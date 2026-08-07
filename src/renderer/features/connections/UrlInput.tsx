@@ -1,4 +1,12 @@
-import { useId, useLayoutEffect, useMemo, useRef, type KeyboardEvent, type PointerEvent } from 'react';
+import {
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
+} from 'react';
 import type { VariableScope } from '@shared/variables/resolve.js';
 import { useMessages } from '@/shared/i18n/useMessages.js';
 import { paintSegments, readCaret, readSelection, readText, writeCaret } from './urlCaret.js';
@@ -11,6 +19,12 @@ type Props = {
   /** Names the current scope cannot resolve. Derived by the caller, not here. */
   missing: readonly string[];
   scope: VariableScope;
+  /**
+   * Sits inside the field's border, before the text. One box and one focus
+   * ring for the pair: two boxes side by side show the seam, and what protocol
+   * is spoken and where belong to the same answer.
+   */
+  leading?: ReactNode;
   onChange: (value: string) => void;
   /**
    * A variable was pointed at. The rectangle is the token's own box, so the
@@ -36,7 +50,7 @@ function tokenAt(event: PointerEvent<HTMLDivElement>): HTMLElement | null {
  * caret walks. The price is that an edit has to be read back out of the DOM,
  * and that the field is repainted rather than reconciled — see `urlCaret.ts`.
  */
-export function UrlInput({ value, missing, scope, onChange, onVariablePoint }: Props) {
+export function UrlInput({ value, missing, scope, leading, onChange, onVariablePoint }: Props) {
   const messages = useMessages().connections;
   const segments = useMemo(() => urlSegments(value, missing), [value, missing]);
   const suggestions = useUrlSuggestions(value, scope);
@@ -91,11 +105,15 @@ export function UrlInput({ value, missing, scope, onChange, onVariablePoint }: P
     if (event.key === 'Enter' && selected !== undefined) complete(selected.name);
   };
 
+  // The field is not clipped to its own border: `leading` rounds its own left
+  // corners instead, because the suggestion list hangs below this box and
+  // `overflow-hidden` would take it with the corners.
   return (
-    <div className="relative h-7.5 min-w-0 flex-1 rounded-ui border border-border bg-panel focus-within:border-accent focus-within:outline focus-within:outline-1 focus-within:outline-accent">
+    <div className="relative flex h-7.5 min-w-0 flex-1 items-stretch rounded-ui border border-border bg-panel focus-within:border-accent focus-within:outline focus-within:outline-1 focus-within:outline-accent">
+      {leading}
       <div
         ref={editorRef}
-        className="h-full w-full overflow-hidden px-2 font-ui text-ui leading-url font-normal whitespace-pre text-foreground caret-foreground outline-none"
+        className="h-full min-w-0 flex-1 overflow-hidden px-2 font-ui text-ui leading-url font-normal whitespace-pre text-foreground caret-foreground outline-none"
         data-part="url-input-field"
         contentEditable
         role="combobox"

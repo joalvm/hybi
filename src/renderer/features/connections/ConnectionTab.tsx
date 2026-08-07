@@ -5,6 +5,7 @@ import type { ConnectionState } from '@shared/ipc/activity.js';
 import { useMessages } from '@/shared/i18n/useMessages.js';
 import { DuplicateIcon, RenameIcon, SettingsIcon, TrashIcon } from '@/shared/ui/icons.js';
 import { InlineNameInput } from '@/shared/ui/InlineNameInput.js';
+import { TransportLogo } from '@/shared/ui/logos/TransportLogo.js';
 import { RowMenu } from '@/shared/ui/RowMenu.js';
 import { cn } from '@/shared/utils/cn.js';
 import { stateLabel } from './state-label.js';
@@ -60,11 +61,17 @@ export const ConnectionTab = memo(function ConnectionTab({
     warn: 'text-warn',
     error: 'text-error',
   };
-  const dot = (
-    <span
-      aria-hidden="true"
-      className={cn('h-2 w-2 shrink-0 rounded-full bg-current', tones[label.tone])}
-    />
+  // The mark answers what it speaks, the dot answers how it is doing. Both are
+  // `aria-hidden`: the protocol is in the title alongside the state, and the
+  // accessible name of the tab stays equal to the connection's name.
+  const marks = (
+    <span className="flex shrink-0 items-center gap-1.5">
+      <TransportLogo kind={connection.transport.kind} />
+      <span
+        aria-hidden="true"
+        className={cn('h-2 w-2 shrink-0 rounded-full bg-current', tones[label.tone])}
+      />
+    </span>
   );
 
   return (
@@ -77,7 +84,7 @@ export const ConnectionTab = memo(function ConnectionTab({
     >
       {renaming ? (
         <div className="flex h-full max-w-56 items-center gap-2 rounded-worktab py-0 pr-1 pl-2 text-muted">
-          {dot}
+          {marks}
           <InlineNameInput
             value={connection.name}
             label={messages.connections.connectionName}
@@ -97,6 +104,7 @@ export const ConnectionTab = memo(function ConnectionTab({
           aria-current={active ? 'true' : undefined}
           title={format(messages.connections.tabTitle, {
             name: connection.name,
+            transport: messages.connections.transport[connection.transport.kind],
             state: label.text,
           })}
           onClick={() => {
@@ -106,7 +114,7 @@ export const ConnectionTab = memo(function ConnectionTab({
             onStartRename(connection.id);
           }}
         >
-          {dot}
+          {marks}
           <span className="overflow-hidden text-ellipsis whitespace-nowrap">{connection.name}</span>
         </button>
       )}
