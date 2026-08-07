@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  cloneSocketIoSettings,
   cloneWebSocketSettings,
   DEFAULT_WEBSOCKET_SETTINGS,
 } from '@shared/domain/connections/defaults.js';
@@ -149,45 +150,14 @@ describe('ConnectionBar', () => {
     });
   });
 
-  // The counter answers for the whole session, so it is read from the running
-  // totals and not from the records the log still happens to be holding.
-  it('reports what the connection has moved, in both directions', () => {
+  // The traffic figures moved to the activity panel's own strip, which is the
+  // panel they describe. Covered in `activity.test.tsx`.
+  it('leaves the traffic figures to the activity panel', () => {
     loadWorkspace('ws://127.0.0.1:3000', null);
     render(<ConnectionBar connectionId="c1" />);
 
-    expect(screen.getByLabelText('Received: 0 messages, 0 B')).toBeTruthy();
-
-    act(() => {
-      useStore.getState().appendActivity([
-        {
-          id: 'c1:1',
-          connectionId: 'c1',
-          transportKind: 'websocket',
-          sequence: 1,
-          kind: 'incoming',
-          at: 0,
-          label: 'Pong',
-          body: 'x',
-          encoding: 'text',
-          bytes: 2400,
-        },
-        {
-          id: 'c1:2',
-          connectionId: 'c1',
-          transportKind: 'websocket',
-          sequence: 2,
-          kind: 'outgoing',
-          at: 1,
-          label: 'Ping',
-          body: 'x',
-          encoding: 'text',
-          bytes: 12,
-        },
-      ]);
-    });
-
-    expect(screen.getByLabelText('Received: 1 message, 2,4 kB')).toBeTruthy();
-    expect(screen.getByLabelText('Sent: 1 message, 12 B')).toBeTruthy();
+    expect(screen.queryByLabelText(/^Received:/)).toBeNull();
+    expect(screen.queryByLabelText(/^Sent:/)).toBeNull();
   });
 
   it('refuses to open while a variable is unresolved', () => {
@@ -430,7 +400,94 @@ describe('ConnectionBar', () => {
   });
 });
 
+describe('TransportSelect', () => {
+  /** The pill lives inside the URL field, so it is read from the bar. */
+  const openMenu = async (name: string): Promise<void> => {
+    await userEvent.click(screen.getByRole('button', { name }));
+  };
+
+  it('names the transport the connection currently speaks', () => {
+    loadWorkspace('ws://127.0.0.1:3000', null);
+    render(<ConnectionBar connectionId="c1" />);
+
+    expect(screen.getByRole('button', { name: 'Transport: WebSocket' })).toBeTruthy();
+  });
+
+  // A connection nobody has configured yet is the common case for this control,
+  // and there is nothing to lose, so it does not ask.
+  it('switches straight away while the transport still holds its defaults', async () => {
+    loadWorkspace('ws://127.0.0.1:3000', null);
+    render(<ConnectionBar connectionId="c1" />);
+
+    await openMenu('Transport: WebSocket');
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Socket.IO' }));
+
+    expect(useStore.getState().workspace?.connections[0]?.transport).toEqual({
+      kind: 'socketio',
+      url: 'http://127.0.0.1:3000',
+      settings: cloneSocketIoSettings(),
+    });
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+  });
+
+  // The new transport starts from its own defaults, URL included, so a control
+  // one click away from the URL field has to say what it is about to throw out.
+  it('asks before discarding a transport that was configured', async () => {
+    loadWorkspace('wss://staging.example.test/socket', null);
+    render(<ConnectionBar connectionId="c1" />);
+
+    await openMenu('Transport: WebSocket');
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Socket.IO' }));
+
+    expect(screen.getByRole('alertdialog')).toBeTruthy();
+    expect(useStore.getState().workspace?.connections[0]?.transport.kind).toBe('websocket');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Change' }));
+
+    expect(useStore.getState().workspace?.connections[0]?.transport).toEqual({
+      kind: 'socketio',
+      url: 'http://127.0.0.1:3000',
+      settings: cloneSocketIoSettings(),
+    });
+  });
+
+  it('leaves the transport alone when the question is answered no', async () => {
+    loadWorkspace('wss://staging.example.test/socket', null);
+    render(<ConnectionBar connectionId="c1" />);
+
+    await openMenu('Transport: WebSocket');
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Socket.IO' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(useStore.getState().workspace?.connections[0]?.transport.url).toBe(
+      'wss://staging.example.test/socket',
+    );
+  });
+
+  // Swapping transports under a live socket would leave one open that no longer
+  // belongs to any configuration in the document. Disconnect is right there.
+  it('is locked while the socket is not idle', () => {
+    loadWorkspace('ws://127.0.0.1:3000', null);
+    useStore.getState().setConnectionState('c1', 'open');
+    render(<ConnectionBar connectionId="c1" />);
+
+    expect(screen.getByRole('button', { name: 'Transport: WebSocket' })).toHaveProperty(
+      'disabled',
+      true,
+    );
+  });
+});
+
 describe('ConnectionTabs', () => {
+  // The mark says which protocol, the dot says how it is doing. Two questions,
+  // two channels: neither one has to carry the other's answer.
+  it('marks each tab with the protocol it speaks', () => {
+    loadWorkspace('ws://127.0.0.1:3000', null);
+    render(<ConnectionTabs />);
+
+    expect(screen.getByRole('button', { name: 'Connection A' }).querySelector('svg')).toBeTruthy();
+  });
+
   it('renders one tab per connection and activates the one clicked', () => {
     loadWorkspace('ws://127.0.0.1:3000', null);
     render(<ConnectionTabs />);

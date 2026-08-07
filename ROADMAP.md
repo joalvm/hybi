@@ -49,10 +49,12 @@ distribución y mercado. Eso es lo que ordena las dos listas de abajo.
 
 ### Deuda detectada en la auditoría
 
-- [ ] **Tres archivos rompen la regla de 150 líneas del propio repo**:
+- [x] **Varios archivos rompían la regla de 150 líneas del propio repo**:
       `useCatalogActions.ts` (221), `asyncapi/importer.ts` (186),
-      `CatalogPanel.tsx` (157). La regla o se cumple o se cambia; hoy está en
-      tierra de nadie.
+      `CatalogPanel.tsx` (157) y tres más. La regla se cambió a 225 líneas de
+      código —sin comentarios ni blancos— y dejó de estar en tierra de nadie:
+      `max-lines` en `eslint.config.js` la comprueba sobre `src/`. `tests/`
+      queda exento a propósito.
 - [x] **`ThemeToggle` está marcado `data-temporary="true"` y en producción.** Un
       control de QA no debe viajar en un instalador. Retirado: el tema es una
       preferencia persistida y se cambia desde el diálogo de preferencias.
@@ -62,8 +64,9 @@ distribución y mercado. Eso es lo que ordena las dos listas de abajo.
 - [x] **Índice de Codebase Memory duplicado otra vez.** El proyecto derivado de
       la ruta, `C-Users-joalv-Documents-invian-websocket-workbench`, quedó
       borrado; el único índice vivo es `websocket-workbench`.
-- [ ] **No hay `CHANGELOG.md`.** Las notas se generan de los PR; sirve para la
-      alpha, no para una 1.0.
+- [x] **No había `CHANGELOG.md`.** Existe, en formato Keep a Changelog, con la
+      historia reconstruida desde los PR fusionados. Lo nuevo entra bajo
+      `Unreleased` en el mismo PR que lo introduce.
 
 ---
 
@@ -174,9 +177,6 @@ ningún flujo que la app ya promete**, con el formato de datos congelado.
       `ETIMEDOUT`, `ECONNRESET`, las de ruta y la familia de certificado llegan
       como una frase que conserva el código, y el estado del handshake se lee
       del mensaje que lanza `ws`.
-- [ ] **Prueba de carga.** Medir con 10 000 msg/s sostenidos: memoria estable,
-      interfaz sin bloquear, presupuesto del log respetado. Dejar el número
-      escrito.
 - [x] **Migración de documentos a partir de la beta.** La cadena vuelve a
       existir como dato, hoy vacía porque v1 es el único formato publicado, con
       guarda de versión y copia del archivo original antes de reescribirlo. Un
@@ -185,14 +185,16 @@ ningún flujo que la app ya promete**, con el formato de datos congelado.
 
 ### Higiene de repositorio
 
-- [ ] **Cerrar la deuda de la sección 1** (tamaño de archivos, control
+- [x] **Cerrar la deuda de la sección 1** (tamaño de archivos, control
       temporal, índice duplicado).
-- [ ] **`CHANGELOG.md`** siguiendo Keep a Changelog, alimentado por los títulos
+- [x] **`CHANGELOG.md`** siguiendo Keep a Changelog, alimentado por los títulos
       de los PR que ya son Conventional Commits.
-- [ ] **Cobertura medida y con umbral en CI.** Hoy hay 406 pruebas, pero ningún
-      número que impida que la cobertura baje.
-- [ ] **Revisión de accesibilidad de teclado.** El árbol del catálogo ya la
-      tiene; falta verificar diálogos, popovers y el recorrido de foco completo.
+
+Tres puntos que estaban aquí —umbral de cobertura en CI, prueba de carga de
+10 000 msg/s y repaso de accesibilidad de teclado— pasaron al camino a la 1.0.
+Un umbral y una cifra de carga protegen una superficie que ya no se mueve, y la
+beta existe para que se mueva: fijarlos ahora sólo garantiza volver a
+discutirlos en cada PR de la beta.
 
 ---
 
@@ -249,12 +251,21 @@ habitual.**
       WebSocket que lee tu AsyncAPI y no te pide cuenta.* Debe ser el primer
       texto del sitio, del README y de la ficha del repositorio.
 - [ ] **Auditoría de accesibilidad**: contraste en ambos temas, lector de
-      pantalla en los paneles principales, foco visible en todo control.
+      pantalla en los paneles principales, foco visible en todo control. Incluye
+      el repaso de teclado que venía de la beta: diálogos, popovers y el
+      recorrido de foco completo. El árbol del catálogo ya lo tiene.
 - [ ] **Plantillas de issue afinadas con lo aprendido en la beta** y una
       etiqueta de «fallo con log adjunto» que apunte al log en disco.
 
 ### Confianza
 
+- [ ] **Cobertura medida y con umbral en CI.** Hay más de 400 pruebas y ningún
+      número que impida que la cobertura baje. Se fija cuando la superficie deja
+      de moverse, es decir después de la beta y no antes.
+- [ ] **Prueba de carga con el resultado escrito.** 10 000 msg/s sostenidos:
+      memoria estable, interfaz sin bloquear, presupuesto del log respetado. El
+      número publicado es parte de la promesa de «aguante bajo carga»; hasta que
+      exista, esa ventaja es una afirmación sin medir.
 - [ ] **Reporte de fallos opcional y explícito.** O telemetría anónima con
       consentimiento, o un botón de «reportar» que empaquete el log local y lo
       deje al usuario para que lo adjunte. Sin uno de los dos, los fallos de
@@ -295,7 +306,8 @@ habitual.**
 | Monetización | Sin modelo | Medio, aplazable |
 
 **Los tres movimientos que se marcaron —binarios, integridad del workspace y
-Socket.IO— están hechos.** Lo que queda por delante de la beta es higiene de
-release: `CHANGELOG.md`, la deuda del repositorio y los umbrales de cobertura;
-y, por encima de todo, firmar los instaladores, que sigue siendo la mayor
-pérdida de usuarios.
+Socket.IO— están hechos, y la higiene de release también: `CHANGELOG.md` existe
+y la regla de tamaño de archivo la comprueba ESLint.** No queda nada de
+ingeniería por delante de la beta. Lo que sigue pendiente es firmar los
+instaladores, que no se resuelve programando y sigue siendo la mayor pérdida de
+usuarios del proyecto.

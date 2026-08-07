@@ -76,8 +76,9 @@ export const selectActivityFor =
     state.activity[connectionId] ?? EMPTY_ACTIVITY;
 
 /**
- * The stored totals, or the shared empty one. The reference only changes when a
- * frame moved, so the counter is not repainted by every batch of status lines.
+ * The stored totals, or the shared empty one. A connection that was never
+ * written to shares a single identity, so the strip of a quiet tab is not
+ * repainted by a neighbour's flood.
  */
 export const selectTotalsFor =
   (connectionId: string) =>

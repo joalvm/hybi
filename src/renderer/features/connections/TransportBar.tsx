@@ -1,18 +1,20 @@
 import { useMemo } from 'react';
+import { format } from '@lang/translate.js';
 import type { ConnectionTransport } from '@shared/domain/connections/connection.js';
 import type { ConnectionState } from '@shared/ipc/activity.js';
 import type { VariableScope } from '@shared/variables/resolve.js';
-import type { ActivityTotals } from '@/store/totals.js';
 import { bridge } from '@/ipc/bridge.js';
 import { VariablePopover } from '@/features/workspace/VariablePopover.js';
 import { useMessages } from '@/shared/i18n/useMessages.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import { SettingsIcon } from '@/shared/ui/icons.js';
 import { useHoverIntent } from '@/shared/ui/useHoverIntent.js';
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog.js';
 import { ConnectButton } from './ConnectButton.js';
 import { resolveTransport } from './resolve.js';
-import { TrafficCounter } from './TrafficCounter.js';
+import { TransportSelect } from './TransportSelect.js';
 import { UrlInput } from './UrlInput.js';
+import { useTransportSwitch } from './useTransportSwitch.js';
 
 type Props = {
   connectionId: string;
@@ -20,7 +22,6 @@ type Props = {
   transport: ConnectionTransport;
   scope: VariableScope;
   state: ConnectionState;
-  totals: ActivityTotals;
   onTransportChange: (transport: ConnectionTransport) => void;
   onStateChange: (state: ConnectionState) => void;
   onLocalError: (message: string) => void;
@@ -40,6 +41,11 @@ export function TransportBar(props: Props) {
   // one set of delays, wherever the token is written.
   const hover = useHoverIntent<{ name: string; rect: DOMRect }>();
   const pointed = hover.value;
+  const switching = useTransportSwitch(transport, props.onTransportChange);
+  // The three states in which a socket is in play. Replacing the transport here
+  // would leave one open that no longer belongs to any configuration in the
+  // document, and Disconnect is the button two along.
+  const live = state === 'connecting' || state === 'open' || state === 'closing';
 
   const crash = (cause: unknown): void => {
     props.onLocalError(cause instanceof Error ? cause.message : String(cause));
@@ -67,6 +73,9 @@ export function TransportBar(props: Props) {
         value={transport.url}
         missing={resolution.missing}
         scope={scope}
+        leading={
+          <TransportSelect kind={transport.kind} locked={live} onSelect={switching.select} />
+        }
         onChange={(url) => {
           props.onTransportChange({ ...transport, url });
         }}
@@ -78,7 +87,6 @@ export function TransportBar(props: Props) {
           hover.point(() => ({ name, rect }));
         }}
       />
-      <TrafficCounter totals={props.totals} />
       <IconButton label={messages.settings} onClick={props.onOpenSettings}>
         <SettingsIcon />
       </IconButton>
@@ -99,6 +107,17 @@ export function TransportBar(props: Props) {
           onPointerLeave={hover.release}
         />
       )}
+      <ConfirmDialog
+        open={switching.pending !== null}
+        title={messages.transport.discard.title}
+        message={format(messages.transport.discard.message, {
+          from: messages.transport[transport.kind],
+          to: messages.transport[switching.pending ?? transport.kind],
+        })}
+        confirmLabel={messages.transport.discard.confirm}
+        onConfirm={switching.confirm}
+        onClose={switching.dismiss}
+      />
     </div>
   );
 }

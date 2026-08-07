@@ -6,7 +6,7 @@
   "url": "URL",
   "settings": "Connection settings",
   "configure": "Settings",
-  "tabTitle": "{name} — {state} (double click to rename)",
+  "tabTitle": "{name} — {transport} · {state} (double click to rename)",
   "copySuffix": "{name} (copy)",
   "delete": {
     "title": "Delete connection",
@@ -20,14 +20,6 @@
     "closed": "Disconnected",
     "dropped": "Disconnected",
     "error": "Error"
-  },
-  "traffic": {
-    "incoming": "Received",
-    "outgoing": "Sent",
-    "summary": {
-      "one": "{side}: {messages} message, {bytes}",
-      "other": "{side}: {messages} messages, {bytes}"
-    }
   },
   "suggestions": {
     "label": "Environment variables",
@@ -134,6 +126,13 @@
   "transport": {
     "label": "Transport",
     "description": "Which protocol this connection speaks. Changing it starts from that transport's defaults, URL included.",
+    "current": "Transport: {name}",
+    "locked": "Disconnect before changing transport.",
+    "discard": {
+      "title": "Change transport",
+      "message": "{to} starts from its own defaults. The URL and the {from} settings of this connection are discarded.",
+      "confirm": "Change"
+    },
     "websocket": "WebSocket",
     "socketio": "Socket.IO"
   }

@@ -33,6 +33,7 @@ import {
   Plus,
   Power,
   RefreshCw,
+  Rows3,
   Save,
   ScrollText,
   SendHorizontal,
@@ -116,6 +117,8 @@ export const IncomingIcon = hairline(ArrowDown);
 export const StatusIcon = hairline(CircleCheck);
 /** A failure, on the socket or in the app. */
 export const ErrorIcon = hairline(CircleX);
+/** How many lines the log has been handed, whatever kind they were. */
+export const RecordsIcon = hairline(Rows3);
 /** Filters event names in the catalog. */
 export const FilterIcon = hairline(ListFilter);
 /** Opens how a connection is dialled: headers, subprotocols, retry, keepalive. */

@@ -27,6 +27,19 @@ export default tseslint.config(
     },
   },
   {
+    // Only `src/`. A test file is a list of cases and grows by addition, not by
+    // taking on responsibilities; splitting one to satisfy a number would scatter
+    // a suite across files that have to be read together anyway.
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      // The size rule the repo used to keep in prose and broke six times. It
+      // counts code, not the documentation blocks this codebase writes on
+      // purpose: a file that spends twenty lines explaining itself is the point,
+      // not the debt.
+      "max-lines": ["error", { max: 225, skipComments: true, skipBlankLines: true }],
+    },
+  },
+  {
     files: ["src/renderer/**/*.{ts,tsx}"],
     extends: [reactHooks.configs.flat["recommended-latest"]],
     plugins: { local },

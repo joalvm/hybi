@@ -32,6 +32,11 @@
   --ok: #16a34a;
   --warn: #b45309;
   --error: #dc2626;
+  /* One hue per protocol, kept clear of the teal (which is the app) and of
+     ok/warn/error (which is how a connection is doing). The mark says what it
+     speaks; the dot beside it says how it is. */
+  --transport-websocket: #5b53c9;
+  --transport-socketio: #b8336a;
   --window-close-hover: #c42b1c;
   --switch-off: #a9aaad;
   --scrollbar-thumb: rgb(28 28 30 / 20%);

@@ -7,6 +7,36 @@ import { ConfirmDialog } from '@/shared/ui/ConfirmDialog.js';
 import { Badge } from '@/shared/ui/Badge.js';
 import { Menu } from '@/shared/ui/Menu.js';
 import { ContextMenu } from '@/shared/ui/ContextMenu.js';
+import { TRANSPORT_LOGOS, TransportLogo } from '@/shared/ui/logos/TransportLogo.js';
+import { Panel } from '@/shared/ui/Panel.js';
+
+describe('TransportLogo', () => {
+  // The map is typed `TransportFactoryMap`, so a transport with no mark is a
+  // compile error rather than an empty box. This checks the marks are real.
+  it('draws a mark for every transport the app can speak', () => {
+    for (const kind of Object.keys(TRANSPORT_LOGOS) as (keyof typeof TRANSPORT_LOGOS)[]) {
+      const { container, unmount } = render(<TransportLogo kind={kind} />);
+      const svg = container.querySelector('svg');
+      expect(svg).toBeTruthy();
+      // One colour, taken from the text colour of the box it lands in: the tab
+      // behind it is a different shade when hovered, active and neither.
+      expect(container.innerHTML).toContain('currentColor');
+      unmount();
+    }
+  });
+});
+
+describe('Panel', () => {
+  it('pins the footer outside the part that scrolls', () => {
+    render(
+      <Panel title="Activity" footer={<span data-testid="strip">1</span>}>
+        <span>body</span>
+      </Panel>,
+    );
+
+    expect(screen.getByTestId('strip').closest('[data-part="panel-body"]')).toBeNull();
+  });
+});
 
 describe('IconButton', () => {
   it('always exposes an accessible name', () => {

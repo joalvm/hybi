@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
@@ -484,5 +484,38 @@ describe('ActivityPanel', () => {
     render(<ActivityPanel connectionId="c1" />);
 
     expect(screen.getByText('Disconnected')).toBeTruthy();
+  });
+
+  // The strip answers for the whole session, so it is read from the running
+  // totals and not from the records the log still happens to be holding. The
+  // record count covers every kind; the two sides only count what crossed.
+  it('reports what the connection moved, in a strip under the log', () => {
+    render(<ActivityPanel connectionId="c1" />);
+
+    act(() => {
+      useStore.getState().appendActivity([
+        record({ id: 'c1:2', kind: 'incoming', bytes: 2400 }),
+        record({ id: 'c1:3', kind: 'outgoing', bytes: 12 }),
+        record({ id: 'c1:4', kind: 'status', bytes: 0 }),
+      ]);
+    });
+
+    const strip = within(screen.getByTestId('activity-totals'));
+    expect(strip.getByLabelText('4 records')).toBeTruthy();
+    expect(strip.getByLabelText('Received: 2 messages, 2,4 kB')).toBeTruthy();
+    expect(strip.getByLabelText('Sent: 1 message, 12 B')).toBeTruthy();
+  });
+
+  // Below the split, not inside it: opening the detail must not shove the strip
+  // around, and it describes the panel rather than the list.
+  it('keeps the strip out of the scrolling body', () => {
+    render(<ActivityPanel connectionId="c1" />);
+    act(() => {
+      useStore.getState().setSelectedActivity('c1', 'c1:1');
+    });
+
+    const strip = screen.getByTestId('activity-totals');
+    expect(strip.closest('[data-part="panel-body"]')).toBeNull();
+    expect(screen.getByTestId('activity-detail')).toBeTruthy();
   });
 });

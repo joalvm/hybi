@@ -7,10 +7,11 @@ import { ConfirmDialog } from '@/shared/ui/ConfirmDialog.js';
 import { Panel } from '@/shared/ui/Panel.js';
 import { SplitPane } from '@/shared/ui/SplitPane.js';
 import { useStore } from '@/store/index.js';
-import { selectActivityFor } from '@/store/selectors.js';
+import { selectActivityFor, selectTotalsFor } from '@/store/selectors.js';
 import { ActivityDetail } from './ActivityDetail.js';
 import { ActivityList } from './ActivityList.js';
 import { ActivityToolbar } from './ActivityToolbar.js';
+import { ActivityTotalsBar } from './ActivityTotalsBar.js';
 import { copyText, type CopyScope } from './copy-text.js';
 import { useActivityExport } from './useActivityExport.js';
 import { useActivityFilter } from './useActivityFilter.js';
@@ -22,6 +23,9 @@ type Props = { connectionId: string };
 export function ActivityPanel({ connectionId }: Props) {
   const messages = useMessages();
   const records = useStore(selectActivityFor(connectionId));
+  // Its own subscription, and not derived from `records`: the budget evicts, so
+  // what the log is holding stopped being what the connection has moved.
+  const totals = useStore(selectTotalsFor(connectionId));
   const { query, selectedId, dropped } = useStore(
     useShallow((state) => ({
       query: state.activityQuery,
@@ -105,6 +109,7 @@ export function ActivityPanel({ connectionId }: Props) {
           onClear={clear}
         />
       }
+      footer={<ActivityTotalsBar totals={totals} />}
     >
       {/* The detail pane is created by the selection and disappears with it, so
           an unread log keeps the whole panel instead of half of it. */}

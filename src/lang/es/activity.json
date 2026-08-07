@@ -4,6 +4,18 @@
   "search": "Buscar en la actividad",
   "export": "Exportar la actividad",
   "clear": "Limpiar actividad",
+  "traffic": {
+    "records": {
+      "one": "{count} registro",
+      "other": "{count} registros"
+    },
+    "incoming": "Recibido",
+    "outgoing": "Enviado",
+    "summary": {
+      "one": "{side}: {messages} mensaje, {bytes}",
+      "other": "{side}: {messages} mensajes, {bytes}"
+    }
+  },
   "kinds": {
     "outgoing": "Saliente",
     "incoming": "Entrante",
