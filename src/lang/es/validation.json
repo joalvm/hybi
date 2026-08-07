@@ -1,5 +1,7 @@
 {
+  "attachmentTooLarge": "El archivo supera el límite de {bytes} bytes",
   "exportPathEmpty": "La ruta de exportación está vacía",
+  "invalidBase64": "El payload binario no es base64 válido",
   "messageTooLarge": "El mensaje supera el límite de {bytes} bytes",
   "unsupportedScheme": "Solo se permiten URL ws: y wss:, se recibió {protocol}",
   "workspaceId": "Identificador de workspace inválido: {id}",

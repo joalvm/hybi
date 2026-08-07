@@ -3,6 +3,7 @@ import { registerActivityHandlers } from './activity.handlers.js';
 import { registerAsyncApiHandlers } from './asyncapi.handlers.js';
 import { registerClipboardHandlers } from './clipboard.handlers.js';
 import { registerConnectionHandlers } from './connection.handlers.js';
+import { registerFileHandlers } from './file.handlers.js';
 import { registerPreferencesHandlers } from './preferences.handlers.js';
 import { registerShellHandlers } from './shell.handlers.js';
 import { registerWindowHandlers } from './window.handlers.js';
@@ -42,6 +43,7 @@ export function registerWorkbenchIpc(window: BrowserWindow): () => void {
     registerConnectionHandlers(window),
     registerAsyncApiHandlers(window),
     registerActivityHandlers(window),
+    registerFileHandlers(window),
   ];
 
   return () => {

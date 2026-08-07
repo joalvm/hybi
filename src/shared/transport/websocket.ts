@@ -1,3 +1,4 @@
+import type { PayloadEncoding } from '../binary/encoding.js';
 import type {
   KeepalivePolicy,
   RetryPolicy,
@@ -15,4 +16,14 @@ export type ResolvedWebSocketTransport = {
   maxMessageBytes: number;
 };
 
-export type WebSocketTransportMessage = { kind: 'websocket'; text: string };
+/**
+ * What the composer asks the socket to send. `encoding` is part of the command
+ * rather than something the main process infers: a binary payload crosses as
+ * base64, and guessing how to read the body puts different bytes on the wire
+ * than the ones that were asked for.
+ */
+export type WebSocketTransportMessage = {
+  kind: 'websocket';
+  body: string;
+  encoding: PayloadEncoding;
+};

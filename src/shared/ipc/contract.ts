@@ -38,6 +38,7 @@ export const CHANNELS = {
   asyncapiImport: 'asyncapi:import',
   asyncapiExport: 'asyncapi:export',
   activityExport: 'activity:export',
+  filePickBinary: 'file:pick-binary',
   clipboardRead: 'clipboard:read',
   clipboardWrite: 'clipboard:write',
   windowMinimize: 'window:minimize',
@@ -84,6 +85,15 @@ export type ImportOutcome = Result<ImportResult> | { ok: false; cancelled: true;
 
 /** Cancelling export is expected; the selected path stays inside the main process. */
 export type ExportOutcome = Result<Empty> | { ok: false; cancelled: true; error: string };
+
+/**
+ * A file picked to be sent as one binary frame: its name for the composer to
+ * show, and its bytes as base64. The path never crosses — the renderer has no
+ * business with the filesystem, and nothing it does with the file needs one.
+ */
+export type BinaryFile = { name: string; body: string; bytes: number };
+
+export type BinaryFileOutcome = Result<BinaryFile> | { ok: false; cancelled: true; error: string };
 
 /** The complete surface the preload exposes. Nothing else crosses the bridge. */
 export type WorkbenchBridge = {
@@ -135,6 +145,13 @@ export type WorkbenchBridge = {
      * would be felt in the renderer, which is drawing the log at the same time.
      */
     export(request: ActivityExportRequest): Promise<ExportOutcome>;
+  };
+  file: {
+    /**
+     * Opens a file to send as one binary frame. The read happens in the main
+     * process, so the renderer receives the payload and never a path.
+     */
+    pickBinary(): Promise<BinaryFileOutcome>;
   };
   /**
    * The renderer is denied every permission by the security policy, so

@@ -25,6 +25,7 @@
   "exportActivity": "Export activity",
   "exportWorkspace": "Export AsyncAPI",
   "importAsyncApi": "Import AsyncAPI",
+  "pickBinaryFile": "Choose a file to send",
   "fileJson": "JSON",
   "filePlainText": "Plain text",
   "fileAsyncApi": "AsyncAPI"

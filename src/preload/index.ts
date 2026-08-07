@@ -60,6 +60,9 @@ const bridge: WorkbenchBridge = {
   activity: {
     export: (request) => ipcRenderer.invoke(CHANNELS.activityExport, request),
   },
+  file: {
+    pickBinary: () => ipcRenderer.invoke(CHANNELS.filePickBinary),
+  },
   clipboard: {
     readText: () => ipcRenderer.invoke(CHANNELS.clipboardRead),
     writeText: (text) => ipcRenderer.invoke(CHANNELS.clipboardWrite, text),

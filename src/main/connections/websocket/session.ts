@@ -4,11 +4,12 @@ import type { ResolvedTransport, TransportMessage } from '@shared/transport/cont
 import { mainMessages } from '../../lang.js';
 import type { TransportSession, TransportSessionSink } from '../transport.js';
 import { createWebSocketAttempt, disposeWebSocketAttempt, type WebSocketAttempt } from './attempt.js';
-import { frameOf, textFrame } from './frame.js';
-import { labelFor, labelOf } from './label.js';
+import { frameOf, outgoingFrame, textFrame } from './frame.js';
+import { labelFor } from './label.js';
 import { closedNote, retryNote } from './notes.js';
 import { createWebSocketReporter } from './reporter.js';
 import { RetryScheduler } from './retry.js';
+import { writeFrame } from './send.js';
 import { assertWsUrl } from './url.js';
 
 /** One native WebSocket state machine behind the neutral transport port. */
@@ -42,21 +43,19 @@ export class WebSocketTransportSession implements TransportSession {
     if (attempt?.socket.readyState !== WebSocket.OPEN || target === null) {
       throw new Error(messages.exceptions.connectionNotOpen);
     }
-    const bytes = Buffer.byteLength(message.text, 'utf8');
-    if (bytes > target.maxMessageBytes) {
+
+    const outgoing = outgoingFrame(message);
+    if (outgoing === null) throw new Error(messages.validation.invalidBase64);
+    // The ceiling is about the wire, and base64 is a third larger than what it
+    // carries: measuring the string would refuse frames that fit.
+    if (outgoing.frame.bytes > target.maxMessageBytes) {
       throw new Error(
         format(messages.validation.messageTooLarge, { bytes: target.maxMessageBytes }),
       );
     }
 
-    await new Promise<void>((resolve, reject) => {
-      attempt.socket.send(message.text, (error) => {
-        const cause: unknown = error;
-        if (cause === undefined || cause === null) resolve();
-        else reject(cause instanceof Error ? cause : new Error(messages.exceptions.sendFailed));
-      });
-    });
-    return this.reporter.record('outgoing', labelOf(message.text), textFrame(message.text));
+    await writeFrame(attempt.socket, outgoing.payload, messages.exceptions.sendFailed);
+    return this.reporter.record('outgoing', labelFor(outgoing.frame), outgoing.frame);
   }
 
   close(): void {

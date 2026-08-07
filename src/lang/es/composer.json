@@ -19,6 +19,18 @@
     "label": "Formato del payload",
     "beautify": "Formatear"
   },
+  "binary": {
+    "source": "Origen del binario",
+    "hex": "Hex",
+    "base64": "Base64",
+    "file": "Archivo",
+    "choose": "Elegir un archivo",
+    "replace": "Elegir otro archivo",
+    "noFile": "Ningún archivo elegido",
+    "invalidHex": "No es un payload hexadecimal",
+    "invalidBase64": "No es un payload base64",
+    "size": "{count} B"
+  },
   "docs": {
     "label": "Documentación del evento",
     "empty": "Este evento no tiene descripción.",

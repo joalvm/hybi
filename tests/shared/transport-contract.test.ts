@@ -22,15 +22,32 @@ describe('connection transport command parsing', () => {
       connectionId: 'c1',
       transport,
     });
+    const message = { kind: 'websocket' as const, body: '{"event":"ping"}', encoding: 'text' as const };
+    expect(parseSendConnectionRequest({ connectionId: 'c1', message })).toEqual({
+      connectionId: 'c1',
+      message,
+    });
+  });
+
+  /**
+   * A binary frame crosses as base64, so the encoding is part of the command:
+   * without it the main process would have to guess how to read the body, and
+   * guessing wrong puts different bytes on the wire than the ones asked for.
+   */
+  it('carries the encoding of the payload and refuses one it does not know', () => {
     expect(
       parseSendConnectionRequest({
         connectionId: 'c1',
-        message: { kind: 'websocket', text: '{"event":"ping"}' },
+        message: { kind: 'websocket', body: 'AAEC', encoding: 'base64' },
+      }).message.encoding,
+    ).toBe('base64');
+
+    expect(() =>
+      parseSendConnectionRequest({
+        connectionId: 'c1',
+        message: { kind: 'websocket', body: 'AAEC', encoding: 'hex' },
       }),
-    ).toEqual({
-      connectionId: 'c1',
-      message: { kind: 'websocket', text: '{"event":"ping"}' },
-    });
+    ).toThrow(/send request/);
   });
 
   it('rejects unknown transport kinds and extra command fields', () => {
