@@ -179,6 +179,7 @@
       }
     },
     "fast-uri": "3.1.5",
+    "js-yaml": "4.3.1",
     "monaco-editor": {
       "dompurify": "3.4.12"
     }
