@@ -39,8 +39,8 @@ describe('connection transport command parsing', () => {
       parseSendConnectionRequest({
         connectionId: 'c1',
         message: { kind: 'websocket', body: 'AAEC', encoding: 'base64' },
-      }).message.encoding,
-    ).toBe('base64');
+      }).message,
+    ).toMatchObject({ encoding: 'base64' });
 
     expect(() =>
       parseSendConnectionRequest({

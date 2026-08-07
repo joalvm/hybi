@@ -56,7 +56,7 @@ export const socketIoTransportMessageSchema = z
       .max(256)
       .refine((name) => !RESERVED_EVENTS.has(name), 'is reserved by Socket.IO'),
     body: z.string().max(MAX_MESSAGE_CHARACTERS),
-    encoding: z.enum(['text', 'base64']),
+    argument: z.enum(['json', 'text', 'binary']),
     ack: z.boolean(),
   })
   .strict();

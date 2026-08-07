@@ -37,7 +37,28 @@ type TransportActivityRecord<TKind extends TransportKind> = {
 };
 
 export type WebSocketActivityRecord = TransportActivityRecord<'websocket'>;
-export type ActivityRecord = WebSocketActivityRecord;
+
+/**
+ * One Socket.IO line. `event` is the name the payload travelled under, empty for
+ * the status and error lines the app writes itself — no event produced those.
+ * `ack` marks the answer to an emit that asked for one, so it reads as a reply
+ * instead of as a second event that happens to share a name.
+ */
+export type SocketIoActivityRecord = TransportActivityRecord<'socketio'> & {
+  event: string;
+  ack: boolean;
+};
+
+/**
+ * A union rather than an alias: every transport writes the same shared shape,
+ * and the ones with more to say add their own fields instead of borrowing a
+ * neighbour's. Readers of the common fields need no narrowing; the places that
+ * build a record do, which is where the compiler wants the decision made.
+ */
+export type ActivityRecord = WebSocketActivityRecord | SocketIoActivityRecord;
+
+/** The shared half, before a transport says which variant it is. */
+export type CommonActivityRecord = Omit<WebSocketActivityRecord, 'transportKind'>;
 
 /**
  * A resolved secret the export has to hide. The renderer holds the values —

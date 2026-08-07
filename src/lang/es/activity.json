@@ -30,6 +30,15 @@
     "retrying": "Reintentando ({attempt}/{attempts})",
     "retryDelay": "en {delay} ms"
   },
+  "socketio": {
+    "joined": "Namespace unido",
+    "namespace": "Namespace {namespace}",
+    "disconnected": "Desconectado",
+    "reason": "Motivo: {reason}",
+    "reconnecting": "Reconectando ({attempt})",
+    "ackTimeout": "«{event}» se quedó sin respuesta tras {timeout} ms",
+    "ack": "ack"
+  },
   "rowActions": "Acciones del frame",
   "copyBody": "Copiar cuerpo",
   "copyRow": "Copiar fila",

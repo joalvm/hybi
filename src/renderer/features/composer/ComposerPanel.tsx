@@ -10,10 +10,12 @@ import { ComposerMessage } from './ComposerMessage.js';
 import { ComposerTabs, type ComposerTab } from './ComposerTabs.js';
 import { DocsView } from './DocsView.js';
 import { beautify, canBeautify, type PayloadFormat } from './formats.js';
+import { outgoingDraft, outgoingEmpty } from './outgoing.js';
 import { SendButton } from './SendButton.js';
 import { useBinaryPayload } from './useBinaryPayload.js';
 import { useComposerDraft } from './useComposerDraft.js';
 import { useDocsDraft } from './useDocsDraft.js';
+import { useEmitDraft } from './useEmitDraft.js';
 import { useSendMessage } from './useSendMessage.js';
 import { useSaveShortcut } from './useSaveShortcut.js';
 import { useVariableProviders } from './useVariableProviders.js';
@@ -48,21 +50,11 @@ export function ComposerPanel({ connectionId }: Props) {
   const [tab, setTab] = useState<ComposerTab>('message');
   const [editingDocs, setEditingDocs] = useState(false);
   const binary = useBinaryPayload(draft.resolved, format === 'binary');
+  const emit = useEmitDraft(draft.eventId, event?.name ?? '');
 
-  // Binary mode sends the bytes the payload spells, not the spelling; every
-  // other format sends the resolved text exactly as written.
-  const outgoing =
-    format === 'binary'
-      ? { body: binary.payload?.body ?? '', encoding: 'base64' as const }
-      : { body: draft.resolved, encoding: 'text' as const };
-  const empty = format === 'binary' ? (binary.payload?.bytes ?? 0) === 0 : draft.empty;
-  const send = useSendMessage({
-    connectionId,
-    transportKind,
-    body: outgoing.body,
-    encoding: outgoing.encoding,
-    appendLocalError,
-  });
+  const outgoing = outgoingDraft(format, draft.resolved, binary, emit);
+  const empty = outgoingEmpty(format, draft.empty, binary, emit, transportKind);
+  const send = useSendMessage({ connectionId, transportKind, ...outgoing, appendLocalError });
 
   useVariableProviders();
 
@@ -129,6 +121,7 @@ export function ComposerPanel({ connectionId }: Props) {
             format={format}
             formattable={formattable}
             binary={binary}
+            emit={transportKind === 'socketio' ? emit : null}
             onChange={draft.setText}
             onFormatChange={setFormat}
             onBeautify={() => {

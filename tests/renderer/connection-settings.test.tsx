@@ -57,7 +57,8 @@ function loadWorkspace(connectionSettings: WebSocketTransportSettings = settings
 }
 
 function storedSettings(): WebSocketTransportSettings | undefined {
-  return useStore.getState().workspace?.connections[0]?.transport.settings;
+  const transport = useStore.getState().workspace?.connections[0]?.transport;
+  return transport?.kind === 'websocket' ? transport.settings : undefined;
 }
 
 beforeEach(() => {

@@ -5,6 +5,10 @@ import type {
   SendConnectionRequest,
 } from './contract.js';
 import {
+  resolvedSocketIoTransportSchema,
+  socketIoTransportMessageSchema,
+} from './socketio-schema.js';
+import {
   resolvedWebSocketTransportSchema,
   webSocketTransportMessageSchema,
 } from './websocket-schema.js';
@@ -18,8 +22,14 @@ const connectionId = z.string().min(1).max(128).regex(/^[A-Za-z0-9-]+$/);
  * `main/connections/transport.ts` then refuses to compile until it has an
  * adapter to send it to.
  */
-const resolvedTransport = z.discriminatedUnion('kind', [resolvedWebSocketTransportSchema]);
-const transportMessage = z.discriminatedUnion('kind', [webSocketTransportMessageSchema]);
+const resolvedTransport = z.discriminatedUnion('kind', [
+  resolvedWebSocketTransportSchema,
+  resolvedSocketIoTransportSchema,
+]);
+const transportMessage = z.discriminatedUnion('kind', [
+  webSocketTransportMessageSchema,
+  socketIoTransportMessageSchema,
+]);
 
 const openConnectionRequest = z.object({ connectionId, transport: resolvedTransport }).strict();
 const sendConnectionRequest = z.object({ connectionId, message: transportMessage }).strict();

@@ -19,6 +19,11 @@
     "label": "Payload format",
     "beautify": "Format"
   },
+  "emit": {
+    "event": "Event",
+    "eventPlaceholder": "Name to emit under",
+    "ack": "Wait for ack"
+  },
   "binary": {
     "source": "Binary source",
     "hex": "Hex",

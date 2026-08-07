@@ -1,7 +1,10 @@
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
+import {
+  cloneSocketIoSettings,
+  cloneWebSocketSettings,
+} from '@shared/domain/connections/defaults.js';
 import { createWorkspace } from '@shared/domain/factory.js';
 import { useStore } from '@/store/index.js';
 import { ComposerBreadcrumb } from '@/features/composer/ComposerBreadcrumb.js';
@@ -539,5 +542,94 @@ describe('payload editor context menu', () => {
 
     await user.click(screen.getByRole('menuitem', { name: 'Paste' }));
     expect(clipboard.readText).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('the composer of a Socket.IO connection', () => {
+  /** The same seeded event, on a connection whose transport routes by name. */
+  const useSocketIo = (): void => {
+    act(() => {
+      const state = useStore.getState();
+      const connection = state.workspace?.connections[0];
+      if (connection === undefined) return;
+      state.setConnectionState('c1', 'open');
+      state.upsertConnection({
+        ...connection,
+        transport: {
+          kind: 'socketio',
+          url: 'http://127.0.0.1:3000',
+          settings: cloneSocketIoSettings(),
+        },
+      });
+    });
+  };
+
+  /** The event name starts as the catalog entry's own, which is what it is for. */
+  it('offers the event name and the ack switch, named after the open event', () => {
+    useSocketIo();
+    render(<ComposerPanel connectionId="c1" />);
+
+    expect(screen.getByLabelText('Event')).toHaveProperty('value', 'Login');
+    expect(screen.getByLabelText('Wait for ack')).toBeTruthy();
+  });
+
+  it('emits under the name in the box, with the payload as one JSON argument', async () => {
+    const user = userEvent.setup();
+    useSocketIo();
+    render(<ComposerPanel connectionId="c1" />);
+
+    await user.clear(screen.getByLabelText('Event'));
+    await user.type(screen.getByLabelText('Event'), 'chat:message');
+    await user.click(screen.getByRole('combobox', { name: 'Payload format' }));
+    await user.click(screen.getByRole('option', { name: 'JSON' }));
+    await user.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(connectionBridge.send).toHaveBeenCalledWith({
+      connectionId: 'c1',
+      message: {
+        kind: 'socketio',
+        event: 'chat:message',
+        body: '{"token":"abc"}',
+        argument: 'json',
+        ack: false,
+      },
+    });
+  });
+
+  it('asks for an answer when the ack switch is on', async () => {
+    const user = userEvent.setup();
+    useSocketIo();
+    render(<ComposerPanel connectionId="c1" />);
+
+    await user.click(screen.getByLabelText('Wait for ack'));
+    await user.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(connectionBridge.send).toHaveBeenCalledWith({
+      connectionId: 'c1',
+      message: {
+        kind: 'socketio',
+        event: 'Login',
+        body: '{"token":"abc"}',
+        argument: 'json',
+        ack: true,
+      },
+    });
+  });
+
+  /** An emit with no name has nowhere to arrive, however much payload it carries. */
+  it('refuses to send while the event has no name', async () => {
+    const user = userEvent.setup();
+    useSocketIo();
+    render(<ComposerPanel connectionId="c1" />);
+
+    await user.clear(screen.getByLabelText('Event'));
+
+    expect(screen.getByRole('button', { name: 'Send' })).toHaveProperty('disabled', true);
+  });
+
+  /** A raw socket has no name to emit under, so the strip has no place there. */
+  it('leaves the emit bar out of a WebSocket connection', () => {
+    render(<ComposerPanel connectionId="c1" />);
+    expect(screen.queryByLabelText('Event')).toBeNull();
   });
 });

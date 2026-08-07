@@ -1,5 +1,5 @@
 import type { ConnectionTransport, TransportFactoryMap } from './connection.js';
-import type { SocketIoTransportSettings } from './socketio.js';
+import type { SocketIoTransport, SocketIoTransportSettings } from './socketio.js';
 import type { WebSocketTransport, WebSocketTransportSettings } from './websocket.js';
 
 /** Native WebSocket behavior every new connection starts from. */
@@ -73,6 +73,11 @@ const CLONERS: TransportFactoryMap<(transport: never) => ConnectionTransport> = 
     kind: 'websocket',
     url: transport.url,
     settings: cloneWebSocketSettings(transport.settings),
+  }),
+  socketio: (transport: SocketIoTransport) => ({
+    kind: 'socketio',
+    url: transport.url,
+    settings: cloneSocketIoSettings(transport.settings),
   }),
 };
 

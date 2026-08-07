@@ -5,6 +5,7 @@ import type {
   TransportFactoryMap,
   TransportMessage,
 } from '@shared/transport/contract.js';
+import { SocketIoTransportSession } from './socketio/session.js';
 import { WebSocketTransportSession } from './websocket/session.js';
 
 export type TransportSessionSink = {
@@ -31,6 +32,7 @@ type AdapterFactory = (connectionId: string, sink: TransportSessionSink) => Tran
 
 const ADAPTER_FACTORIES = {
   websocket: (connectionId, sink) => new WebSocketTransportSession(connectionId, sink),
+  socketio: (connectionId, sink) => new SocketIoTransportSession(connectionId, sink),
 } satisfies TransportFactoryMap<AdapterFactory>;
 
 /** Compile-time exhaustive composition root for transport adapters. */

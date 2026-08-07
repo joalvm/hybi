@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { diagnose, originOf } from '../../src/main/connections/websocket/diagnose.js';
+import { diagnose, originOf } from '../../src/main/connections/diagnose.js';
 
 function coded(code: string): Error {
   return Object.assign(new Error('socket hang up'), { code });

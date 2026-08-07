@@ -59,7 +59,7 @@ describe('resolved Socket.IO transport', () => {
 });
 
 describe('Socket.IO message', () => {
-  const message = { kind: 'socketio', event: 'chat', body: '"hi"', encoding: 'text', ack: false };
+  const message = { kind: 'socketio', event: 'chat', body: '"hi"', argument: 'json', ack: false };
 
   it('accepts a named event with its single argument', () => {
     expect(socketIoTransportMessageSchema.safeParse(message).success).toBe(true);
@@ -69,10 +69,21 @@ describe('Socket.IO message', () => {
     expect(socketIoTransportMessageSchema.safeParse({ ...message, event: '' }).success).toBe(false);
   });
 
-  it('carries the encoding, so bytes are not guessed from the body', () => {
-    const binary = { ...message, body: 'QUJD', encoding: 'base64' };
+  /**
+   * Socket.IO reserves these for the client's own lifecycle: emitting one would
+   * fire a local handler instead of reaching the server, which looks from the
+   * outside like a message that vanished.
+   */
+  it('refuses the names Socket.IO keeps for itself', () => {
+    for (const event of ['connect', 'disconnect', 'connect_error']) {
+      expect(socketIoTransportMessageSchema.safeParse({ ...message, event }).success).toBe(false);
+    }
+  });
+
+  it('says how the body becomes the argument, rather than leaving it to be guessed', () => {
+    const binary = { ...message, body: 'QUJD', argument: 'binary' };
     expect(socketIoTransportMessageSchema.safeParse(binary).success).toBe(true);
-    expect(socketIoTransportMessageSchema.safeParse({ ...message, encoding: 'hex' }).success).toBe(
+    expect(socketIoTransportMessageSchema.safeParse({ ...message, argument: 'hex' }).success).toBe(
       false,
     );
   });

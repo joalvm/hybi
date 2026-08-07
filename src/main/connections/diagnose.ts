@@ -1,12 +1,14 @@
 import { format } from '@lang/translate.js';
-import { mainMessages } from '../../lang.js';
+import { mainMessages } from '../lang.js';
 
 type Sentence = keyof ReturnType<typeof mainMessages>['exceptions']['network'];
 
 /**
  * Every code Node raises on a socket that never opened, grouped by what the
  * user can do about it: a refused port, a name that does not resolve, a route
- * that does not exist, a certificate that was not accepted.
+ * that does not exist, a certificate that was not accepted. Shared by every
+ * transport, because the socket underneath is the same one and so is the
+ * sentence the user needs.
  */
 const BY_CODE: Record<string, Sentence> = {
   ECONNREFUSED: 'refused',

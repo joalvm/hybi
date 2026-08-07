@@ -1,15 +1,11 @@
 import { useShallow } from 'zustand/react/shallow';
 import { selectScopeFor, selectTotalsFor } from '@/store/selectors.js';
 import { useStore } from '@/store/index.js';
-import { WebSocketConnectionBar } from './websocket/WebSocketConnectionBar.js';
+import { TransportBar } from './TransportBar.js';
 
 type Props = { connectionId: string };
 
-/**
- * Store-aware root. Each transport owns its endpoint controls and its own
- * translation to the bridge; picking between them lands here once there is more
- * than one, on the same terms as `TransportSettings`.
- */
+/** Store-aware root. The bar below is transport-agnostic; only what it resolves is not. */
 export function ConnectionBar({ connectionId }: Props) {
   const connection = useStore(
     (state) => state.workspace?.connections.find((entry) => entry.id === connectionId) ?? null,
@@ -28,7 +24,7 @@ export function ConnectionBar({ connectionId }: Props) {
   if (connection === null) return null;
 
   return (
-    <WebSocketConnectionBar
+    <TransportBar
       connectionId={connectionId}
       environmentId={connection.environmentId}
       transport={connection.transport}

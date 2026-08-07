@@ -1,10 +1,10 @@
 import type { WebSocketTransportSettings } from '@shared/domain/connections/websocket.js';
 import { useMessages } from '@/shared/i18n/useMessages.js';
 import { SettingsPane } from '@/shared/ui/settings/SettingsPane.js';
+import { PairsEditor } from '../../settings/PairsEditor.js';
+import { RetryFields } from '../../settings/RetryFields.js';
 import { AdvancedFields } from './AdvancedFields.js';
-import { HeadersEditor } from './HeadersEditor.js';
 import { KeepaliveFields } from './KeepaliveFields.js';
-import { RetryFields } from './RetryFields.js';
 
 type Props = {
   settings: WebSocketTransportSettings;
@@ -17,7 +17,8 @@ type Props = {
  * draws its rail from.
  */
 export function WebSocketSettings({ settings, onChange }: Props) {
-  const tabs = useMessages().connections.tabs;
+  const messages = useMessages().connections;
+  const tabs = messages.tabs;
 
   return (
     <>
@@ -25,8 +26,9 @@ export function WebSocketSettings({ settings, onChange }: Props) {
         <AdvancedFields settings={settings} onChange={onChange} />
       </SettingsPane>
       <SettingsPane value="headers" title={tabs.headers}>
-        <HeadersEditor
-          headers={settings.headers}
+        <PairsEditor
+          pairs={settings.headers}
+          labels={messages.headers}
           onChange={(headers) => {
             onChange({ headers });
           }}

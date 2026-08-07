@@ -2,7 +2,7 @@ import type { ActivityKind, ActivityRecord, ConnectionState } from '@shared/ipc/
 import { mainMessages } from '../../lang.js';
 import { logEvent } from '../../log/index.js';
 import type { TransportSessionSink } from '../transport.js';
-import { diagnose, originOf } from './diagnose.js';
+import { diagnose, originOf } from '../diagnose.js';
 import { textFrame, type Frame } from './frame.js';
 
 export type WebSocketReporter = {

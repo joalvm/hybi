@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import type { ActivityRecord } from '@shared/ipc/activity.js';
+import type { ActivityRecord, WebSocketActivityRecord } from '@shared/ipc/activity.js';
 import {
   activityDefaultFileName,
   redactFrames,
   serializeActivity,
 } from '../../src/main/activity/export.js';
 
-const record = (over: Partial<ActivityRecord>): ActivityRecord => ({
+const record = (over: Partial<WebSocketActivityRecord>): WebSocketActivityRecord => ({
   id: 'c1:1',
   connectionId: 'c1',
   transportKind: 'websocket',

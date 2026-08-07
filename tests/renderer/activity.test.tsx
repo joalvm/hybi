@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
 import { createWorkspace } from '@shared/domain/factory.js';
-import type { ActivityKind, ActivityRecord } from '@shared/ipc/activity.js';
+import type { ActivityKind, WebSocketActivityRecord } from '@shared/ipc/activity.js';
 import { ActivityDetail } from '@/features/activity/ActivityDetail.js';
 import { ActivityPanel } from '@/features/activity/ActivityPanel.js';
 import { ActivityRow } from '@/features/activity/ActivityRow.js';
@@ -28,7 +28,7 @@ const bridgeMock = vi.hoisted(() => ({
 
 vi.mock('@/ipc/bridge.js', () => ({ bridge: bridgeMock }));
 
-const record = (over: Partial<ActivityRecord>): ActivityRecord => ({
+const record = (over: Partial<WebSocketActivityRecord>): WebSocketActivityRecord => ({
   id: 'c1:1',
   connectionId: 'c1',
   transportKind: 'websocket',
@@ -253,7 +253,9 @@ describe('copying a frame', () => {
 });
 
 describe('the detail pane of a binary frame', () => {
-  const props = (over: Partial<ActivityRecord>): ComponentProps<typeof ActivityDetail> => ({
+  const props = (
+    over: Partial<WebSocketActivityRecord>,
+  ): ComponentProps<typeof ActivityDetail> => ({
     record: record(over),
     onClose: () => undefined,
     onCopy: () => undefined,

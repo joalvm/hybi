@@ -4,6 +4,8 @@
   "connectionSuperseded": "Connection attempt was superseded",
   "connectionClosedEarly": "Connection closed before opening",
   "sendFailed": "WebSocket send failed",
+  "transportMismatch": "This connection was asked to handle another transport's request",
+  "reconnectFailed": "Gave up reconnecting to {url}",
   "network": {
     "refused": "{code}: nothing is listening at {url}",
     "unknownHost": "{code}: the host in {url} could not be resolved",

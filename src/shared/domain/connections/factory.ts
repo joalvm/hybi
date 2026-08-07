@@ -1,5 +1,10 @@
-import { cloneConnectionTransport, cloneWebSocketSettings } from './defaults.js';
+import {
+  cloneConnectionTransport,
+  cloneSocketIoSettings,
+  cloneWebSocketSettings,
+} from './defaults.js';
 import type { Connection, ConnectionTransport } from './connection.js';
+import type { SocketIoTransport, SocketIoTransportSettings } from './socketio.js';
 import type { WebSocketTransport, WebSocketTransportSettings } from './websocket.js';
 
 function newId(): string {
@@ -14,6 +19,17 @@ export function createWebSocketTransport(input: {
     kind: 'websocket',
     url: input.url ?? 'ws://127.0.0.1:3000',
     settings: cloneWebSocketSettings(input.settings),
+  };
+}
+
+export function createSocketIoTransport(input: {
+  url?: string;
+  settings?: SocketIoTransportSettings;
+} = {}): SocketIoTransport {
+  return {
+    kind: 'socketio',
+    url: input.url ?? 'http://127.0.0.1:3000',
+    settings: cloneSocketIoSettings(input.settings),
   };
 }
 

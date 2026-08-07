@@ -1,3 +1,4 @@
+import { activityRecordFor } from '@shared/ipc/activity-record.js';
 import type { ActivityRecord, ConnectionState } from '@shared/ipc/activity.js';
 import type { TransportKind } from '@shared/domain/connections/connection.js';
 import { withinBudget } from './budget.js';
@@ -69,10 +70,9 @@ export const createRuntimeSlice: SliceCreator<RuntimeSlice> = (set) => ({
     set((current) => {
       const existing = current.activity[connectionId] ?? [];
       const sequence = (existing.at(-1)?.sequence ?? 0) + 1;
-      const record: ActivityRecord = {
+      const record = activityRecordFor(transportKind, {
         id: `${connectionId}:local:${String(sequence)}`,
         connectionId,
-        transportKind,
         sequence,
         kind: 'error',
         at: Date.now(),
@@ -80,7 +80,7 @@ export const createRuntimeSlice: SliceCreator<RuntimeSlice> = (set) => ({
         body: message,
         encoding: 'text',
         bytes: new TextEncoder().encode(message).length,
-      };
+      });
       return {
         activity: {
           ...current.activity,

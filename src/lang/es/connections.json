@@ -40,7 +40,9 @@
     "connection": "Conexión",
     "headers": "Cabeceras",
     "retry": "Reintentos",
-    "keepalive": "Keepalive"
+    "keepalive": "Keepalive",
+    "auth": "Autenticación",
+    "advanced": "Avanzado"
   },
   "protocols": {
     "label": "Subprotocolos",
@@ -90,5 +92,43 @@
     },
     "interval": "Intervalo",
     "timeout": "Espera del pong"
+  },
+  "socketio": {
+    "namespace": {
+      "label": "Namespace",
+      "description": "A qué namespace se une. «/» es el que expone cualquier servidor por defecto.",
+      "placeholder": "/"
+    },
+    "path": {
+      "label": "Ruta del engine",
+      "description": "Dónde monta el servidor engine.io. No es el namespace: cámbialo solo si el servidor lo cambió.",
+      "placeholder": "/socket.io"
+    },
+    "transports": {
+      "label": "Transporte del engine",
+      "description": "Cómo viaja la conexión. Polling solo ayuda cuando algo entre aquí y el servidor rechaza el upgrade a WebSocket.",
+      "websocket": "Solo WebSocket",
+      "polling": "Solo polling",
+      "upgrade": "Polling y luego upgrade"
+    },
+    "ackTimeout": {
+      "label": "Espera del ack",
+      "description": "Cuánto espera un emit que pidió respuesta antes de darse por no contestado."
+    },
+    "auth": {
+      "hint": {
+        "before": "Los valores aceptan ",
+        "token": "{{variables}}",
+        "after": ". Un token va en una variable secreta del entorno: escrito aquí se guardaría en el archivo del workspace."
+      },
+      "namePlaceholder": "token",
+      "valuePlaceholder": "{{token}}",
+      "add": "Añadir entrada",
+      "name": "Clave de auth",
+      "value": "Valor de auth",
+      "unnamed": "la entrada sin nombre",
+      "send": "Enviar {name}",
+      "remove": "Quitar {name}"
+    }
   }
 }

@@ -2,9 +2,11 @@ import type { VariableScope } from '@shared/variables/resolve.js';
 import { BinaryAttachment } from './BinaryAttachment.js';
 import { BinaryBar } from './BinaryBar.js';
 import { ComposerFooter } from './ComposerFooter.js';
+import { EmitBar } from './EmitBar.js';
 import { languageOf, type PayloadFormat } from './formats.js';
 import { PayloadEditor } from './PayloadEditor.js';
 import type { BinaryComposer } from './useBinaryPayload.js';
+import type { EmitDraft } from './useEmitDraft.js';
 
 type Props = {
   eventId: string | null;
@@ -14,6 +16,8 @@ type Props = {
   format: PayloadFormat;
   formattable: boolean;
   binary: BinaryComposer;
+  /** The event name and ack switch, or `null` for a transport with no events. */
+  emit: EmitDraft | null;
   onChange: (next: string) => void;
   onFormatChange: (format: PayloadFormat) => void;
   onBeautify: () => void;
@@ -33,6 +37,7 @@ export function ComposerMessage({
   format,
   formattable,
   binary,
+  emit,
   onChange,
   onFormatChange,
   onBeautify,
@@ -41,6 +46,14 @@ export function ComposerMessage({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
+      {emit !== null && (
+        <EmitBar
+          event={emit.event}
+          ack={emit.ack}
+          onEventChange={emit.setEvent}
+          onAckChange={emit.setAck}
+        />
+      )}
       {/* A flex column, because the Monaco container inside sizes itself with
           `flex-1` against whatever holds it. */}
       <div className="flex min-h-0 flex-1 flex-col">
