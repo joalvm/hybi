@@ -1,3 +1,7 @@
+import { format } from '@lang/translate.js';
+import { mainMessages } from '../../lang.js';
+import type { Frame } from './frame.js';
+
 const PREVIEW_LENGTH = 48;
 
 /**
@@ -14,6 +18,18 @@ export const LABEL_PARSE_LIMIT = 64 * 1024;
  * it. Wide enough that only a body of thousands of leading blanks loses text.
  */
 const PREVIEW_WINDOW = 4096;
+
+/**
+ * The hint the log's label column shows for a frame. A binary payload has no
+ * text to lift a name out of, and printing its base64 there would fill the
+ * column with an encoding rather than say what arrived, so it gets its size.
+ */
+export function labelFor(frame: Frame): string {
+  if (frame.encoding === 'base64') {
+    return format(mainMessages().activity.binaryFrame, { count: frame.bytes });
+  }
+  return labelOf(frame.body);
+}
 
 /** Derives a display hint without changing the exact body sent or received. */
 export function labelOf(body: string): string {

@@ -12,6 +12,7 @@ import {
 } from '@/shared/ui/icons.js';
 import { cn } from '@/shared/utils/cn.js';
 import type { CopyScope } from './copy-text.js';
+import { previewOf } from './preview.js';
 import { formatOffset } from './useActivityFilter.js';
 
 const GLYPH: Record<ActivityRecord['kind'], ReactNode> = {
@@ -21,37 +22,12 @@ const GLYPH: Record<ActivityRecord['kind'], ReactNode> = {
   error: <ErrorIcon />,
 };
 
-/**
- * Long enough to recognise a frame, short enough that the row never pays to lay
- * out text it will ellipsize anyway.
- */
-const PREVIEW_LENGTH = 160;
-
-/**
- * How much of the body the preview reads. A row shows 160 characters, so
- * flattening a whole frame to find them allocated a second copy of a body that
- * can be megabytes — per row, per render, while the log scrolls.
- */
-const PREVIEW_WINDOW = PREVIEW_LENGTH * 8;
-
 const TONE: Record<ActivityRecord['kind'], string> = {
   outgoing: 'text-accent-text',
   incoming: 'text-blue',
   status: 'text-ok',
   error: 'text-error',
 };
-
-/**
- * One line of the raw frame, or nothing when the label is already made of it.
- * `labelOf` only lifts a name out of an `{event, data}` envelope; every other
- * frame gets a truncated copy of its own body as a label, and printing that
- * twice in one row is noise.
- */
-function preview(body: string, label: string): string {
-  const flat = body.slice(0, PREVIEW_WINDOW).replace(/\s+/g, ' ').trim();
-  if (flat === '' || flat.startsWith(label.replace(/…$/, ''))) return '';
-  return flat.length > PREVIEW_LENGTH ? `${flat.slice(0, PREVIEW_LENGTH)}…` : flat;
-}
 
 type Props = {
   record: ActivityRecord;
@@ -81,7 +57,7 @@ export const ActivityRow = memo(function ActivityRow({
   canResend,
 }: Props) {
   const messages = useMessages();
-  const body = preview(record.body, record.label);
+  const body = previewOf(record);
   // A status note or an error is the app talking, not a frame: there is nothing
   // in either that the composer could put back on the wire.
   const replayable = record.kind === 'incoming' || record.kind === 'outgoing';

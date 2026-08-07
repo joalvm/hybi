@@ -4,12 +4,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WebSocketServer, type WebSocket } from 'ws';
 import { DEFAULT_WEBSOCKET_SETTINGS } from '@shared/domain/connections/defaults.js';
 import type { ActivityRecord, ConnectionStateEvent } from '@shared/ipc/activity.js';
-import type { ResolvedWebSocketTransport } from '@shared/transport/contract.js';
+import type { ResolvedWebSocketTransport, TransportMessage } from '@shared/transport/contract.js';
+import { base64ToBytes, bytesToBase64 } from '@shared/binary/base64.js';
 import { ActivityBuffer } from '../../src/main/connections/activity-buffer.js';
 import { ConnectionManager } from '../../src/main/connections/manager.js';
 import { nextDelay } from '../../src/main/connections/websocket/backoff.js';
+import { frameOf, textFrame } from '../../src/main/connections/websocket/frame.js';
 import { startKeepalive } from '../../src/main/connections/websocket/keepalive.js';
 import { assertWsUrl } from '../../src/main/connections/websocket/url.js';
+
+/** What the composer sends for everything that is not a binary payload. */
+function textMessage(body: string): TransportMessage {
+  return { kind: 'websocket', body, encoding: 'text' };
+}
 
 /** The defaults, with retry off unless a test is about retry. */
 function transport(
@@ -57,6 +64,37 @@ describe('nextDelay', () => {
   });
 });
 
+describe('frameOf', () => {
+  it('reads a text frame verbatim and weighs it in wire bytes', () => {
+    expect(frameOf(Buffer.from('añ', 'utf8'), false)).toEqual({
+      body: 'añ',
+      encoding: 'text',
+      bytes: 3,
+    });
+  });
+
+  /**
+   * The frame used to collapse to `<binario N bytes>`, which threw the payload
+   * away at the door: nothing downstream could show it, resend it or export it.
+   */
+  it('carries a binary frame as base64 instead of collapsing it', () => {
+    const bytes = Buffer.from([0x00, 0xff, 0x10]);
+    const frame = frameOf(bytes, true);
+
+    expect(frame.encoding).toBe('base64');
+    expect(frame.bytes).toBe(3);
+    expect(base64ToBytes(frame.body)).toEqual(new Uint8Array(bytes));
+  });
+
+  it('joins a fragmented frame before reading it', () => {
+    expect(frameOf([Buffer.from('ab'), Buffer.from('cd')], false).body).toBe('abcd');
+  });
+
+  it('calls a note what it is: text the app wrote, not a frame', () => {
+    expect(textFrame('closed')).toEqual({ body: 'closed', encoding: 'text', bytes: 6 });
+  });
+});
+
 describe('ActivityBuffer', () => {
   const record = (sequence: number): ActivityRecord => ({
     id: `c1:${String(sequence)}`,
@@ -67,6 +105,7 @@ describe('ActivityBuffer', () => {
     at: 0,
     label: 'x',
     body: 'x',
+    encoding: 'text',
     bytes: 1,
   });
 
@@ -136,7 +175,7 @@ describe('ConnectionManager', () => {
     await manager.open({ connectionId: 'c1', transport: transport(url) });
     expect(states.map((event) => event.state)).toEqual(['connecting', 'open']);
 
-    await manager.send('c1', { kind: 'websocket', text: '{"event":"ping"}' });
+    await manager.send('c1', textMessage('{"event":"ping"}'));
     await vi.waitFor(() => {
       expect(activity.filter((item) => item.kind === 'incoming')).toHaveLength(1);
     });
@@ -161,7 +200,7 @@ describe('ConnectionManager', () => {
 
     manager.dispose('c1');
 
-    await expect(manager.send('c1', { kind: 'websocket', text: 'x' })).rejects.toThrow(
+    await expect(manager.send('c1', textMessage('x'))).rejects.toThrow(
       'Connection c1 is not open',
     );
     // The socket is gone too, not only the bookkeeping.
@@ -196,9 +235,39 @@ describe('ConnectionManager', () => {
     expect(activity[0]?.body).toMatch(/ws:/);
   });
 
+  /**
+   * `ECONNREFUSED` on its own is not a diagnosis. The code stays because it is
+   * what gets searched for, and the sentence around it is what makes the log
+   * usable by someone who is not reading Node documentation.
+   */
+  it('explains a refused connection instead of forwarding the raw code', async () => {
+    const closed = new WebSocketServer({ port: 0 });
+    const port = (closed.address() as AddressInfo).port;
+    await new Promise<void>((resolve) => {
+      closed.close(() => {
+        resolve();
+      });
+    });
+
+    await expect(
+      manager.open({
+        connectionId: 'c1',
+        transport: transport(`ws://127.0.0.1:${String(port)}`),
+      }),
+    ).rejects.toThrow();
+
+    await vi.waitFor(() => {
+      expect(activity.some((item) => item.kind === 'error')).toBe(true);
+    });
+    const failure = activity.find((item) => item.kind === 'error');
+    expect(failure?.body).toContain('ECONNREFUSED');
+    expect(failure?.body).toContain(`ws://127.0.0.1:${String(port)}`);
+    expect(failure?.label).toBe('Error');
+  });
+
   it('refuses to send on a connection that is not open', async () => {
     await expect(
-      manager.send('missing', { kind: 'websocket', text: 'x' }),
+      manager.send('missing', textMessage('x')),
     ).rejects.toThrow(/not open/);
   });
 
@@ -213,10 +282,72 @@ describe('ConnectionManager', () => {
     });
 
     await expect(
-      manager.send('c1', { kind: 'websocket', text: '12345' }),
+      manager.send('c1', textMessage('12345')),
     ).rejects.toThrow(/4 byte limit/);
     await new Promise((resolve) => setTimeout(resolve, 10));
     expect(received).toEqual([]);
+    expect(activity.filter((item) => item.kind === 'outgoing')).toEqual([]);
+  });
+
+  /** What leaves has to be the bytes that were asked for, not a rendering of them. */
+  it('puts a binary payload on the wire byte for byte', async () => {
+    const payload = new Uint8Array([0x00, 0x1f, 0x80, 0xff]);
+    const received: Buffer[] = [];
+    const binary: boolean[] = [];
+    server.on('connection', (socket) => {
+      socket.on('message', (data: Buffer, isBinary: boolean) => {
+        received.push(Buffer.from(data));
+        binary.push(isBinary);
+      });
+    });
+
+    await manager.open({ connectionId: 'c1', transport: transport(url) });
+    await manager.send('c1', {
+      kind: 'websocket',
+      body: bytesToBase64(payload),
+      encoding: 'base64',
+    });
+
+    await vi.waitFor(() => {
+      expect(received).toHaveLength(1);
+    });
+    expect(new Uint8Array(received[0] ?? Buffer.alloc(0))).toEqual(payload);
+    // Sent as a binary frame, not as text that happens to hold those bytes.
+    expect(binary[0]).toBe(true);
+    expect(activity[0]?.encoding).toBe('base64');
+    expect(activity[0]?.bytes).toBe(payload.byteLength);
+  });
+
+  /**
+   * The ceiling is about the wire, and base64 is a third larger than what it
+   * carries: measuring the string would refuse frames that fit.
+   */
+  it('measures an outgoing binary payload by its decoded size', async () => {
+    await manager.open({
+      connectionId: 'c1',
+      transport: transport(url, { maxMessageBytes: 1024 }),
+    });
+
+    // 900 bytes are 1200 base64 characters: over the ceiling as text, under it
+    // as the frame that actually leaves.
+    const fits = bytesToBase64(new Uint8Array(900));
+    await expect(
+      manager.send('c1', { kind: 'websocket', body: fits, encoding: 'base64' }),
+    ).resolves.toBeGreaterThan(0);
+
+    const exceeds = bytesToBase64(new Uint8Array(2048));
+    await expect(
+      manager.send('c1', { kind: 'websocket', body: exceeds, encoding: 'base64' }),
+    ).rejects.toThrow(/1024 byte limit/);
+  });
+
+  /** The renderer builds the base64, but the main process does not take its word. */
+  it('refuses a binary payload that is not base64 at all', async () => {
+    await manager.open({ connectionId: 'c1', transport: transport(url) });
+
+    await expect(
+      manager.send('c1', { kind: 'websocket', body: 'not base64!', encoding: 'base64' }),
+    ).rejects.toThrow();
     expect(activity.filter((item) => item.kind === 'outgoing')).toEqual([]);
   });
 
@@ -259,7 +390,7 @@ describe('ConnectionManager', () => {
       },
       { timeout: 3000 },
     );
-    expect(activity.some((item) => item.label.includes('Reintentando'))).toBe(true);
+    expect(activity.some((item) => item.label.includes('Retrying'))).toBe(true);
   });
 
   it('never retries while the policy is off', async () => {
@@ -275,7 +406,7 @@ describe('ConnectionManager', () => {
       expect(states.at(-1)?.state).toBe('dropped');
     });
     await new Promise((resolve) => setTimeout(resolve, 40));
-    expect(activity.some((item) => item.label.includes('Reintentando'))).toBe(false);
+    expect(activity.some((item) => item.label.includes('Retrying'))).toBe(false);
   });
 
   it('carries the handshake headers it was given', async () => {
@@ -331,6 +462,26 @@ describe('ConnectionManager', () => {
       expect(activity.some((item) => item.body.includes('Max payload size exceeded'))).toBe(true);
     });
     expect(activity.some((item) => item.kind === 'incoming')).toBe(false);
+  });
+
+  /** The bytes the peer sent, all of them, reachable from the log. */
+  it('logs an incoming binary frame byte for byte', async () => {
+    const payload = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00, 0xff]);
+    server.on('connection', (socket) => {
+      socket.send(payload, { binary: true });
+    });
+
+    await manager.open({ connectionId: 'c1', transport: transport(url) });
+    await vi.waitFor(() => {
+      expect(activity.filter((item) => item.kind === 'incoming')).toHaveLength(1);
+    });
+
+    const frame = activity.find((item) => item.kind === 'incoming');
+    expect(frame?.encoding).toBe('base64');
+    expect(frame?.bytes).toBe(payload.byteLength);
+    expect(base64ToBytes(frame?.body ?? '')).toEqual(new Uint8Array(payload));
+    // The label is a hint, not the frame: base64 in the label column says nothing.
+    expect(frame?.label).toContain('6');
   });
 
   it('lets a frame under the ceiling through', async () => {

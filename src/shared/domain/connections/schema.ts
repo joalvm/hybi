@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { socketIoTransportSchema } from './socketio-schema.js';
 import { webSocketTransportSchema } from './websocket-schema.js';
 
 const id = z.string().min(1);
@@ -8,7 +9,10 @@ const id = z.string().min(1);
  * mirrors. A new transport is one more member here and one more schema file of
  * its own: nothing in this file describes any single protocol.
  */
-const transportSchema = z.discriminatedUnion('kind', [webSocketTransportSchema]);
+const transportSchema = z.discriminatedUnion('kind', [
+  webSocketTransportSchema,
+  socketIoTransportSchema,
+]);
 
 /** Persisted connection. Identity and environment are transport-agnostic. */
 export const connectionSchema = z.object({

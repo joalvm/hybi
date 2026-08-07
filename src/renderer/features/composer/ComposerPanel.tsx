@@ -1,26 +1,24 @@
 import clsx from 'clsx';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import type { VariableScope } from '@shared/variables/resolve.js';
 import { useMessages } from '@/shared/i18n/useMessages.js';
-import { registerVariableProviders } from '@/shared/monaco/setup.js';
 import { Panel } from '@/shared/ui/Panel.js';
 import { useStore } from '@/store/index.js';
 import { selectCollectionNameFor, selectScopeFor, selectSelectedEvent } from '@/store/selectors.js';
 import { ComposerBreadcrumb } from './ComposerBreadcrumb.js';
-import { ComposerFooter } from './ComposerFooter.js';
+import { ComposerMessage } from './ComposerMessage.js';
 import { ComposerTabs, type ComposerTab } from './ComposerTabs.js';
 import { DocsView } from './DocsView.js';
-import { beautify, canBeautify, languageOf, type PayloadFormat } from './formats.js';
-import { PayloadEditor } from './PayloadEditor.js';
+import { beautify, canBeautify, type PayloadFormat } from './formats.js';
+import { outgoingDraft, outgoingEmpty } from './outgoing.js';
 import { SendButton } from './SendButton.js';
+import { useBinaryPayload } from './useBinaryPayload.js';
 import { useComposerDraft } from './useComposerDraft.js';
 import { useDocsDraft } from './useDocsDraft.js';
+import { useEmitDraft } from './useEmitDraft.js';
 import { useSendMessage } from './useSendMessage.js';
 import { useSaveShortcut } from './useSaveShortcut.js';
-
-/** A module constant so the hover provider keeps a stable empty scope. */
-const EMPTY_SCOPE: VariableScope = new Map();
+import { useVariableProviders } from './useVariableProviders.js';
 
 type Props = { connectionId: string };
 
@@ -46,27 +44,19 @@ export function ComposerPanel({ connectionId }: Props) {
       state.workspace?.connections.find((entry) => entry.id === connectionId)?.environmentId ??
       null,
   );
-  const send = useSendMessage({
-    connectionId,
-    transportKind,
-    text: draft.resolved,
-    appendLocalError,
-  });
   // How to read the box, not what may go in it. Both ride in local state because
   // they describe the view, not the event: nothing about them is worth persisting.
   const [format, setFormat] = useState<PayloadFormat>('json');
   const [tab, setTab] = useState<ComposerTab>('message');
   const [editingDocs, setEditingDocs] = useState(false);
+  const binary = useBinaryPayload(draft.resolved, format === 'binary');
+  const emit = useEmitDraft(draft.eventId, event?.name ?? '');
 
-  // Monaco's hover and completion providers are global, so they read the scope
-  // of whatever connection is active at call time rather than closing over one.
-  useEffect(() => {
-    registerVariableProviders(() => {
-      const state = useStore.getState();
-      const activeId = state.activeConnectionId;
-      return activeId === null ? EMPTY_SCOPE : selectScopeFor(activeId)(state);
-    });
-  }, []);
+  const outgoing = outgoingDraft(format, draft.resolved, binary, emit);
+  const empty = outgoingEmpty(format, draft.empty, binary, emit, transportKind);
+  const send = useSendMessage({ connectionId, transportKind, ...outgoing, appendLocalError });
+
+  useVariableProviders();
 
   const saveActiveDraft = (): void => {
     if (tab === 'docs' && editingDocs) {
@@ -101,7 +91,7 @@ export function ComposerPanel({ connectionId }: Props) {
           messageDirty={draft.dirty}
           onChange={setTab}
         />
-        <SendButton connected={connected} empty={draft.empty} onSend={send} />
+        <SendButton connected={connected} empty={empty} onSend={send} />
       </div>
       <div className="min-h-0 flex-1 overflow-hidden" data-part="panel-body">
         <div className={clsx('h-full min-h-0', tab !== 'docs' && 'hidden')}>
@@ -122,18 +112,17 @@ export function ComposerPanel({ connectionId }: Props) {
         {/* Hidden rather than unmounted: Monaco keeps one instance for the life
             of the panel, and `automaticLayout` measures it again when it comes
             back. Remounting per tab would rebuild the editor on every switch. */}
-        <div className={clsx('flex h-full min-h-0 flex-col', tab !== 'message' && 'hidden')}>
-          <PayloadEditor
+        <div className={clsx('h-full min-h-0', tab !== 'message' && 'hidden')}>
+          <ComposerMessage
             eventId={draft.eventId}
             text={draft.text}
-            language={languageOf(format)}
             scope={scope}
             environmentId={environmentId}
-            onChange={draft.setText}
-          />
-          <ComposerFooter
             format={format}
             formattable={formattable}
+            binary={binary}
+            emit={transportKind === 'socketio' ? emit : null}
+            onChange={draft.setText}
             onFormatChange={setFormat}
             onBeautify={() => {
               const beautified = beautify(draft.text, format);

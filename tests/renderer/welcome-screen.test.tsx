@@ -2,12 +2,12 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createWorkspace } from '@shared/domain/factory.js';
-import type { Workspace } from '@shared/domain/types.js';
+import type { Workspace, WorkspaceSummary } from '@shared/domain/types.js';
 
 const created: Workspace = { ...createWorkspace('Proyecto nuevo'), id: 'w2' };
 
 const workspaceBridge = {
-  list: vi.fn(() =>
+  list: vi.fn<() => Promise<WorkspaceSummary[]>>(() =>
     Promise.resolve([{ id: 'w1', name: 'Demo vacío', updatedAt: '2026-08-01T12:00:00.000Z' }]),
   ),
   load: vi.fn(),
@@ -103,6 +103,52 @@ describe('Welcome window', () => {
     expect(await screen.findByRole('button', { name: 'Close' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Minimise' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Maximise' })).toBeNull();
+  });
+
+  /**
+   * The worst failure this product can have used to be silent: the row simply
+   * vanished and the user concluded the work was gone.
+   */
+  it('reports a file it could not read instead of hiding it', async () => {
+    workspaceBridge.list.mockResolvedValueOnce([
+      { id: 'w1', name: 'Demo vacío', updatedAt: '2026-08-01T12:00:00.000Z' },
+      {
+        id: 'roto',
+        name: 'roto.json',
+        updatedAt: new Date(0).toISOString(),
+        broken: { path: '/data/workspaces/roto.json', reason: 'Unexpected end of JSON input' },
+      },
+    ]);
+
+    render(<WelcomeApp />);
+
+    expect(await screen.findByText('/data/workspaces/roto.json')).toBeTruthy();
+    expect(screen.getByText('Unexpected end of JSON input')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Open roto.json' })).toBeNull();
+  });
+
+  it('discards an unreadable file only after it is confirmed', async () => {
+    workspaceBridge.list.mockResolvedValueOnce([
+      {
+        id: 'roto',
+        name: 'roto.json',
+        updatedAt: new Date(0).toISOString(),
+        broken: { path: '/data/workspaces/roto.json', reason: 'Unexpected end of JSON input' },
+      },
+    ]);
+    workspaceBridge.remove.mockResolvedValueOnce({ ok: true });
+    const user = userEvent.setup();
+
+    render(<WelcomeApp />);
+    await user.click(await screen.findByRole('button', { name: 'Discard roto.json' }));
+    expect(workspaceBridge.remove).not.toHaveBeenCalled();
+
+    await user.click(await screen.findByRole('button', { name: 'Discard' }));
+
+    await waitFor(() => {
+      expect(workspaceBridge.remove).toHaveBeenCalledWith('roto');
+    });
+    expect(await screen.findByRole('button', { name: 'Open Demo vacío' })).toBeTruthy();
   });
 
   it('says why the list is empty when it could not be read', async () => {

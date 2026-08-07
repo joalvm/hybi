@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import type { ActivityRecord } from '@shared/ipc/activity.js';
+import type { ActivityRecord, WebSocketActivityRecord } from '@shared/ipc/activity.js';
 import {
   activityDefaultFileName,
   redactFrames,
   serializeActivity,
 } from '../../src/main/activity/export.js';
 
-const record = (over: Partial<ActivityRecord>): ActivityRecord => ({
+const record = (over: Partial<WebSocketActivityRecord>): WebSocketActivityRecord => ({
   id: 'c1:1',
   connectionId: 'c1',
   transportKind: 'websocket',
@@ -15,6 +15,7 @@ const record = (over: Partial<ActivityRecord>): ActivityRecord => ({
   at: Date.parse('2026-08-04T21:00:00.000Z'),
   label: 'DeviceLogin',
   body: '{"token":"s3cr3t"}',
+  encoding: 'text',
   bytes: 18,
   ...over,
 });
@@ -39,6 +40,21 @@ describe('redactFrames', () => {
 
   // The longest value first, or a secret that contains another is left half
   // written when the shorter one is replaced inside it.
+  /**
+   * A secret is text, and base64 is not: the same bytes are spelled three ways
+   * depending on where the value starts in the frame, so a match would be luck
+   * and a replacement would corrupt the payload it landed in.
+   */
+  it('leaves a binary body alone and still cleans its label', () => {
+    const [frame] = redactFrames(
+      [record({ encoding: 'base64', label: 's3cr3t', body: 'czNjcjN0' })],
+      [{ name: 'token', value: 's3cr3t' }],
+    );
+
+    expect(frame?.body).toBe('czNjcjN0');
+    expect(frame?.label).toBe('{{token}}');
+  });
+
   it('replaces the longest value first', () => {
     const [frame] = redactFrames(
       [record({ body: 'Bearer abc-123' })],
@@ -75,6 +91,21 @@ describe('serializeActivity', () => {
     // The body is written as it arrived: a text export that flattens the frame
     // is no longer a copy of what crossed the socket.
     expect(text).toContain('plain\ntext');
+  });
+
+  /**
+   * Base64 in a text file is unreadable either way; what the reader must not do
+   * is mistake it for what the frame said, so the heading names the encoding.
+   */
+  it('says so when the block under a heading is base64', () => {
+    const text = serializeActivity(
+      [record({ encoding: 'base64', body: 'AAECAw==', bytes: 4 })],
+      'local',
+      'session.txt',
+    );
+
+    expect(text).toContain('(4 B, base64)');
+    expect(text).toContain('AAECAw==');
   });
 });
 

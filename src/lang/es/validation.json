@@ -1,7 +1,14 @@
 {
+  "attachmentTooLarge": "El archivo supera el límite de {bytes} bytes",
   "exportPathEmpty": "La ruta de exportación está vacía",
+  "invalidBase64": "El payload binario no es base64 válido",
+  "invalidJsonArgument": "El argumento no es JSON válido. Cambia el payload a texto para enviarlo tal cual",
   "messageTooLarge": "El mensaje supera el límite de {bytes} bytes",
   "unsupportedScheme": "Solo se permiten URL ws: y wss:, se recibió {protocol}",
+  "unsupportedHttpScheme": "Solo se permiten URL http: y https:, se recibió {protocol}",
   "workspaceId": "Identificador de workspace inválido: {id}",
-  "workspaceFile": "Archivo de workspace inválido: {issues}"
+  "workspaceFile": "Archivo de workspace inválido: {issues}",
+  "workspaceVersionMissing": "El archivo no declara una versión de formato de workspace",
+  "workspaceVersionNewer": "El archivo se guardó con el formato de workspace {found} y esta versión lee el {expected}: actualiza la aplicación en vez de abrirlo",
+  "workspaceVersionOld": "El archivo está en el formato de workspace {found} y esta versión no puede migrarlo al {expected}"
 }

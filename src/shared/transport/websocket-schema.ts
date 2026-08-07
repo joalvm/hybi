@@ -28,6 +28,18 @@ export const resolvedWebSocketTransportSchema = z
   })
   .strict();
 
+/**
+ * Base64 carries four characters for every three bytes, so the string bound is
+ * a third above the largest frame the transport will accept. It is a bound on
+ * what may cross the bridge at all; the ceiling that decides whether a frame is
+ * sent is `maxMessageBytes`, measured on the decoded payload.
+ */
+const MAX_MESSAGE_CHARACTERS = 139810134;
+
 export const webSocketTransportMessageSchema = z
-  .object({ kind: z.literal('websocket'), text: z.string().max(104857600) })
+  .object({
+    kind: z.literal('websocket'),
+    body: z.string().max(MAX_MESSAGE_CHARACTERS),
+    encoding: z.enum(['text', 'base64']),
+  })
   .strict();

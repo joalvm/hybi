@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
 import { createWorkspace } from '@shared/domain/factory.js';
-import type { ActivityKind, ActivityRecord } from '@shared/ipc/activity.js';
+import type { ActivityKind, WebSocketActivityRecord } from '@shared/ipc/activity.js';
 import { ActivityDetail } from '@/features/activity/ActivityDetail.js';
 import { ActivityPanel } from '@/features/activity/ActivityPanel.js';
 import { ActivityRow } from '@/features/activity/ActivityRow.js';
@@ -28,7 +28,7 @@ const bridgeMock = vi.hoisted(() => ({
 
 vi.mock('@/ipc/bridge.js', () => ({ bridge: bridgeMock }));
 
-const record = (over: Partial<ActivityRecord>): ActivityRecord => ({
+const record = (over: Partial<WebSocketActivityRecord>): WebSocketActivityRecord => ({
   id: 'c1:1',
   connectionId: 'c1',
   transportKind: 'websocket',
@@ -37,6 +37,7 @@ const record = (over: Partial<ActivityRecord>): ActivityRecord => ({
   at: 1000,
   label: 'DeviceLogin',
   body: '{"ok":true}',
+  encoding: 'text',
   bytes: 11,
   ...over,
 });
@@ -145,7 +146,7 @@ describe('ActivityRow', () => {
   it('keeps a status detail beside its label', () => {
     render(
       <ActivityRow
-        record={record({ kind: 'status', label: 'Cerrado (1000)', body: 'going away' })}
+        record={record({ kind: 'status', label: 'Closed (1000)', body: 'going away' })}
         origin={1000}
         selected={false}
         onSelect={() => undefined}
@@ -154,8 +155,29 @@ describe('ActivityRow', () => {
         canResend={false}
       />,
     );
-    expect(screen.getByText('Cerrado (1000)')).toBeTruthy();
+    expect(screen.getByText('Closed (1000)')).toBeTruthy();
     expect(screen.getByText('going away')).toBeTruthy();
+  });
+
+  /**
+   * Base64 in the preview column is unreadable and, worse, looks like text that
+   * arrived. Hex is what the detail pane will show, so the row previews the same
+   * thing the frame is about to be opened as.
+   */
+  it('previews a binary frame in hex, not as base64', () => {
+    render(
+      <ActivityRow
+        record={record({ label: 'Binary', encoding: 'base64', body: 'iVBORw==', bytes: 4 })}
+        origin={1000}
+        selected={false}
+        onSelect={() => undefined}
+        onCopy={() => undefined}
+        onResend={() => undefined}
+        canResend={false}
+      />,
+    );
+    expect(screen.getByText('89 50 4e 47')).toBeTruthy();
+    expect(screen.queryByText('iVBORw==')).toBeNull();
   });
 });
 
@@ -227,6 +249,49 @@ describe('copying a frame', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Copy the frame' }));
     expect(copied).toEqual(['body']);
+  });
+});
+
+describe('the detail pane of a binary frame', () => {
+  const props = (
+    over: Partial<WebSocketActivityRecord>,
+  ): ComponentProps<typeof ActivityDetail> => ({
+    record: record(over),
+    onClose: () => undefined,
+    onCopy: () => undefined,
+    onResend: () => undefined,
+    canResend: false,
+  });
+
+  /** Text goes to Monaco; bytes have no text to colour, so they go to the dump. */
+  it('reads a text frame in the editor and a binary one in the dump', () => {
+    const { unmount } = render(<ActivityDetail {...props({ body: '{"ok":true}' })} />);
+    expect(screen.queryByTestId('hex-view')).toBeNull();
+    unmount();
+
+    render(<ActivityDetail {...props({ encoding: 'base64', body: 'AAECAw==', bytes: 4 })} />);
+    expect(screen.getByTestId('hex-view')).toBeTruthy();
+  });
+
+  /**
+   * The dump is virtualized on its rows, not on the frame: a megabyte is sixty
+   * five thousand lines, and the pane has to know how many there are without
+   * laying a single one of them out.
+   */
+  it('counts the rows of the frame without drawing them', () => {
+    const megabyte = 'A'.repeat(Math.ceil((1024 * 1024 * 4) / 3));
+    render(
+      <ActivityDetail {...props({ encoding: 'base64', body: megabyte, bytes: 1024 * 1024 })} />,
+    );
+
+    expect(screen.getByTestId('hex-view').getAttribute('data-rows')).toBe('65536');
+  });
+
+  /** A frame the sender said was binary but that is not base64 is still a frame. */
+  it('says so instead of drawing an empty dump for an unreadable body', () => {
+    render(<ActivityDetail {...props({ encoding: 'base64', body: 'not base64!', bytes: 4 })} />);
+
+    expect(screen.getByText('This frame could not be read as binary.')).toBeTruthy();
   });
 });
 

@@ -1,7 +1,10 @@
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
+import {
+  cloneSocketIoSettings,
+  cloneWebSocketSettings,
+} from '@shared/domain/connections/defaults.js';
 import { createWorkspace } from '@shared/domain/factory.js';
 import { useStore } from '@/store/index.js';
 import { ComposerBreadcrumb } from '@/features/composer/ComposerBreadcrumb.js';
@@ -31,8 +34,14 @@ const connectionBridge = vi.hoisted(() => ({
   ),
 }));
 
+const fileBridge = vi.hoisted(() => ({
+  pickBinary: vi.fn<() => Promise<{ ok: true; name: string; body: string; bytes: number } | { ok: false; cancelled: true; error: string }>>(
+    () => Promise.resolve({ ok: false as const, cancelled: true as const, error: 'cancelled' }),
+  ),
+}));
+
 vi.mock('@/ipc/bridge.js', () => ({
-  bridge: { connection: connectionBridge, clipboard },
+  bridge: { connection: connectionBridge, clipboard, file: fileBridge },
 }));
 
 // jsdom has no layout for Monaco to measure, and the real `setup.js` drags the
@@ -91,6 +100,8 @@ function seed(): void {
 beforeEach(() => {
   connectionBridge.send.mockReset();
   connectionBridge.send.mockResolvedValue({ ok: true, sequence: 1 });
+  fileBridge.pickBinary.mockReset();
+  fileBridge.pickBinary.mockResolvedValue({ ok: false, cancelled: true, error: 'cancelled' });
   useStore.getState().reset();
   seed();
 });
@@ -311,6 +322,101 @@ describe('SendButton', () => {
   });
 });
 
+describe('composing a binary payload', () => {
+  const openBinary = async (user: ReturnType<typeof userEvent.setup>): Promise<void> => {
+    useStore.getState().setConnectionState('c1', 'open');
+    render(<ComposerPanel connectionId="c1" />);
+    await user.click(screen.getByRole('combobox', { name: 'Payload format' }));
+    await user.click(screen.getByRole('option', { name: 'Binary' }));
+  };
+
+  /** Hex in, bytes out: what leaves is the payload, not the spelling of it. */
+  it('sends the bytes a hex payload spells', async () => {
+    const user = userEvent.setup();
+    act(() => {
+      useStore.getState().setDraft('c1', 'e1', 'de ad be ef');
+    });
+    await openBinary(user);
+
+    await user.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(connectionBridge.send).toHaveBeenCalledWith({
+      connectionId: 'c1',
+      message: { kind: 'websocket', body: '3q2+7w==', encoding: 'base64' },
+    });
+  });
+
+  it('sends a base64 payload as it was written', async () => {
+    const user = userEvent.setup();
+    act(() => {
+      useStore.getState().setDraft('c1', 'e1', '3q2+7w==');
+    });
+    await openBinary(user);
+    await user.click(screen.getByRole('combobox', { name: 'Binary source' }));
+    await user.click(screen.getByRole('option', { name: 'Base64' }));
+
+    await user.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(connectionBridge.send).toHaveBeenCalledWith({
+      connectionId: 'c1',
+      message: { kind: 'websocket', body: '3q2+7w==', encoding: 'base64' },
+    });
+  });
+
+  /**
+   * A half byte is not a payload. Sending what a broken spelling happens to
+   * parse to would put bytes on the wire that nobody typed.
+   */
+  it('keeps the send button down while the payload cannot be read', async () => {
+    const user = userEvent.setup();
+    act(() => {
+      useStore.getState().setDraft('c1', 'e1', 'dea');
+    });
+    await openBinary(user);
+
+    expect(screen.getByRole('button', { name: 'Send' })).toHaveProperty('disabled', true);
+    expect(screen.getByText('Not a hex payload')).toBeTruthy();
+  });
+
+  it('reports the size of the payload that would leave', async () => {
+    const user = userEvent.setup();
+    act(() => {
+      useStore.getState().setDraft('c1', 'e1', 'deadbeef');
+    });
+    await openBinary(user);
+
+    expect(screen.getByText('4 B')).toBeTruthy();
+  });
+
+  /**
+   * The file never reaches the editor. A four megabyte payload would become
+   * eight megabytes of hex inside Monaco, which is a way to make the composer
+   * unusable for exactly the frames this mode exists to send.
+   */
+  it('sends a picked file without routing it through the editor', async () => {
+    const user = userEvent.setup();
+    fileBridge.pickBinary.mockResolvedValueOnce({
+      ok: true,
+      name: 'logo.png',
+      body: '3q2+7w==',
+      bytes: 4,
+    });
+    await openBinary(user);
+    await user.click(screen.getByRole('combobox', { name: 'Binary source' }));
+    await user.click(screen.getByRole('option', { name: 'File' }));
+    await user.click(screen.getByRole('button', { name: 'Choose a file' }));
+
+    expect(await screen.findByText('logo.png')).toBeTruthy();
+    expect(useStore.getState().drafts['c1:e1']).toBeUndefined();
+
+    await user.click(screen.getByRole('button', { name: 'Send' }));
+    expect(connectionBridge.send).toHaveBeenCalledWith({
+      connectionId: 'c1',
+      message: { kind: 'websocket', body: '3q2+7w==', encoding: 'base64' },
+    });
+  });
+});
+
 describe('beautify', () => {
   it('re-indents a JSON frame that arrived on one line', () => {
     expect(beautify('{"event":"Ping","data":{"id":1}}', 'json')).toBe(
@@ -436,5 +542,94 @@ describe('payload editor context menu', () => {
 
     await user.click(screen.getByRole('menuitem', { name: 'Paste' }));
     expect(clipboard.readText).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('the composer of a Socket.IO connection', () => {
+  /** The same seeded event, on a connection whose transport routes by name. */
+  const useSocketIo = (): void => {
+    act(() => {
+      const state = useStore.getState();
+      const connection = state.workspace?.connections[0];
+      if (connection === undefined) return;
+      state.setConnectionState('c1', 'open');
+      state.upsertConnection({
+        ...connection,
+        transport: {
+          kind: 'socketio',
+          url: 'http://127.0.0.1:3000',
+          settings: cloneSocketIoSettings(),
+        },
+      });
+    });
+  };
+
+  /** The event name starts as the catalog entry's own, which is what it is for. */
+  it('offers the event name and the ack switch, named after the open event', () => {
+    useSocketIo();
+    render(<ComposerPanel connectionId="c1" />);
+
+    expect(screen.getByLabelText('Event')).toHaveProperty('value', 'Login');
+    expect(screen.getByLabelText('Wait for ack')).toBeTruthy();
+  });
+
+  it('emits under the name in the box, with the payload as one JSON argument', async () => {
+    const user = userEvent.setup();
+    useSocketIo();
+    render(<ComposerPanel connectionId="c1" />);
+
+    await user.clear(screen.getByLabelText('Event'));
+    await user.type(screen.getByLabelText('Event'), 'chat:message');
+    await user.click(screen.getByRole('combobox', { name: 'Payload format' }));
+    await user.click(screen.getByRole('option', { name: 'JSON' }));
+    await user.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(connectionBridge.send).toHaveBeenCalledWith({
+      connectionId: 'c1',
+      message: {
+        kind: 'socketio',
+        event: 'chat:message',
+        body: '{"token":"abc"}',
+        argument: 'json',
+        ack: false,
+      },
+    });
+  });
+
+  it('asks for an answer when the ack switch is on', async () => {
+    const user = userEvent.setup();
+    useSocketIo();
+    render(<ComposerPanel connectionId="c1" />);
+
+    await user.click(screen.getByLabelText('Wait for ack'));
+    await user.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(connectionBridge.send).toHaveBeenCalledWith({
+      connectionId: 'c1',
+      message: {
+        kind: 'socketio',
+        event: 'Login',
+        body: '{"token":"abc"}',
+        argument: 'json',
+        ack: true,
+      },
+    });
+  });
+
+  /** An emit with no name has nowhere to arrive, however much payload it carries. */
+  it('refuses to send while the event has no name', async () => {
+    const user = userEvent.setup();
+    useSocketIo();
+    render(<ComposerPanel connectionId="c1" />);
+
+    await user.clear(screen.getByLabelText('Event'));
+
+    expect(screen.getByRole('button', { name: 'Send' })).toHaveProperty('disabled', true);
+  });
+
+  /** A raw socket has no name to emit under, so the strip has no place there. */
+  it('leaves the emit bar out of a WebSocket connection', () => {
+    render(<ComposerPanel connectionId="c1" />);
+    expect(screen.queryByLabelText('Event')).toBeNull();
   });
 });

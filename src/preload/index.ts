@@ -60,6 +60,9 @@ const bridge: WorkbenchBridge = {
   activity: {
     export: (request) => ipcRenderer.invoke(CHANNELS.activityExport, request),
   },
+  file: {
+    pickBinary: () => ipcRenderer.invoke(CHANNELS.filePickBinary),
+  },
   clipboard: {
     readText: () => ipcRenderer.invoke(CHANNELS.clipboardRead),
     writeText: (text) => ipcRenderer.invoke(CHANNELS.clipboardWrite, text),
@@ -77,6 +80,7 @@ const bridge: WorkbenchBridge = {
   },
   shell: {
     openWorkspace: (workspaceId) => ipcRenderer.invoke(CHANNELS.shellOpenWorkspace, workspaceId),
+    openLogs: () => ipcRenderer.invoke(CHANNELS.shellOpenLogs),
   },
   app: {
     version: versionOf(process.argv),

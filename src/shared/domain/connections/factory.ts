@@ -1,5 +1,15 @@
-import { cloneConnectionTransport, cloneWebSocketSettings } from './defaults.js';
-import type { Connection, ConnectionTransport } from './connection.js';
+import {
+  cloneConnectionTransport,
+  cloneSocketIoSettings,
+  cloneWebSocketSettings,
+} from './defaults.js';
+import type {
+  Connection,
+  ConnectionTransport,
+  TransportFactoryMap,
+  TransportKind,
+} from './connection.js';
+import type { SocketIoTransport, SocketIoTransportSettings } from './socketio.js';
 import type { WebSocketTransport, WebSocketTransportSettings } from './websocket.js';
 
 function newId(): string {
@@ -15,6 +25,32 @@ export function createWebSocketTransport(input: {
     url: input.url ?? 'ws://127.0.0.1:3000',
     settings: cloneWebSocketSettings(input.settings),
   };
+}
+
+export function createSocketIoTransport(input: {
+  url?: string;
+  settings?: SocketIoTransportSettings;
+} = {}): SocketIoTransport {
+  return {
+    kind: 'socketio',
+    url: input.url ?? 'http://127.0.0.1:3000',
+    settings: cloneSocketIoSettings(input.settings),
+  };
+}
+
+const TRANSPORT_FACTORIES: TransportFactoryMap<() => ConnectionTransport> = {
+  websocket: () => createWebSocketTransport(),
+  socketio: () => createSocketIoTransport(),
+};
+
+/**
+ * A transport of the requested kind, at its own defaults. Nothing is carried
+ * over from the one being replaced: the settings do not mean the same thing on
+ * both sides, and neither does the URL — a half-migrated configuration looks
+ * configured and is not.
+ */
+export function createTransport(kind: TransportKind): ConnectionTransport {
+  return TRANSPORT_FACTORIES[kind]();
 }
 
 export function createConnection(input: {

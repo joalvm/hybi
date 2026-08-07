@@ -4,6 +4,18 @@
   "connectionSuperseded": "Connection attempt was superseded",
   "connectionClosedEarly": "Connection closed before opening",
   "sendFailed": "WebSocket send failed",
+  "transportMismatch": "This connection was asked to handle another transport's request",
+  "reconnectFailed": "Gave up reconnecting to {url}",
+  "network": {
+    "refused": "{code}: nothing is listening at {url}",
+    "unknownHost": "{code}: the host in {url} could not be resolved",
+    "timedOut": "{code}: {url} did not answer in time",
+    "reset": "{code}: the server closed the connection at {url} while it was being established",
+    "unreachable": "{code}: there is no route to {url}",
+    "certificate": "{code}: the certificate {url} presented was rejected. Turn certificate verification off in the connection settings only if this server is yours",
+    "handshakeRejected": "The server rejected the handshake with {status}: it did not accept the credentials the connection sent",
+    "handshakeStatus": "The server answered the handshake with {status} instead of 101"
+  },
   "asyncapi": {
     "unreadable": "Could not parse {file}",
     "noOperations": "{file} has no operations this client could send"

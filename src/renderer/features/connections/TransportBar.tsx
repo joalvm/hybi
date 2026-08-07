@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { WebSocketTransport } from '@shared/domain/connections/websocket.js';
+import type { ConnectionTransport } from '@shared/domain/connections/connection.js';
 import type { ConnectionState } from '@shared/ipc/activity.js';
 import type { VariableScope } from '@shared/variables/resolve.js';
 import type { ActivityTotals } from '@/store/totals.js';
@@ -9,29 +9,33 @@ import { useMessages } from '@/shared/i18n/useMessages.js';
 import { IconButton } from '@/shared/ui/IconButton.js';
 import { SettingsIcon } from '@/shared/ui/icons.js';
 import { useHoverIntent } from '@/shared/ui/useHoverIntent.js';
-import { ConnectButton } from '../ConnectButton.js';
-import { TrafficCounter } from '../TrafficCounter.js';
-import { UrlInput } from '../UrlInput.js';
-import { resolveWebSocketTransport } from './resolve.js';
+import { ConnectButton } from './ConnectButton.js';
+import { resolveTransport } from './resolve.js';
+import { TrafficCounter } from './TrafficCounter.js';
+import { UrlInput } from './UrlInput.js';
 
 type Props = {
   connectionId: string;
   environmentId: string | null;
-  transport: WebSocketTransport;
+  transport: ConnectionTransport;
   scope: VariableScope;
   state: ConnectionState;
   totals: ActivityTotals;
-  onTransportChange: (transport: WebSocketTransport) => void;
+  onTransportChange: (transport: ConnectionTransport) => void;
   onStateChange: (state: ConnectionState) => void;
   onLocalError: (message: string) => void;
   onOpenSettings: () => void;
 };
 
-/** WebSocket-specific endpoint controls and IPC translation. */
-export function WebSocketConnectionBar(props: Props) {
+/**
+ * The endpoint controls, shared by every transport. What each one does with the
+ * URL differs and lives in `resolveTransport`; a bar per protocol would be the
+ * same hundred lines twice over the one line that is not the same.
+ */
+export function TransportBar(props: Props) {
   const messages = useMessages().connections;
   const { connectionId, environmentId, transport, scope, state } = props;
-  const resolution = useMemo(() => resolveWebSocketTransport(transport, scope), [transport, scope]);
+  const resolution = useMemo(() => resolveTransport(transport, scope), [transport, scope]);
   // Same open/close timing as the Monaco editor's variable hover: one panel,
   // one set of delays, wherever the token is written.
   const hover = useHoverIntent<{ name: string; rect: DOMRect }>();

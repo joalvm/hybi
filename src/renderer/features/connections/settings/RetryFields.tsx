@@ -1,4 +1,4 @@
-import type { RetryPolicy } from '@shared/domain/connections/websocket.js';
+import type { RetryPolicy } from '@shared/domain/connections/policies.js';
 import { useMessages } from '@/shared/i18n/useMessages.js';
 import { NumberField } from '@/shared/ui/NumberField.js';
 import { ToggleField } from '@/shared/ui/ToggleField.js';

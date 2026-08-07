@@ -1,4 +1,6 @@
-import type { ConnectionTransport } from '@shared/domain/connections/connection.js';
+import type { ConnectionTransport, TransportKind } from '@shared/domain/connections/connection.js';
+import { createTransport } from '@shared/domain/connections/factory.js';
+import { SocketIoSettings } from '../socketio/settings/SocketIoSettings.js';
 import { WebSocketSettings } from '../websocket/settings/WebSocketSettings.js';
 
 type Props = {
@@ -7,22 +9,39 @@ type Props = {
 };
 
 /**
- * Where the settings panel of each transport is chosen. There is no dispatch yet
- * because there is nothing to dispatch on: `ConnectionTransport` has one member,
- * and a one-member union cannot be narrowed — `no-unnecessary-condition` rejects
- * the guard as always true. Adding a transport is what makes the branch legal,
- * and `TransportFactoryMap` is what will refuse to compile until it exists.
+ * Where the settings panel of each transport is chosen. The switch returns a
+ * different pane per branch and the function has to return one, so a transport
+ * with no branch is a compile error rather than an empty dialog.
+ *
+ * Each branch spreads its own narrowed transport, which is what keeps a
+ * Socket.IO namespace from being merged into a WebSocket's settings by a shared
+ * handler that only saw the union.
  */
 export function TransportSettings({ transport, onChange }: Props) {
-  return (
-    <WebSocketSettings
-      settings={transport.settings}
-      onChange={(next) => {
-        onChange({
-          ...transport,
-          settings: { ...transport.settings, ...next },
-        });
-      }}
-    />
-  );
+  const changeKind = (kind: TransportKind): void => {
+    if (kind !== transport.kind) onChange(createTransport(kind));
+  };
+
+  switch (transport.kind) {
+    case 'websocket':
+      return (
+        <WebSocketSettings
+          settings={transport.settings}
+          onKindChange={changeKind}
+          onChange={(next) => {
+            onChange({ ...transport, settings: { ...transport.settings, ...next } });
+          }}
+        />
+      );
+    case 'socketio':
+      return (
+        <SocketIoSettings
+          settings={transport.settings}
+          onKindChange={changeKind}
+          onChange={(next) => {
+            onChange({ ...transport, settings: { ...transport.settings, ...next } });
+          }}
+        />
+      );
+  }
 }

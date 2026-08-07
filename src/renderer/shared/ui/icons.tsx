@@ -17,6 +17,7 @@ import {
   Folder,
   FolderPlus,
   Import,
+  KeyRound,
   Languages,
   List,
   ListFilter,
@@ -37,31 +38,15 @@ import {
   SendHorizontal,
   Settings,
   ShieldAlert,
+  SlidersHorizontal,
   Scissors,
   Square,
   Trash2,
   Waves,
   WandSparkles,
   X,
-  type LucideIcon,
-  type LucideProps,
 } from 'lucide-react';
-
-/** Centralizes glyph weight, size, and accessibility so every icon stays consistent. */
-const HAIRLINE: LucideProps = {
-  size: 14,
-  strokeWidth: 1,
-  absoluteStrokeWidth: true,
-  'aria-hidden': true,
-  focusable: false,
-};
-
-/** Props still win over the defaults, so one caller can ask for a larger glyph. */
-function hairline(Glyph: LucideIcon) {
-  return function Icon(props: LucideProps) {
-    return <Glyph {...HAIRLINE} {...props} />;
-  };
-}
+import { hairline } from './hairline.js';
 
 /** Closes a dialog, a pane or a tab. */
 export const CloseIcon = hairline(X);
@@ -147,3 +132,5 @@ export const NetworkIcon = hairline(Network);
 export const RetryIcon = hairline(RefreshCw);
 export const KeepaliveIcon = hairline(Waves);
 export const HeadersIcon = hairline(List);
+export const KeyIcon = hairline(KeyRound);
+export const SlidersIcon = hairline(SlidersHorizontal);

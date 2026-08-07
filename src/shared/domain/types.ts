@@ -53,4 +53,16 @@ export type Workspace = {
   catalog: EventCatalog;
 };
 
-export type WorkspaceSummary = { id: string; name: string; updatedAt: string };
+/** Why a file that is on disk could not be listed as a workspace. */
+export type WorkspaceDefect = { path: string; reason: string };
+
+/**
+ * One row of the workspace list. `broken` turns the row into a report: the file
+ * exists, it is not openable, and hiding it would read as lost work.
+ */
+export type WorkspaceSummary = {
+  id: string;
+  name: string;
+  updatedAt: string;
+  broken?: WorkspaceDefect;
+};

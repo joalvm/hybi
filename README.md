@@ -72,6 +72,12 @@ está viajando por una línea que normalmente es invisible.
   para la próxima vez.
 - **Trabajar en inglés o en español.** De fábrica sigue el idioma del sistema, y
   se cambia en preferencias sin reiniciar.
+- **Saber qué pasó cuando algo falla.** Los errores de conexión se explican con
+  palabras, sin esconder el código técnico, y un espacio de trabajo que no se
+  puede leer aparece en la lista marcado y con su ruta, en vez de desaparecer.
+  Hybi además deja un registro en disco que puedes adjuntar a un reporte: guarda
+  la dirección, el error y el estado, nunca tus cabeceras, tus claves ni tus
+  mensajes.
 
 ## Cómo se usa, en cuatro pasos
 
@@ -132,10 +138,10 @@ Lo que eso implica mientras dure esta fase:
 
 - Siguen entrando funciones nuevas, así que la interfaz puede moverse de una
   versión a otra.
-- El formato de los archivos guardados puede cambiar, y mientras dure la alpha
-  cambia sin conversión automática: un espacio de trabajo escrito por una
-  versión anterior puede dejar de abrirse. Conviene no confiarle todavía trabajo
-  irrecuperable.
+- El formato de los archivos guardados puede cambiar. Hybi ya guarda una copia
+  del archivo original antes de convertirlo, y se niega a tocar uno escrito por
+  una versión posterior en vez de reinterpretarlo; aun así, mientras dure la
+  alpha conviene no confiarle todavía trabajo irrecuperable.
 - Los fallos son esperables. Reportarlos es la mejor forma de ayudar.
 
 ## Lo que viene
@@ -148,10 +154,8 @@ lo usa.
 
 - **Ver los mensajes que no son texto.** Hoy, cuando llega algo que no son
   letras, Hybi solo dice cuánto ocupa. Va a poder abrirse y mirarse por dentro.
-- **Avisar cuando un espacio de trabajo no se puede leer**, en vez de dejarlo
-  fuera de la lista sin decir nada.
-- **Explicar los fallos de conexión con palabras**, en vez de dejar el código
-  del error a la vista.
+- **Guardar el historial de cambios** de cada versión en un archivo que se pueda
+  leer de un vistazo.
 
 ### Camino a la primera versión estable
 
@@ -159,9 +163,8 @@ lo usa.
   programa viene de un origen desconocido. Es lo más importante de esta lista.
 - **Aviso de versión nueva** desde la propia aplicación, sin tener que pasar por
   la web.
-- **Más tipos de conexión.** Hoy Hybi habla WebSocket a secas; falta lo que se
-  monta encima, empezando por Socket.IO, que es lo que usa mucha gente sin
-  saberlo.
+- **Más tipos de conexión.** Hybi ya habla WebSocket a secas y Socket.IO; falta
+  el resto de lo que se monta encima.
 - **Llevarte un espacio de trabajo a otro equipo**, o pasárselo a un compañero,
   en un solo archivo.
 - **Ayuda con la autenticación**, para no tener que armar a mano la cabecera del

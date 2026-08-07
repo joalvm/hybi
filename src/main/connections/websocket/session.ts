@@ -1,20 +1,25 @@
 import { WebSocket } from 'ws';
-import { format } from '@lang/translate.js';
-import type { ResolvedTransport, TransportMessage } from '@shared/transport/contract.js';
+import type {
+  ResolvedTransport,
+  ResolvedWebSocketTransport,
+  TransportMessage,
+} from '@shared/transport/contract.js';
 import { mainMessages } from '../../lang.js';
 import type { TransportSession, TransportSessionSink } from '../transport.js';
 import { createWebSocketAttempt, disposeWebSocketAttempt, type WebSocketAttempt } from './attempt.js';
-import { bodyOf } from './frame.js';
-import { labelOf } from './label.js';
-import { createWebSocketReporter, errorMessage } from './reporter.js';
+import { frameOf, textFrame } from './frame.js';
+import { labelFor } from './label.js';
+import { closedNote, retryNote } from './notes.js';
+import { createWebSocketReporter } from './reporter.js';
 import { RetryScheduler } from './retry.js';
+import { outgoingFor, writeFrame } from './send.js';
 import { assertWsUrl } from './url.js';
 
 /** One native WebSocket state machine behind the neutral transport port. */
 export class WebSocketTransportSession implements TransportSession {
   readonly kind = 'websocket' as const;
   private active: WebSocketAttempt | null = null;
-  private target: ResolvedTransport | null = null;
+  private target: ResolvedWebSocketTransport | null = null;
   private readonly retry = new RetryScheduler();
   private readonly reporter;
   private wasOpen = false;
@@ -25,6 +30,9 @@ export class WebSocketTransportSession implements TransportSession {
   }
 
   async open(transport: ResolvedTransport): Promise<void> {
+    // The port carries the union; an adapter only ever answers for its own
+    // member of it. A mismatch is a wiring bug, not something a user can reach.
+    if (transport.kind !== 'websocket') throw new Error(mainMessages().exceptions.transportMismatch);
     this.releaseActive();
     this.target = transport;
     this.retry.cancel();
@@ -38,24 +46,14 @@ export class WebSocketTransportSession implements TransportSession {
     const attempt = this.active;
     const target = this.target;
     const messages = mainMessages();
+    if (message.kind !== 'websocket') throw new Error(messages.exceptions.transportMismatch);
     if (attempt?.socket.readyState !== WebSocket.OPEN || target === null) {
       throw new Error(messages.exceptions.connectionNotOpen);
     }
-    const bytes = Buffer.byteLength(message.text, 'utf8');
-    if (bytes > target.maxMessageBytes) {
-      throw new Error(
-        format(messages.validation.messageTooLarge, { bytes: target.maxMessageBytes }),
-      );
-    }
 
-    await new Promise<void>((resolve, reject) => {
-      attempt.socket.send(message.text, (error) => {
-        const cause: unknown = error;
-        if (cause === undefined || cause === null) resolve();
-        else reject(cause instanceof Error ? cause : new Error(messages.exceptions.sendFailed));
-      });
-    });
-    return this.reporter.record('outgoing', labelOf(message.text), message.text);
+    const outgoing = outgoingFor(message, target.maxMessageBytes);
+    await writeFrame(attempt.socket, outgoing.payload, messages.exceptions.sendFailed);
+    return this.reporter.record('outgoing', labelFor(outgoing.frame), outgoing.frame);
   }
 
   close(): void {
@@ -87,7 +85,7 @@ export class WebSocketTransportSession implements TransportSession {
     try {
       parsed = assertWsUrl(target.url);
     } catch (error) {
-      this.reporter.record('error', 'Error', errorMessage(error));
+      this.reporter.failure(error, target.url);
       throw error;
     }
 
@@ -101,11 +99,11 @@ export class WebSocketTransportSession implements TransportSession {
       },
       message: (attempt, data, isBinary) => {
         if (this.active !== attempt) return;
-        const body = bodyOf(data, isBinary);
-        this.reporter.record('incoming', labelOf(body), body);
+        const frame = frameOf(data, isBinary);
+        this.reporter.record('incoming', labelFor(frame), frame);
       },
       error: (attempt, error) => {
-        if (this.active === attempt) this.reporter.record('error', 'Error', error.message);
+        if (this.active === attempt) this.reporter.failure(error, target.url);
       },
       close: (attempt, code, reason) => {
         this.handleClose(attempt, code, reason);
@@ -121,7 +119,7 @@ export class WebSocketTransportSession implements TransportSession {
     if (this.active !== attempt) return;
     this.active = null;
     const dropped = !this.closedByUser && this.wasOpen;
-    this.reporter.record('status', `Cerrado (${String(code)})`, reason);
+    this.reporter.record('status', closedNote(code), textFrame(reason));
     this.reporter.state(dropped ? 'dropped' : 'closed', String(code));
     if (dropped) this.scheduleRetry();
   }
@@ -131,16 +129,13 @@ export class WebSocketTransportSession implements TransportSession {
     if (target === null) return;
     const delay = this.retry.schedule(target.retry, () => {
       this.connect().catch((error: unknown) => {
-        this.reporter.record('error', 'Error', errorMessage(error));
+        this.reporter.failure(error, target.url);
         this.scheduleRetry();
       });
     });
     if (delay === null) return;
-    this.reporter.record(
-      'status',
-      `Reintentando (${String(this.retry.attempts)}/${String(target.retry.attempts)})`,
-      `en ${String(delay)} ms`,
-    );
+    const note = retryNote(this.retry.attempts, target.retry.attempts, delay);
+    this.reporter.record('status', note.label, textFrame(note.body));
   }
 
   private releaseActive(): void {

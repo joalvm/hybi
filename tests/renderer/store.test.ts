@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { cloneWebSocketSettings } from '@shared/domain/connections/defaults.js';
 import { createWorkspace } from '@shared/domain/factory.js';
 import type { EventItem, Workspace } from '@shared/domain/types.js';
-import type { ActivityRecord } from '@shared/ipc/activity.js';
+import type { WebSocketActivityRecord } from '@shared/ipc/activity.js';
 import { ACTIVITY_BYTE_LIMIT, ACTIVITY_LIMIT } from '@shared/preferences/defaults.js';
 import { useStore } from '@/store/index.js';
 import {
@@ -27,8 +27,8 @@ function item(overrides: Partial<EventItem> & { id: string }): EventItem {
 }
 
 function activityRecord(
-  overrides: Partial<ActivityRecord> & { id: string },
-): ActivityRecord {
+  overrides: Partial<WebSocketActivityRecord> & { id: string },
+): WebSocketActivityRecord {
   return {
     connectionId: 'c1',
     transportKind: 'websocket',
@@ -37,6 +37,7 @@ function activityRecord(
     at: 0,
     label: 'x',
     body: 'x',
+    encoding: 'text',
     bytes: 1,
     ...overrides,
   };

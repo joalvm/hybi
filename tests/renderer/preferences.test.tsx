@@ -13,7 +13,11 @@ const preferencesBridge = vi.hoisted(() => ({
   onChanged: vi.fn(() => () => undefined),
 }));
 
-vi.mock('@/ipc/bridge.js', () => ({ bridge: { preferences: preferencesBridge } }));
+const shellBridge = vi.hoisted(() => ({ openLogs: vi.fn(() => Promise.resolve()) }));
+
+vi.mock('@/ipc/bridge.js', () => ({
+  bridge: { preferences: preferencesBridge, shell: shellBridge },
+}));
 
 /** The last shape handed to the main process, which is what reaches disk. */
 function lastSaved(): AppPreferences | undefined {
@@ -114,6 +118,19 @@ describe('PreferencesDialog', () => {
     expect(screen.queryByRole('combobox', { name: 'On startup' })).toBeNull();
     expect(screen.getByLabelText('Maximum messages per connection')).toBeTruthy();
   });
+
+  /**
+   * A log nobody can find is a log nobody attaches, and a report with no file
+   * behind it is not diagnosable.
+   */
+  it('opens the log folder without the renderer naming a path', async () => {
+    const user = userEvent.setup();
+    render(<PreferencesDialog open onClose={() => undefined} />);
+
+    await user.click(screen.getByRole('button', { name: 'Open the log folder' }));
+
+    expect(shellBridge.openLogs).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('activity budget', () => {
@@ -135,10 +152,38 @@ describe('activity budget', () => {
         at: 0,
         label: 'msg',
         body: 'x',
+        encoding: 'text' as const,
         bytes: 1,
       })),
     );
 
     expect(useStore.getState().activity.c1).toHaveLength(5);
+  });
+
+  /**
+   * The budget exists to bound memory, and a binary frame is held as base64 —
+   * four characters for every three bytes. Charging it its wire size would let
+   * the log outgrow the ceiling the user set by a third.
+   */
+  it('charges a binary frame what it occupies, not what it weighs on the wire', () => {
+    usePreferences.getState().replace({ ...DEFAULT_PREFERENCES, activityByteLimit: 400 });
+
+    useStore.getState().appendActivity(
+      Array.from({ length: 4 }, (_unused, index) => ({
+        id: `c1:${String(index)}`,
+        connectionId: 'c1',
+        transportKind: 'websocket' as const,
+        sequence: index,
+        kind: 'incoming' as const,
+        at: 0,
+        label: 'blob',
+        body: 'A'.repeat(200),
+        encoding: 'base64' as const,
+        bytes: 150,
+      })),
+    );
+
+    // Two records at 200 stored characters fit in 400; a third does not.
+    expect(useStore.getState().activity.c1).toHaveLength(2);
   });
 });

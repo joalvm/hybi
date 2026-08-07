@@ -19,6 +19,23 @@
     "label": "Payload format",
     "beautify": "Format"
   },
+  "emit": {
+    "event": "Event",
+    "eventPlaceholder": "Name to emit under",
+    "ack": "Wait for ack"
+  },
+  "binary": {
+    "source": "Binary source",
+    "hex": "Hex",
+    "base64": "Base64",
+    "file": "File",
+    "choose": "Choose a file",
+    "replace": "Choose another file",
+    "noFile": "No file chosen",
+    "invalidHex": "Not a hex payload",
+    "invalidBase64": "Not a base64 payload",
+    "size": "{count} B"
+  },
   "docs": {
     "label": "Event documentation",
     "empty": "This event has no description.",

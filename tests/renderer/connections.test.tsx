@@ -168,6 +168,7 @@ describe('ConnectionBar', () => {
           at: 0,
           label: 'Pong',
           body: 'x',
+          encoding: 'text',
           bytes: 2400,
         },
         {
@@ -179,6 +180,7 @@ describe('ConnectionBar', () => {
           at: 1,
           label: 'Ping',
           body: 'x',
+          encoding: 'text',
           bytes: 12,
         },
       ]);

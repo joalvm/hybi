@@ -117,7 +117,7 @@ describe('WorkspaceRepository', () => {
       JSON.stringify({ ...workspace, version: 4 }),
       'utf8',
     );
-    await expect(repository.load(workspace.id)).rejects.toThrow(/Invalid workspace file/);
+    await expect(repository.load(workspace.id)).rejects.toThrow(/workspace format 4/);
   });
 
   it('rejects a file whose contents no longer match the schema', async () => {
@@ -125,7 +125,7 @@ describe('WorkspaceRepository', () => {
     await repository.save(workspace);
     await writeFile(
       join(root, `${workspace.id}.json`),
-      JSON.stringify({ ...workspace, version: 99 }),
+      JSON.stringify({ ...workspace, connections: 'not a list' }),
       'utf8',
     );
     await expect(repository.load(workspace.id)).rejects.toThrow(/Invalid workspace file/);

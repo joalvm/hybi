@@ -10,5 +10,10 @@
   "loadFailed": "The workspaces could not be loaded: {error}",
   "empty": "No workspaces yet.",
   "open": "Open {name}",
+  "broken": "Could not be read",
+  "discard": "Discard {name}",
+  "discardAction": "Discard",
+  "discardTitle": "Discard this file",
+  "discardMessage": "{path} will be deleted. It could not be read as a workspace, so nothing can be recovered from it.",
   "flight": "{app} travelling to the left"
 }

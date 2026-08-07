@@ -23,6 +23,22 @@
     "error": "Errors"
   },
   "bytes": "{count} B",
+  "binaryFrame": "Binary · {count} B",
+  "binaryUnreadable": "This frame could not be read as binary.",
+  "notes": {
+    "closed": "Closed ({code})",
+    "retrying": "Retrying ({attempt}/{attempts})",
+    "retryDelay": "in {delay} ms"
+  },
+  "socketio": {
+    "joined": "Joined",
+    "namespace": "Namespace {namespace}",
+    "disconnected": "Disconnected",
+    "reason": "Reason: {reason}",
+    "reconnecting": "Reconnecting ({attempt})",
+    "ackTimeout": "«{event}» went unanswered after {timeout} ms",
+    "ack": "ack"
+  },
   "rowActions": "Frame actions",
   "copyBody": "Copy body",
   "copyRow": "Copy row",
