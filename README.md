@@ -163,9 +163,8 @@ lo usa.
   programa viene de un origen desconocido. Es lo más importante de esta lista.
 - **Aviso de versión nueva** desde la propia aplicación, sin tener que pasar por
   la web.
-- **Más tipos de conexión.** Hoy Hybi habla WebSocket a secas; falta lo que se
-  monta encima, empezando por Socket.IO, que es lo que usa mucha gente sin
-  saberlo.
+- **Más tipos de conexión.** Hybi ya habla WebSocket a secas y Socket.IO; falta
+  el resto de lo que se monta encima.
 - **Llevarte un espacio de trabajo a otro equipo**, o pasárselo a un compañero,
   en un solo archivo.
 - **Ayuda con la autenticación**, para no tener que armar a mano la cabecera del

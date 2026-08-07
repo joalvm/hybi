@@ -141,11 +141,12 @@ ningún flujo que la app ya promete**, con el formato de datos congelado.
 
 ### Funcionalidad que falta para no quedar a medias
 
-- [ ] **Ver frames binarios.** Hoy sólo se lista `<binario N bytes>`. Falta
-      visor hexadecimal con columna ASCII en el detalle. Un cliente que no
-      enseña binario es medio cliente.
-- [ ] **Enviar frames binarios.** `WebSocketTransportMessage` sólo lleva
-      `text`. Falta el modo binario en el composer (hex, base64 o archivo).
+- [x] **Ver frames binarios.** Visor hexadecimal con columna ASCII en el
+      detalle, virtualizado: un megabyte se recorre sin que la lista pierda
+      fluidez. La fila previsualiza los primeros bytes en hex, no en base64.
+- [x] **Enviar frames binarios.** Modo binario en el composer: hex, base64 o
+      un archivo que se lee en el proceso principal y nunca entra en el editor.
+      El techo de tamaño se mide en bytes de cable.
 - [x] **Copiar un frame.** Menú contextual en la fila, Ctrl+C con el foco
       puesto en ella y botón en el detalle. El cuerpo sale exacto.
 - [x] **Exportar la sesión.** JSON o texto plano, con el diálogo de guardado
@@ -221,9 +222,10 @@ habitual.**
       por omisión y su forma es el tipo contra el que se comprueba el español.
       Una regla propia de ESLint impide que vuelva a aparecer texto suelto en un
       componente, y cambiar de idioma no exige reiniciar.
-- [ ] **Socket.IO.** El transporte más pedido después de WebSocket puro, y el
-      que hoy hace *parecer* que la herramienta falla. La arquitectura ya está
-      preparada: `TransportKind` es discriminado y el contrato está abstraído.
+- [x] **Socket.IO.** Transporte completo: namespace, `auth` del handshake,
+      reconexión propia de la librería, eventos con nombre y ack. Se elige
+      desde la primera fila del panel de conexión, y las pruebas —unitarias y
+      E2E— corren contra un servidor Socket.IO real.
 - [x] **Preferencias de aplicación.** Tema, tamaño de fuente del editor, límites
       del log, comportamiento al arrancar. Adelantadas a la beta: cada función
       nueva añadía otra constante en el código.
@@ -286,13 +288,14 @@ habitual.**
 | Frente | Estado | Riesgo |
 | --- | --- | --- |
 | Ingeniería y seguridad | Sólido, por encima de la etiqueta alpha | Bajo |
-| Alcance funcional | Falta binario y Socket.IO | **Alto** |
+| Alcance funcional | Binario y Socket.IO cerrados | Bajo |
 | Distribución | Sin firmar: la mayor pérdida de usuarios | **Crítico** |
 | Alcance de mercado | Inglés y español, inglés por omisión | Bajo |
 | Diferenciación | AsyncAPI + headers + local: real y defendible | Bajo |
 | Monetización | Sin modelo | Medio, aplazable |
 
-**Los tres siguientes movimientos, en orden:** frames binarios (cierra el hueco
-funcional más visible), integridad del workspace (lo que convierte la app en
-algo a lo que confiarle trabajo) y Socket.IO (el transporte más pedido después
-de WebSocket puro).
+**Los tres movimientos que se marcaron —binarios, integridad del workspace y
+Socket.IO— están hechos.** Lo que queda por delante de la beta es higiene de
+release: `CHANGELOG.md`, la deuda del repositorio y los umbrales de cobertura;
+y, por encima de todo, firmar los instaladores, que sigue siendo la mayor
+pérdida de usuarios.

@@ -33,8 +33,8 @@ revisión. `S` = 0,5–1 día. `M` = 2–4 días. `L` = 5–10 días. Total apro
 | 7 | Capa de idiomas (español + inglés) | M–L | Cimientos | hecho |
 | 8 | Integridad del workspace | M | Datos | hecho |
 | 9 | Diagnóstico: errores legibles y log en disco | M | Datos | hecho |
-| 10 | Frames binarios: ver y enviar | L | Protocolo | pendiente |
-| 11 | Socket.IO | L | Protocolo | pendiente |
+| 10 | Frames binarios: ver y enviar | L | Protocolo | hecho |
+| 11 | Socket.IO | L | Protocolo | hecho |
 | 12 | `CHANGELOG.md` | S | Higiene | pendiente |
 | 13 | Deuda del repositorio | S | Higiene | pendiente |
 | 14 | Umbral de cobertura, carga y accesibilidad | M | Higiene | pendiente |
@@ -180,9 +180,9 @@ que respalda esa frase.
 
 ## Fase 3 — Protocolo
 
-Lo caro. Aquí se ensancha lo que la aplicación entiende.
+Lo caro. Aquí se ensancha lo que la aplicación entiende. **Cerrada.**
 
-### 10. Frames binarios: ver y enviar — `L`
+### 10. Frames binarios: ver y enviar — `L` · hecho
 
 - **Qué**: visor hexadecimal con columna ASCII en el detalle, y modo binario en
   el composer (hex, base64 o archivo).
@@ -196,8 +196,12 @@ Lo caro. Aquí se ensancha lo que la aplicación entiende.
   memoria del log —que hoy cuenta caracteres y pasará a contar bytes.
 - **Hecho cuando**: un binario de 1 MB se puede mirar sin que la lista pierda
   fluidez, y lo que se envía llega byte a byte idéntico.
+- **Cómo quedó**: los códecs base64/hex y el volcado viven en
+  `src/shared/binary/`; `TransportActivityRecord` lleva `encoding` y cuenta
+  bytes de cable, no caracteres; `HexFrameView` virtualiza el volcado, y el
+  composer envía bytes desde hex, base64 o un archivo que nunca entra en Monaco.
 
-### 11. Socket.IO — `L`
+### 11. Socket.IO — `L` · hecho
 
 - **Qué**: transporte nuevo, con su configuración, su modelo de eventos con
   nombre y argumentos, y sus confirmaciones (*ack*).
@@ -217,6 +221,18 @@ Lo caro. Aquí se ensancha lo que la aplicación entiende.
 - **Hecho cuando**: conecta contra un servidor Socket.IO real —no un simulacro—
   con namespace, reconexión y ack, y las pruebas E2E lo cubren igual que a
   WebSocket.
+- **Cómo quedó**: el compilador señaló cada punto de registro, como estaba
+  previsto. Dos decisiones que el plan no fijaba:
+  - **No hubo paso de migración.** Añadir un miembro a la unión es aditivo: un
+    documento v1 sólo contiene conexiones `websocket` y sigue validando. La
+    cadena de migración se estrena cuando cambie una forma existente, no cuando
+    aparezca una nueva.
+  - **La reconexión es la de Socket.IO**, configurada desde la misma
+    `RetryPolicy` que el socket nativo agenda a mano. Un segundo backoff propio
+    habría sido una implementación de más para un solo ajuste.
+  - El cuerpo del mensaje declara cómo se convierte en argumento (`json`,
+    `text` o `binary`) en vez de dejarlo a un `JSON.parse` especulativo del
+    proceso principal.
 
 ---
 
