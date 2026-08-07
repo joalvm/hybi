@@ -21,14 +21,6 @@
     "dropped": "Disconnected",
     "error": "Error"
   },
-  "traffic": {
-    "incoming": "Received",
-    "outgoing": "Sent",
-    "summary": {
-      "one": "{side}: {messages} message, {bytes}",
-      "other": "{side}: {messages} messages, {bytes}"
-    }
-  },
   "suggestions": {
     "label": "Environment variables",
     "secret": "secret",

@@ -21,14 +21,6 @@
     "dropped": "Desconectado",
     "error": "Error"
   },
-  "traffic": {
-    "incoming": "Recibido",
-    "outgoing": "Enviado",
-    "summary": {
-      "one": "{side}: {messages} mensaje, {bytes}",
-      "other": "{side}: {messages} mensajes, {bytes}"
-    }
-  },
   "suggestions": {
     "label": "Variables de entorno",
     "secret": "secreto",

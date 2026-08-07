@@ -149,45 +149,14 @@ describe('ConnectionBar', () => {
     });
   });
 
-  // The counter answers for the whole session, so it is read from the running
-  // totals and not from the records the log still happens to be holding.
-  it('reports what the connection has moved, in both directions', () => {
+  // The traffic figures moved to the activity panel's own strip, which is the
+  // panel they describe. Covered in `activity.test.tsx`.
+  it('leaves the traffic figures to the activity panel', () => {
     loadWorkspace('ws://127.0.0.1:3000', null);
     render(<ConnectionBar connectionId="c1" />);
 
-    expect(screen.getByLabelText('Received: 0 messages, 0 B')).toBeTruthy();
-
-    act(() => {
-      useStore.getState().appendActivity([
-        {
-          id: 'c1:1',
-          connectionId: 'c1',
-          transportKind: 'websocket',
-          sequence: 1,
-          kind: 'incoming',
-          at: 0,
-          label: 'Pong',
-          body: 'x',
-          encoding: 'text',
-          bytes: 2400,
-        },
-        {
-          id: 'c1:2',
-          connectionId: 'c1',
-          transportKind: 'websocket',
-          sequence: 2,
-          kind: 'outgoing',
-          at: 1,
-          label: 'Ping',
-          body: 'x',
-          encoding: 'text',
-          bytes: 12,
-        },
-      ]);
-    });
-
-    expect(screen.getByLabelText('Received: 1 message, 2,4 kB')).toBeTruthy();
-    expect(screen.getByLabelText('Sent: 1 message, 12 B')).toBeTruthy();
+    expect(screen.queryByLabelText(/^Received:/)).toBeNull();
+    expect(screen.queryByLabelText(/^Sent:/)).toBeNull();
   });
 
   it('refuses to open while a variable is unresolved', () => {

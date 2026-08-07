@@ -96,6 +96,8 @@ describe('runtime slice', () => {
     expect(useStore.getState().activity.c1).toHaveLength(1);
   });
 
+  // `records` answers for the panel and the two sides answer for the wire, so a
+  // status line raises the first and leaves the other two alone.
   it('counts messages and bytes by direction, ignoring what is not traffic', () => {
     useStore.getState().appendActivity([
       activityRecord({ id: 'c1:1', kind: 'incoming', bytes: 10 }),
@@ -105,8 +107,24 @@ describe('runtime slice', () => {
     ]);
 
     expect(selectTotalsFor('c1')(useStore.getState())).toEqual({
+      records: 4,
       incoming: { messages: 2, bytes: 16 },
       outgoing: { messages: 1, bytes: 4 },
+    });
+  });
+
+  // A batch of nothing but status lines still moves the record count, so the
+  // reference has to change even when neither side did.
+  it('counts a batch that moved no traffic at all', () => {
+    useStore.getState().appendActivity([
+      activityRecord({ id: 'c1:1', kind: 'status', bytes: 0 }),
+      activityRecord({ id: 'c1:2', kind: 'error', bytes: 0 }),
+    ]);
+
+    expect(selectTotalsFor('c1')(useStore.getState())).toEqual({
+      records: 2,
+      incoming: { messages: 0, bytes: 0 },
+      outgoing: { messages: 0, bytes: 0 },
     });
   });
 
@@ -122,6 +140,7 @@ describe('runtime slice', () => {
 
     expect(useStore.getState().activity.c1?.length).toBeLessThan(40);
     expect(selectTotalsFor('c1')(useStore.getState())).toEqual({
+      records: 40,
       incoming: { messages: 40, bytes: 40 * oneMegabyte },
       outgoing: { messages: 0, bytes: 0 },
     });
@@ -131,6 +150,7 @@ describe('runtime slice', () => {
     useStore.getState().appendActivity([activityRecord({ id: 'c1:1', bytes: 10 })]);
     useStore.getState().clearActivity('c1');
     expect(selectTotalsFor('c1')(useStore.getState())).toEqual({
+      records: 0,
       incoming: { messages: 0, bytes: 0 },
       outgoing: { messages: 0, bytes: 0 },
     });

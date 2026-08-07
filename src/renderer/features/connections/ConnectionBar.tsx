@@ -1,5 +1,5 @@
 import { useShallow } from 'zustand/react/shallow';
-import { selectScopeFor, selectTotalsFor } from '@/store/selectors.js';
+import { selectScopeFor } from '@/store/selectors.js';
 import { useStore } from '@/store/index.js';
 import { TransportBar } from './TransportBar.js';
 
@@ -14,9 +14,6 @@ export function ConnectionBar({ connectionId }: Props) {
   // identity between renders and `resolution` is not recomputed for nothing.
   const scope = useStore(useShallow(selectScopeFor(connectionId)));
   const state = useStore((store) => store.states[connectionId] ?? 'idle');
-  // A stable reference while nothing moves, so a flood of status lines does not
-  // repaint the bar.
-  const totals = useStore(selectTotalsFor(connectionId));
   const upsertConnection = useStore((store) => store.upsertConnection);
   const setConnectionState = useStore((store) => store.setConnectionState);
   const appendLocalError = useStore((store) => store.appendLocalError);
@@ -30,7 +27,6 @@ export function ConnectionBar({ connectionId }: Props) {
       transport={connection.transport}
       scope={scope}
       state={state}
-      totals={totals}
       onTransportChange={(transport) => {
         upsertConnection({ ...connection, transport });
       }}
