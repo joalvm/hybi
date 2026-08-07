@@ -47,7 +47,11 @@ tests/          main/, renderer/, shared/ (Vitest) y e2e/ (Playwright)
 
 ## Reglas de arquitectura
 
-- **Ningún archivo pasa de 150 líneas.** Si crece, se parte.
+- **Ningún archivo de `src/` pasa de 225 líneas de código**, sin contar
+  comentarios ni blancos. Si crece, se parte. No hace falta contarlas a mano: lo
+  comprueba `max-lines` en `eslint.config.js`. `tests/` queda fuera a propósito,
+  porque una suite crece por acumulación de casos y partirla sólo dispersa lo
+  que se lee junto.
 - Un componente por archivo. Solo el componente raíz de cada *feature* habla con
   el store; los hijos reciben props.
 - Nada de `useEffect` para derivar estado: se deriva en render o con un selector.
@@ -99,7 +103,9 @@ aplica.
    proceso main).
 6. Revisa tu propio diff: secretos fuera del disco, esquemas de URL restringidos,
    timers y listeners con su limpieza.
-7. Abre el PR contra `main` y completa la plantilla.
+7. Si el cambio se nota desde la aplicación, añade su línea a
+   [`CHANGELOG.md`](CHANGELOG.md) bajo `Unreleased`, en este mismo PR.
+8. Abre el PR contra `main` y completa la plantilla.
 
 ### Commits y títulos de PR
 
@@ -129,7 +135,8 @@ comprobaciones en verde y las conversaciones resueltas.
 
 Solo el mantenedor publica. El proceso es:
 
-1. Subir la versión en `package.json`.
+1. Subir la versión en `package.json` y cerrar la sección `Unreleased` de
+   `CHANGELOG.md` bajo el número que se publica.
 2. Etiquetar con `vX.Y.Z`; la etiqueta debe coincidir con esa versión o la CI
    falla.
 3. El flujo de release compila los tres sistemas, firma cuando hay credenciales

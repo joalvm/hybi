@@ -35,9 +35,14 @@ revisión. `S` = 0,5–1 día. `M` = 2–4 días. `L` = 5–10 días. Total apro
 | 9 | Diagnóstico: errores legibles y log en disco | M | Datos | hecho |
 | 10 | Frames binarios: ver y enviar | L | Protocolo | hecho |
 | 11 | Socket.IO | L | Protocolo | hecho |
-| 12 | `CHANGELOG.md` | S | Higiene | pendiente |
-| 13 | Deuda del repositorio | S | Higiene | pendiente |
-| 14 | Umbral de cobertura, carga y accesibilidad | M | Higiene | pendiente |
+| 12 | `CHANGELOG.md` | S | Higiene | hecho |
+| 13 | Deuda del repositorio | S | Higiene | hecho |
+
+El punto 14 —umbral de cobertura, prueba de carga y repaso de accesibilidad—
+salió de esta lista y pasó al [camino a la 1.0](ROADMAP.md#4-camino-a-la-10-primera-release-oficial).
+Un umbral protege una superficie que ya no se mueve; la beta existe justamente
+para que se mueva. Fijar el número ahora sólo garantiza discutirlo en cada PR de
+la beta.
 
 ---
 
@@ -239,28 +244,30 @@ Lo caro. Aquí se ensancha lo que la aplicación entiende. **Cerrada.**
 ## Fase 4 — Higiene de release
 
 No aporta funciones. Es lo que separa publicar una beta de publicar un binario.
+**Cerrada.**
 
-### 12. `CHANGELOG.md` — `S`
+### 12. `CHANGELOG.md` — `S` · hecho
 
 Formato Keep a Changelog, alimentado por los títulos de los PR, que ya son
-Conventional Commits. Se puede empezar en cualquier momento; cuanto antes,
-menos historia hay que reconstruir.
+Conventional Commits.
 
-### 13. Deuda del repositorio — `S`
+**Cómo quedó**: la historia se reconstruyó desde los PR fusionados, agrupada por
+la versión que los publicó. Las alphas quedan como quedaron —no se reescriben a
+posteriori—; lo que se añade a partir de aquí va bajo `Unreleased` en el mismo
+PR que lo introduce, que es la única forma de que el archivo no vuelva a ser un
+ejercicio de arqueología.
 
-Los tres archivos que rompen la regla de 150 líneas del propio repo
-—`useCatalogActions.ts` (221), `asyncapi/importer.ts` (186),
-`CatalogPanel.tsx` (157)—: o se parten o se cambia la regla, pero no se quedan
-donde están.
+### 13. Deuda del repositorio — `S` · hecho
 
-### 14. Umbral de cobertura, carga y accesibilidad — `M`
+Los archivos que rompían la regla de 150 líneas del propio repo. La disyuntiva
+era partirlos o cambiar la regla.
 
-- Cobertura medida con umbral en CI: hay 406 pruebas y ningún número que impida
-  que bajen.
-- Prueba de carga con 10 000 msg/s sostenidos, con el resultado escrito:
-  memoria estable, interfaz sin bloquear, presupuesto del log respetado.
-- Repaso de accesibilidad de teclado en diálogos, popovers y recorrido de foco.
-  El árbol del catálogo ya está; falta el resto.
+**Cómo quedó**: se cambió la regla, a 225 líneas de código —sin comentarios ni
+blancos—, y dejó de ser prosa: `max-lines` en `eslint.config.js` la comprueba
+sobre `src/`. Partir `useCatalogActions.ts` o `importer.ts` habría producido
+mitades que sólo se entienden leyendo la otra; el problema no era su tamaño sino
+que un número escrito en un documento no lo hace cumplir nadie. `tests/` queda
+exento a propósito: una suite crece por acumulación de casos.
 
 ---
 
