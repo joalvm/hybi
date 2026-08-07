@@ -1,8 +1,7 @@
-/** One WebSocket handshake header. Secret values stay in referenced variables. */
-export type ConnectionHeader = { name: string; value: string; enabled: boolean };
+import type { ConnectionHeader, RetryPolicy } from './policies.js';
 
-/** Reconnection after a peer drops a connection that had reached `open`. */
-export type RetryPolicy = { enabled: boolean; attempts: number; baseMs: number; maxMs: number };
+/** Re-exported from where they now live, so existing imports keep working. */
+export type { ConnectionHeader, RetryPolicy } from './policies.js';
 
 /** Native WebSocket ping/pong liveness policy. */
 export type KeepalivePolicy = { enabled: boolean; intervalMs: number; timeoutMs: number };
