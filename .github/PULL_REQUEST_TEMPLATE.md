@@ -15,7 +15,8 @@ Cierra #
 
 - [ ] El título del PR sigue Conventional Commits (`feat:`, `fix:`, `docs:`…).
 - [ ] Hay una prueba que falla sin este cambio.
-- [ ] Ningún archivo pasa de 150 líneas.
+- [ ] Ningún archivo de `src/` pasa de 225 líneas de código (lo comprueba `max-lines`).
+- [ ] `CHANGELOG.md` tiene su línea bajo `Unreleased`, si el cambio se nota desde la app.
 - [ ] El cambio no acopla la aplicación a ningún servidor o producto concreto.
 - [ ] Los secretos siguen fuera del disco y solo llegan URLs `ws:`/`wss:` al socket.
 
