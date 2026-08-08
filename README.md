@@ -11,9 +11,9 @@
 </p>
 
 > [!IMPORTANT]
-> **Hybi está en fase alpha.** Ya se puede usar y hace lo que promete, pero
-> sigue en construcción: faltan funciones, algunas cosas cambiarán de sitio y
-> pueden aparecer fallos. Pruébalo y cuenta lo que encuentres.
+> **Hybi está en fase beta.** Ya se puede usar y hace lo que promete, y el
+> formato de los archivos guardados quedó congelado. Todavía quedan funciones
+> por llegar y pueden aparecer fallos. Pruébalo y cuenta lo que encuentres.
 
 ---
 
@@ -100,7 +100,7 @@ Las claves y contraseñas que marques como secretas nunca se escriben en el disc
 
 Descarga la última versión desde la
 [página de releases](https://github.com/joalvm/hybi/releases). Mientras dure la
-alpha se marcan como versiones de prueba (*pre-release*).
+beta se marcan como versiones de prueba (*pre-release*).
 
 | Sistema | Archivo |
 | --- | --- |
@@ -130,7 +130,7 @@ que se publicó: mientras no haya firma, esa es la verificación que cuenta.
 
 ## Estado del proyecto
 
-Hybi está en **alpha**. Lo que ya está hecho funciona y se usa a diario: abrir la
+Hybi está en **beta**. Lo que ya está hecho funciona y se usa a diario: abrir la
 conexión, ver la conversación, enviar mensajes, el catálogo, la importación de
 AsyncAPI, los entornos y los espacios de trabajo.
 
@@ -138,10 +138,9 @@ Lo que eso implica mientras dure esta fase:
 
 - Siguen entrando funciones nuevas, así que la interfaz puede moverse de una
   versión a otra.
-- El formato de los archivos guardados puede cambiar. Hybi ya guarda una copia
-  del archivo original antes de convertirlo, y se niega a tocar uno escrito por
-  una versión posterior en vez de reinterpretarlo; aun así, mientras dure la
-  alpha conviene no confiarle todavía trabajo irrecuperable.
+- El formato de los archivos guardados quedó congelado en el v1. Si alguna vez
+  cambia, Hybi guarda una copia del archivo original antes de convertirlo, y se
+  niega a tocar uno escrito por una versión posterior en vez de reinterpretarlo.
 - Los fallos son esperables. Reportarlos es la mejor forma de ayudar.
 
 ## Lo que viene

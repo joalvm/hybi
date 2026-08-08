@@ -1,7 +1,7 @@
 # Roadmap de Hybi
 
-Estado del documento: auditoría del 4 de agosto de 2026, sobre `pre-release`
-(`66b1c5a`, `v0.3.0-alpha.5`).
+Estado del documento: auditoría del 4 de agosto de 2026, cerrada sobre `main`
+(`de3dfd6`) al publicar la `v0.4.0-beta.1`.
 
 Este archivo tiene tres partes: dónde está el producto hoy, qué falta para
 **beta** y qué falta para la **1.0**. Cada punto lleva casilla; marcada
@@ -11,13 +11,13 @@ significa hecho y verificado, no hecho a medias.
 
 ## 1. Dónde está hoy
 
-**Métrica cruda.** 15 676 líneas en `src/`, 7 593 en `tests/`, 60 archivos de
-prueba con 406 casos en verde, 9 pruebas E2E reales sobre la app empaquetada.
+**Métrica cruda.** 16 622 líneas en `src/`, 9 047 en `tests/`, 56 archivos de
+prueba con 484 casos en verde, 9 pruebas E2E reales sobre la app empaquetada.
 CI en Linux, Windows y macOS, más CodeQL, Dependency review y Dependabot.
 Release automatizado por tag, con checksums SHA-256 y firma condicionada a que
 existan los secretos.
 
-**Veredicto de ingeniería: por encima de lo que la etiqueta *alpha* sugiere.**
+**Veredicto de ingeniería: llega a la beta con margen.**
 La arquitectura de procesos, la política de seguridad, la persistencia de
 documentos y el presupuesto de memoria del log están resueltos a nivel de
 producto maduro. El riesgo del proyecto **no es técnico**; es de alcance,
@@ -58,9 +58,10 @@ distribución y mercado. Eso es lo que ordena las dos listas de abajo.
 - [x] **`ThemeToggle` está marcado `data-temporary="true"` y en producción.** Un
       control de QA no debe viajar en un instalador. Retirado: el tema es una
       preferencia persistida y se cambia desde el diálogo de preferencias.
-- [ ] **Un workspace corrupto desaparece en silencio.** `summarize()` devuelve
-      `null` y el archivo deja de aparecer sin decir nada. El usuario cree que
-      perdió el trabajo.
+- [x] **Un workspace corrupto desaparecía en silencio.** `summarize()` devolvía
+      `null` y el archivo dejaba de aparecer sin decir nada. Ahora la fila se
+      queda, dice que el archivo no se puede leer y ofrece descartarlo: sale de
+      la lista cuando el disco confirma que salió, no antes.
 - [x] **Índice de Codebase Memory duplicado otra vez.** El proyecto derivado de
       la ruta, `C-Users-joalv-Documents-invian-websocket-workbench`, quedó
       borrado; el único índice vivo es `websocket-workbench`.
@@ -298,7 +299,7 @@ habitual.**
 
 | Frente | Estado | Riesgo |
 | --- | --- | --- |
-| Ingeniería y seguridad | Sólido, por encima de la etiqueta alpha | Bajo |
+| Ingeniería y seguridad | Sólido, con margen sobre lo que pide la beta | Bajo |
 | Alcance funcional | Binario y Socket.IO cerrados | Bajo |
 | Distribución | Sin firmar: la mayor pérdida de usuarios | **Crítico** |
 | Alcance de mercado | Inglés y español, inglés por omisión | Bajo |

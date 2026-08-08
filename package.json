@@ -1,6 +1,6 @@
 {
   "name": "hybi",
-  "version": "0.3.0-alpha.8",
+  "version": "0.4.0-beta.1",
   "private": true,
   "type": "module",
   "description": "A real-time API client focused on asynchronous communication, especially WebSockets.",

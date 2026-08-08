@@ -221,7 +221,7 @@ jobs:
           cat SHA256SUMS-*.txt | tr -d '\r' | sort -k2 > SHA256SUMS.txt
           rm SHA256SUMS-*.txt
           cat SHA256SUMS.txt
-      # La nota conserva solo el aviso alpha, cambios y contributors generados
+      # La nota conserva solo el aviso de fase, cambios y contributors generados
       # por GitHub, más el estado de firma y las huellas de los assets.
       - name: Compose the release notes
         env:
@@ -256,8 +256,8 @@ jobs:
             '
           } > release-notes.md
           cat release-notes.md
-      # Una etiqueta con sufijo (v0.3.0-alpha.1) es una versión de prueba y se
-      # publica sola: durante la alpha lo que importa es que la gente pueda
+      # Una etiqueta con sufijo (v0.4.0-beta.1) es una versión de prueba y se
+      # publica sola: antes de la 1.0 lo que importa es que la gente pueda
       # descargarla. Una etiqueta estable nace en borrador y la revisa alguien.
       - name: Create the release
         env:
