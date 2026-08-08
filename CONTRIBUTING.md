@@ -135,13 +135,16 @@ comprobaciones en verde y las conversaciones resueltas.
 
 Solo el mantenedor publica. El proceso es:
 
-1. Subir la versión en `package.json` y cerrar la sección `Unreleased` de
-   `CHANGELOG.md` bajo el número que se publica.
+1. Subir la versión en `package.json` —y en `package-lock.json`, que la repite
+   dos veces— y cerrar la sección `Unreleased` de `CHANGELOG.md` bajo el número
+   que se publica.
 2. Etiquetar con `vX.Y.Z`; la etiqueta debe coincidir con esa versión o la CI
    falla.
 3. El flujo de release compila los tres sistemas, firma cuando hay credenciales
-   configuradas, genera `SHA256SUMS.txt` y crea el release **en borrador**.
-4. El mantenedor revisa los artefactos y publica.
+   configuradas y genera `SHA256SUMS.txt`.
+4. Una etiqueta con sufijo (`v0.4.0-beta.1`) se publica sola, marcada como
+   versión de prueba. Una etiqueta estable nace **en borrador**: el mantenedor
+   revisa los artefactos y publica.
 
 Nunca se guardan certificados ni claves en el repositorio: viven como secretos
 del repositorio en GitHub.

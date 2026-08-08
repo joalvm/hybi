@@ -12,6 +12,8 @@ changelog que se redacta al final es arqueología, no documentación.
 
 ## [Unreleased]
 
+## [0.4.0-beta.1] — 2026-08-07
+
 ### Añadido
 
 - Selector de transporte en la barra de la URL, con el logo del protocolo y su
@@ -126,7 +128,8 @@ múltiples.
 - Las pruebas en Linux y macOS dejan de ser inestables en CI.
 - Argumentos sobrantes en las slices del store.
 
-[Unreleased]: https://github.com/joalvm/hybi/compare/v0.3.0-alpha.8...HEAD
+[Unreleased]: https://github.com/joalvm/hybi/compare/v0.4.0-beta.1...HEAD
+[0.4.0-beta.1]: https://github.com/joalvm/hybi/compare/v0.3.0-alpha.8...v0.4.0-beta.1
 [0.3.0-alpha.8]: https://github.com/joalvm/hybi/compare/v0.3.0-alpha.7...v0.3.0-alpha.8
 [0.3.0-alpha.7]: https://github.com/joalvm/hybi/compare/v0.3.0-alpha.6...v0.3.0-alpha.7
 [0.3.0-alpha.6]: https://github.com/joalvm/hybi/compare/v0.3.0-alpha.5...v0.3.0-alpha.6
